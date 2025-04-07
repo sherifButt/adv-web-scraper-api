@@ -97,6 +97,8 @@ export interface NavigationRequest {
   options?: NavigationOptions;
 }
 
+import { FieldConfig } from './extraction.types.js';
+
 export interface NavigationStep {
   type: 'goto' | 'click' | 'input' | 'select' | 'wait' | 'extract' | 'condition' | 'paginate';
   selector?: string;
@@ -105,7 +107,7 @@ export interface NavigationStep {
   timeout?: number;
   humanInput?: boolean;
   name?: string;
-  fields?: Record<string, SelectorDefinition>;
+  fields?: FieldConfig;
   condition?: string;
   thenSteps?: NavigationStep[];
   elseSteps?: NavigationStep[];
