@@ -90,7 +90,7 @@
                       "price": {
                           "selector": "[class*=\"PropertyPrice_price\"], .propertyCard-priceValue, .propertyCard-price",
                           "type": "css",
-                          "regex": "(?:£|\\b)([0-9,]+)\\b",
+                          "pattern": "(?:£|\\b)([0-9,]+)\\b",
                           "dataType": "number",
                           "transform": "value.replace(/,/g, '')",
                           "continueOnError": true
