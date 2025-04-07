@@ -373,8 +373,21 @@ export class NavigationEngine {
         logger.warn(`Failed to extract list:`, error);
         this.context[name] = [];
       }
+    } else if (step.source === 'html') {
+      // Extract HTML content
+      try {
+        const value = await this.page.$eval(
+          selector,
+          el => el.innerHTML
+        );
+        
+        this.context[name] = value;
+      } catch (error) {
+        logger.warn(`Failed to extract HTML:`, error);
+        this.context[name] = null;
+      }
     } else {
-      // Extract a single value
+      // Extract a single text value
       try {
         const value = await this.page.$eval(
           selector,

@@ -1,0 +1,123 @@
+{
+  "startUrl": "https://www.rightmove.co.uk/property-for-sale.html",
+  "steps": [
+    {
+      "type": "wait",
+      "value": 1000,
+      "description": "Wait for dynamic content to load"
+    },
+    {
+      "type": "condition",
+      "condition": "#onetrust-accept-btn-handler",
+      "description": "Check if consent dialog appears",
+      "thenSteps": [
+        {
+          "type": "click",
+          "selector": "#onetrust-accept-btn-handler",
+          "description": "Click the consent button to dismiss the cookie dialog",
+          "waitFor": 1000
+        }
+      ]
+    },
+    {
+      "type": "input",
+      "selector": "#ta_searchInput",
+      "value": "CF40 2RS",
+      "description": "Enter postcode in the location search field",
+      "clearInput": true,
+      "humanInput": true
+    },
+    {
+      "type": "click",
+      "selector": "button[data-testid='forSaleCta']",
+      "description": "Click the 'For Sale' button"
+    },
+    {
+      "type": "wait",
+      "value": 2000,
+      "description": "Wait for 5 seconds"
+    },
+    {
+      "type": "select",
+      "selector": "#radius",
+      "value": "0.25",
+      "description": "Set search radius to within 1/4 mile"
+    },
+    {
+      "type": "select",
+      "selector": "#propertyTypes",
+      "value": "house",
+      "description": "Select property type based on variable"
+    },
+    {
+      "type": "click",
+      "selector": ".dsrm_button.dsrm_button--light.dsrm_primary.dsrm_core.dsrm_width_content",
+      "description": "Click the 'Search properties' button"
+    },
+    {
+      "type": "wait",
+      "value": 3000,
+      "description": "Wait for 3 seconds for results to fully load"
+    },
+    {
+      "type": "extract",
+      "name": "lists",
+      "selector": "#l-searchResults",
+      "description": "Extract the page title",
+      "source":"html"
+    },
+    {
+      "type": "extract",
+      "name": "propertyResults",
+      "selector": "#l-searchResults",
+      "description": "Extract property search results",
+      "fields": {
+        "properties": {
+          "selector": ".propertyCard-link",
+          "type": "css",
+          "multiple": true,
+          "fields": {
+            "address": {
+              "selector": "address",
+              "type": "css"
+            },
+            "price": {
+              "selector": ".PropertyPrice_price__VL65t",
+              "type": "css"
+            },
+            "description": {
+              "selector": "#property-description",
+              "type": "css"
+            },
+            "agentName": {
+              "selector": ".PropertyCard_propertyCardAgent__1-u1P span",
+              "type": "css"
+            },
+            "propertyImage": {
+              "selector": ".PropertyCard_propertyCardImage__GePiE img",
+              "type": "css",
+              "attribute": "src"
+            },
+            "propertyUrl": {
+              "selector": "a.PropertyCard_propertyCardLink__fWAlL",
+              "type": "css",
+              "attribute": "href"
+            }
+          }
+        },
+        "pagination": {
+          "selector": ".Pagination_pagination__hj83W",
+          "type": "css"
+        }
+      }
+    }
+  ],
+  "options": {
+    "timeout": 30000,
+    "waitForSelector": ".ResultsList_resultsList__NiUEu",
+    "javascript": true,
+    "screenshots": false,
+    "screenshotsPath": "./screenshots",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+  }
+}

@@ -42,6 +42,7 @@ export interface CssSelectorConfig extends BaseSelectorConfig {
   selector: string;
   attribute?: string; // If not provided, innerText is used
   multiple?: boolean; // If true, returns an array of matches
+  source?: 'html' | 'text'; // 'html' for innerHTML/outerHTML, 'text' for textContent (default)
 }
 
 /**

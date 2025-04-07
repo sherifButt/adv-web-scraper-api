@@ -44,9 +44,9 @@ export class CssSelectorStrategy implements SelectorStrategy {
 
       // Extract data based on whether we want multiple elements or a single one
       if (multiple) {
-        return this.extractMultiple(page, selector, attribute);
+        return this.extractMultiple(page, selector, attribute, cssConfig.source);
       } else {
-        return this.extractSingle(page, selector, attribute);
+        return this.extractSingle(page, selector, attribute, cssConfig.source);
       }
     } catch (error) {
       logger.error(`Error extracting data with CSS selector "${selector}": ${error}`);
@@ -64,13 +64,17 @@ export class CssSelectorStrategy implements SelectorStrategy {
   private async extractSingle(
     page: Page,
     selector: string,
-    attribute?: string
+    attribute?: string,
+    source?: 'html' | 'text'
   ): Promise<string | null> {
     if (attribute) {
       // Extract attribute value
       return page.$eval(selector, (el, attr) => el.getAttribute(attr), attribute);
+    } else if (source === 'html') {
+      // Extract HTML content
+      return page.$eval(selector, el => el.innerHTML);
     } else {
-      // Extract text content
+      // Default to text content
       return page.$eval(selector, el => el.textContent?.trim() || '');
     }
   }
@@ -85,7 +89,8 @@ export class CssSelectorStrategy implements SelectorStrategy {
   private async extractMultiple(
     page: Page,
     selector: string,
-    attribute?: string
+    attribute?: string,
+    source?: 'html' | 'text'
   ): Promise<string[]> {
     if (attribute) {
       // Extract attribute values
@@ -96,8 +101,13 @@ export class CssSelectorStrategy implements SelectorStrategy {
         },
         attribute
       );
+    } else if (source === 'html') {
+      // Extract HTML contents
+      return page.$$eval(selector, elements => {
+        return elements.map(el => el.innerHTML);
+      });
     } else {
-      // Extract text contents
+      // Default to text contents
       return page.$$eval(selector, elements => {
         return elements.map(el => el.textContent?.trim() || '');
       });

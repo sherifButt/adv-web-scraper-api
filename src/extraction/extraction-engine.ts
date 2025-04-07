@@ -303,11 +303,14 @@ export class ExtractionEngine {
                     const subElements = element.querySelectorAll((fieldConfig as any).selector);
                     if ((fieldConfig as any).multiple) {
                       result[fieldName] = Array.from(subElements).map(el => {
-                        if ((fieldConfig as any).attribute) {
-                          return el.getAttribute((fieldConfig as any).attribute) || '';
-                        } else {
-                          return el.textContent?.trim() || '';
-                        }
+                    if ((fieldConfig as any).attribute) {
+                      return el.getAttribute((fieldConfig as any).attribute) || '';
+                    } else if ((fieldConfig as any).source === 'html') {
+                      // Preserve HTML structure by wrapping in CDATA
+                      return `<![CDATA[\n${el.innerHTML}\n]]>`;
+                    } else {
+                      return el.textContent?.trim() || '';
+                    }
                       });
                     } else if (subElements.length > 0) {
                       if ((fieldConfig as any).attribute) {
