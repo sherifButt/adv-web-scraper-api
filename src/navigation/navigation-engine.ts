@@ -342,22 +342,46 @@ export class NavigationEngine {
 
             if (fieldDef.type === 'css') {
               if (fieldDef.multiple) {
-                // Extract multiple items
-                const attr =
-                  fieldDef.type === 'css' && 'attribute' in fieldDef ? fieldDef.attribute : null;
-                result[fieldName] = await this.page.$$eval(
-                  fieldSelector,
-                  (elements, attr) => {
-                    return elements.map(el => {
-                      if (attr) {
-                        return el.getAttribute(attr) || '';
-                      } else {
-                        return el.textContent?.trim() || '';
-                      }
-                    });
-                  },
-                  attr
-                );
+                // Extract multiple items with nested fields
+                if (typeof fieldDef === 'object' && 'fields' in fieldDef) {
+                  result[fieldName] = await this.page.$$eval(
+                    fieldSelector,
+                    (elements: Element[], fields: Record<string, any>) => {
+                      return elements.map(el => {
+                        const item: Record<string, string | null> = {};
+                        for (const [subFieldName, subFieldDef] of Object.entries(fields)) {
+                          if (typeof subFieldDef === 'object' && 'selector' in subFieldDef) {
+                            const subEl = el.querySelector(subFieldDef.selector);
+                            item[subFieldName] = subEl
+                              ? 'attribute' in subFieldDef
+                                ? subEl.getAttribute(subFieldDef.attribute as string) || ''
+                                : subEl.textContent?.trim() || ''
+                              : null;
+                          }
+                        }
+                        return item;
+                      });
+                    },
+                    fieldDef.fields
+                  );
+                } else {
+                  // Simple multiple items case
+                  const attr =
+                    fieldDef.type === 'css' && 'attribute' in fieldDef ? fieldDef.attribute : null;
+                  result[fieldName] = await this.page.$$eval(
+                    fieldSelector,
+                    (elements, attr) => {
+                      return elements.map(el => {
+                        if (attr) {
+                          return el.getAttribute(attr) || '';
+                        } else {
+                          return el.textContent?.trim() || '';
+                        }
+                      });
+                    },
+                    attr
+                  );
+                }
               } else {
                 // Extract single item
                 if (fieldDef.type === 'css' && 'attribute' in fieldDef) {
