@@ -859,6 +859,45 @@ const results = await storageService.list({ limit: 10, offset: 0 });
 const deleted = await storageService.delete(id);
 ```
 
+### Session Manager Module
+
+- Created a new SessionManager class that handles storing and retrieving browser sessions
+- Implemented methods for saving, retrieving, and applying sessions
+- Added session expiration and cleanup mechanisms
+- Integrated with the existing storage system for persistence
+
+### CAPTCHA Solver Integration
+
+- Updated the CaptchaSolver to check for existing sessions before attempting to solve CAPTCHAs
+- Added functionality to save sessions after successfully solving CAPTCHAs
+- Implemented a method to mark sessions as having solved CAPTCHAs
+
+### Navigation Engine Integration
+
+- Modified the NavigationEngine to apply existing sessions before navigation
+- Added options to control session usage in navigation flows
+- Implemented automatic session saving after successful navigation
+
+### API Endpoints for Session Management
+
+- Created new API routes for managing sessions
+- Implemented endpoints to list, delete, and clear sessions
+- Added proper error handling and validation
+
+### Configuration Options
+
+- Updated the configuration system to include session-related settings
+- Added environment variables for controlling session behavior
+- Implemented session TTL (time-to-live) configuration
+
+This implementation provides several benefits:
+
+- Significantly reduces the need for CAPTCHA solving when repeatedly scraping the same website
+- Preserves cookies and localStorage data between scraping sessions
+- Provides a clean API for managing sessions
+- Integrates seamlessly with the existing architecture
+- Follows the established patterns and practices of the project
+
 For more details, see the [Storage Module Documentation](docs/storage/README.md).
 
 ## Current Limitations

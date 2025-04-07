@@ -3,22 +3,28 @@ import { asyncHandler } from '../middleware/error.middleware.js';
 import { BrowserPool } from '../../core/browser/browser-pool.js';
 import { ProxyManager } from '../../core/proxy/proxy-manager.js';
 import { NavigationEngine } from '../../navigation/navigation-engine.js';
+import { SessionManager } from '../../core/session/session-manager.js';
 import { StorageService } from '../../storage/index.js';
 import { logger } from '../../utils/logger.js';
 import { NavigationRequest, NavigationResult } from '../../types/index.js';
+import { config } from '../../config/index.js';
 
 const router = Router();
 const browserPool = BrowserPool.getInstance();
 const proxyManager = ProxyManager.getInstance();
+const sessionManager = SessionManager.getInstance();
 const storageService = StorageService.getInstance();
 
-// Initialize storage service
+// Initialize services
 (async () => {
   try {
     await storageService.initialize();
     logger.info('Storage service initialized for navigation routes');
+    
+    await sessionManager.initialize();
+    logger.info('Session manager initialized for navigation routes');
   } catch (error: any) {
-    logger.error(`Error initializing storage service: ${error.message}`);
+    logger.error(`Error initializing services: ${error.message}`);
   }
 })();
 
@@ -88,6 +94,8 @@ router.post(
         maxTime: options?.maxTime,
         screenshots: options?.screenshots,
         screenshotsPath: options?.screenshotsPath,
+        useSession: options?.useSession !== false && config.browser.session?.enabled,
+        alwaysCheckCaptcha: options?.alwaysCheckCaptcha,
       });
 
       // Execute the navigation flow
@@ -232,6 +240,8 @@ router.post(
             humanEmulation: options?.humanEmulation,
             screenshots: options?.screenshots,
             screenshotsPath: options?.screenshotsPath,
+            useSession: options?.useSession !== false && config.browser.session?.enabled,
+            alwaysCheckCaptcha: options?.alwaysCheckCaptcha,
           });
 
           // Update status to processing

@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: web-scraper-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      - HOST=0.0.0.0
+      - MONGODB_URI=mongodb://mongodb:27017/web-scraper
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - BROWSER_POOL_MIN=${BROWSER_POOL_MIN:-1}
+      - BROWSER_POOL_MAX=${BROWSER_POOL_MAX:-5}
+      - BROWSER_IDLE_TIMEOUT=${BROWSER_IDLE_TIMEOUT:-30000}
+      - SESSION_ENABLED=${SESSION_ENABLED:-true}
+      - SESSION_TTL=${SESSION_TTL:-86400000}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+      - TWOCAPTCHA_API_KEY=${TWOCAPTCHA_API_KEY:-}
+      - ANTICAPTCHA_API_KEY=${ANTICAPTCHA_API_KEY:-}
+      - PROXY_API_URL=${PROXY_API_URL:-}
+      - PROXY_API_KEY=${PROXY_API_KEY:-}
+    volumes:
+      - ./logs:/usr/src/app/logs
+      - ./screenshots:/usr/src/app/screenshots
+      - ./browser-data:/usr/src/app/browser-data
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - scraper-network
+
+  mongodb:
+    image: mongo:6
+    container_name: web-scraper-mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=web-scraper
+    volumes:
+      - mongodb-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - scraper-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: web-scraper-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - scraper-network
+
+networks:
+  scraper-network:
+    driver: bridge
+
+volumes:
+  mongodb-data:
+  redis-data:

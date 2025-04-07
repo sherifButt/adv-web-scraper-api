@@ -3,6 +3,7 @@ import { scrapeRoutes } from './scrape.routes.js';
 import { captchaRoutes } from './captcha.routes.js';
 import { proxyRoutes } from './proxy.routes.js';
 import { navigationRoutes } from './navigation.routes.js';
+import { sessionRoutes } from './session.routes.js';
 
 // Create router
 const router = Router();
@@ -17,5 +18,6 @@ router.use('/scrape', scrapeRoutes);
 router.use('/captcha', captchaRoutes);
 router.use('/proxy', proxyRoutes);
 router.use('/navigate', navigationRoutes);
+router.use('/sessions', sessionRoutes);
 
 export const apiRoutes = router;

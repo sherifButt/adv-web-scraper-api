@@ -36,6 +36,10 @@ interface BrowserConfig {
       height: number;
     };
   };
+  session?: {
+    ttl: number; // Time to live in milliseconds
+    enabled: boolean;
+  };
 }
 
 interface CaptchaConfig {
@@ -119,6 +123,10 @@ export const config: Config = {
         width: 1920,
         height: 1080,
       },
+    },
+    session: {
+      ttl: parseInt(process.env.SESSION_TTL || '86400000', 10), // Default 24 hours
+      enabled: process.env.SESSION_ENABLED !== 'false',
     },
   },
   captcha: {

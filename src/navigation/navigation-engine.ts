@@ -1,9 +1,11 @@
-import { Page } from 'playwright';
+import { Page, BrowserContext } from 'playwright';
 import { logger } from '../utils/logger.js';
 import { CssSelectorConfig } from '../types/extraction.types.js';
 import { BehaviorEmulator } from '../core/human/behavior-emulator.js';
 import { CaptchaSolver } from '../core/captcha/captcha-solver.js';
+import { SessionManager } from '../core/session/session-manager.js';
 import { NavigationStep, NavigationOptions, NavigationResult } from '../types/index.js';
+import { config } from '../config/index.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -19,8 +21,10 @@ export interface NavigationContext {
  */
 export class NavigationEngine {
   private page: Page;
+  private browserContext?: BrowserContext;
   private behaviorEmulator: BehaviorEmulator;
   private captchaSolver: CaptchaSolver;
+  private sessionManager: SessionManager;
   private context: NavigationContext = {};
   private options: NavigationOptions;
   private screenshotsPath = './screenshots';
@@ -29,11 +33,13 @@ export class NavigationEngine {
   constructor(page: Page, options: NavigationOptions = {}) {
     this.page = page;
     this.options = options;
+    this.browserContext = page.context();
     this.behaviorEmulator = new BehaviorEmulator(
       page,
       typeof options.humanEmulation === 'boolean' ? undefined : options.humanEmulation
     );
     this.captchaSolver = new CaptchaSolver(page);
+    this.sessionManager = SessionManager.getInstance();
 
     if (options.screenshots) {
       this.screenshotsPath = options.screenshotsPath || './screenshots';
@@ -54,13 +60,35 @@ export class NavigationEngine {
     try {
       this.context = { ...initialContext };
 
+      // Check if we have a session for this domain
+      let sessionApplied = false;
+      if (this.options.useSession !== false && config.browser.session?.enabled && this.browserContext) {
+        try {
+          const session = await this.sessionManager.getSession(startUrl);
+          if (session) {
+            logger.info(`Found existing session for domain: ${session.domain}`);
+            
+            // Apply session before navigating
+            await this.sessionManager.applySession(this.browserContext, session);
+            sessionApplied = true;
+            logger.info('Applied existing session before navigation');
+          }
+        } catch (error) {
+          logger.warn(`Error applying session: ${error}`);
+          // Continue without session
+        }
+      }
+
       logger.info(`Navigating to start URL: ${startUrl}`);
       await this.page.goto(startUrl, {
         waitUntil: 'networkidle',
         timeout: this.options.timeout || 30000,
       });
 
-      await this.checkAndSolveCaptcha();
+      // Only check for CAPTCHAs if we didn't apply a session or if the session didn't have solved CAPTCHAs
+      if (!sessionApplied || this.options.alwaysCheckCaptcha) {
+        await this.checkAndSolveCaptcha();
+      }
 
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
@@ -525,9 +553,26 @@ export class NavigationEngine {
       const result = await this.captchaSolver.solve({
         useExternalService: true,
         timeout: 60000,
+        useSession: this.options.useSession !== false && config.browser.session?.enabled,
+        context: this.browserContext,
       });
       if (result.success) {
         logger.info('CAPTCHA solved successfully');
+        
+        // If we solved a CAPTCHA and we're using sessions, save the session
+        if (result.method !== 'session_reuse' && 
+            result.method !== 'none_required' && 
+            this.options.useSession !== false && 
+            config.browser.session?.enabled && 
+            this.browserContext) {
+          try {
+            const domain = new URL(this.page.url()).hostname;
+            await this.sessionManager.saveSession(this.browserContext, { domain });
+            logger.info(`Saved session after solving CAPTCHA for domain: ${domain}`);
+          } catch (error) {
+            logger.warn(`Failed to save session after solving CAPTCHA: ${error}`);
+          }
+        }
       } else if (result.error) {
         logger.warn(`CAPTCHA solving failed: ${result.error}`);
       }

@@ -1,0 +1,69 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build output
+dist
+build
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE and editor files
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+
+# Testing
+coverage
+jest.config.js
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+tmp
+temp
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+deploy.sh
+
+# Browser data
+browser-data
+
+# Screenshots
+screenshots
+
+# Proxy lists
+proxies.txt
+
+# CAPTCHA solving service credentials
+captcha-credentials.json
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Other
+.eslintrc.json
+.prettierrc
+.editorconfig

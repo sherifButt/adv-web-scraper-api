@@ -120,6 +120,8 @@ export interface NavigationOptions extends ScrapeOptions {
   maxTime?: number;
   screenshots?: boolean;
   screenshotsPath?: string;
+  useSession?: boolean;
+  alwaysCheckCaptcha?: boolean;
 }
 
 export interface NavigationResult {

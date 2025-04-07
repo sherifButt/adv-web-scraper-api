@@ -1,8 +1,9 @@
-import { Page } from 'playwright';
+import { Page, BrowserContext } from 'playwright';
 import { CaptchaDetector, CaptchaType } from './captcha-detector.js';
 import { logger } from '../../utils/logger.js';
 import { config } from '../../config/index.js';
 import { BehaviorEmulator } from '../human/behavior-emulator.js';
+import { SessionManager } from '../session/session-manager.js';
 
 /**
  * Result of a CAPTCHA solving attempt
@@ -23,6 +24,8 @@ export interface CaptchaSolveOptions {
   useExternalService?: boolean;
   service?: 'twocaptcha' | 'anticaptcha';
   humanEmulation?: boolean;
+  useSession?: boolean;
+  context?: BrowserContext;
 }
 
 /**
@@ -31,6 +34,7 @@ export interface CaptchaSolveOptions {
 export class CaptchaSolver {
   private page: Page;
   private behaviorEmulator: BehaviorEmulator;
+  private sessionManager: SessionManager;
   
   /**
    * Create a new CaptchaSolver
@@ -38,6 +42,7 @@ export class CaptchaSolver {
   constructor(page: Page) {
     this.page = page;
     this.behaviorEmulator = new BehaviorEmulator(page);
+    this.sessionManager = SessionManager.getInstance();
   }
   
   /**
@@ -45,8 +50,23 @@ export class CaptchaSolver {
    */
   public async solve(options: CaptchaSolveOptions = {}): Promise<CaptchaSolveResult> {
     const startTime = Date.now();
+    const url = this.page.url();
     
     try {
+      // Check if we have a session with solved CAPTCHAs for this domain
+      if (options.useSession !== false && config.browser.session?.enabled) {
+        const session = await this.sessionManager.getSession(url);
+        
+        if (session && session.captchaSolved) {
+          logger.info(`Using existing session with solved CAPTCHAs for ${session.domain}`);
+          return {
+            success: true,
+            method: 'session_reuse',
+            timeSpent: Date.now() - startTime,
+          };
+        }
+      }
+      
       // Detect CAPTCHA
       const detection = await CaptchaDetector.detect(this.page);
       
@@ -99,6 +119,18 @@ export class CaptchaSolver {
       // Race against timeout
       const result = await Promise.race([solvingPromise, timeoutPromise]);
       result.timeSpent = Date.now() - startTime;
+      
+      // If CAPTCHA was solved successfully, save the session
+      if (result.success && options.useSession !== false && config.browser.session?.enabled && options.context) {
+        try {
+          const domain = new URL(url).hostname;
+          await this.sessionManager.saveSession(options.context, { domain });
+          logger.info(`Saved session with solved CAPTCHAs for domain: ${domain}`);
+        } catch (error) {
+          logger.warn(`Failed to save session after solving CAPTCHA: ${error}`);
+        }
+      }
+      
       return result;
       
     } catch (error) {
