@@ -9,6 +9,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# screenshots
+screenshots/
+
 # Environment variables
 .env
 .env.local

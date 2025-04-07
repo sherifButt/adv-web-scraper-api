@@ -29,24 +29,76 @@ export class CssSelectorStrategy implements SelectorStrategy {
     const cssConfig = config as CssSelectorConfig;
     const { selector, attribute, multiple = false, name } = cssConfig;
 
+    // Try multiple selectors if provided
+    if (cssConfig.selectors && cssConfig.selectors.length > 0) {
+      // Try each selector in the array until one works
+      for (const selectorOption of cssConfig.selectors) {
+        try {
+          // Transform dynamic class selectors to use wildcard matching
+          const transformedSelector = selectorOption.includes('__')
+            ? selectorOption.replace(/(\.[a-zA-Z0-9-]+)__[a-zA-Z0-9]+/g, '[class*="$1"]')
+            : selectorOption;
+
+          // Check if elements exist
+          const exists = (await page.$(transformedSelector)) !== null;
+          if (exists) {
+            // Use this selector since it exists
+            logger.debug(`Using selector option: ${transformedSelector}`);
+            
+            // Extract data based on whether we want multiple elements or a single one
+            if (multiple) {
+              return this.extractMultiple(page, transformedSelector, attribute, cssConfig.source);
+            } else {
+              return this.extractSingle(page, transformedSelector, attribute, cssConfig.source);
+            }
+          }
+        } catch (error) {
+          // Continue to next selector if this one fails
+          logger.debug(`Selector option ${selectorOption} failed, trying next option`);
+        }
+      }
+      
+      // If we get here, none of the selectors worked
+      logger.warn(`None of the provided selectors worked for ${name || 'unnamed field'}`);
+      return cssConfig.defaultValue !== undefined ? cssConfig.defaultValue : null;
+    }
+
+    // Handle single selector (original behavior)
+    // Transform dynamic class selectors to use wildcard matching
+    const transformedSelector = selector.includes('__')
+      ? selector.replace(/(\.[a-zA-Z0-9-]+)__[a-zA-Z0-9]+/g, '[class*="$1"]')
+      : selector;
+
     try {
       // Wait for the selector to be available
-      await page.waitForSelector(selector, { timeout: 5000 }).catch(() => {
-        logger.warn(`Selector "${selector}" not found within timeout`);
+      await page.waitForSelector(transformedSelector, { timeout: 5000 }).catch(() => {
+        logger.warn(
+          `Selector "${selector}" (transformed to "${transformedSelector}") not found within timeout`
+        );
       });
 
       // Check if elements exist
-      const exists = (await page.$(selector)) !== null;
+      const exists = (await page.$(transformedSelector)) !== null;
       if (!exists) {
-        logger.warn(`Selector "${selector}" not found on page`);
+        logger.warn(
+          `Selector "${selector}" (transformed to "${transformedSelector}") not found on page`
+        );
         return cssConfig.defaultValue !== undefined ? cssConfig.defaultValue : null;
       }
 
       // Extract data based on whether we want multiple elements or a single one
-      if (multiple) {
-        return this.extractMultiple(page, selector, attribute, cssConfig.source);
-      } else {
-        return this.extractSingle(page, selector, attribute, cssConfig.source);
+      try {
+        if (multiple) {
+          return this.extractMultiple(page, transformedSelector, attribute, cssConfig.source);
+        } else {
+          return this.extractSingle(page, transformedSelector, attribute, cssConfig.source);
+        }
+      } catch (error) {
+        if (cssConfig.continueOnError) {
+          logger.warn(`Failed to extract with selector "${transformedSelector}": ${error}`);
+          return null;
+        }
+        throw error;
       }
     } catch (error) {
       logger.error(`Error extracting data with CSS selector "${selector}": ${error}`);

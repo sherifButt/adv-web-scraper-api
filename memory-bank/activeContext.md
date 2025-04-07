@@ -2,6 +2,15 @@
 
 ## Current Work Focus
 
+### Rightmove Selector Implementation
+- Implemented resilient selector patterns for Rightmove property scraping:
+  - Wildcard class matching: [class*="partial-name"]
+  - Data attribute selectors: [data-test^='propertyCard-']
+  - Content-based selectors: :contains('Market')
+  - Structural relationships: div:has(>span:contains('£'))
+  - Multiple fallback strategies for each field
+- These patterns handle dynamic class names while maintaining accuracy
+
 The project is currently in the **initial implementation phase**. We have successfully set up the project structure and implemented the core components of the Advanced Web Scraper API. The primary focus areas are:
 
 1. **Core Component Refinement**

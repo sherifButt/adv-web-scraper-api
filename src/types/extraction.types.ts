@@ -40,9 +40,12 @@ export interface BaseSelectorConfig {
 export interface CssSelectorConfig extends BaseSelectorConfig {
   type: SelectorType.CSS;
   selector: string;
+  selectors?: string[]; // Alternative selectors to try
   attribute?: string; // If not provided, innerText is used
   multiple?: boolean; // If true, returns an array of matches
   source?: 'html' | 'text'; // 'html' for innerHTML/outerHTML, 'text' for textContent (default)
+  continueOnError?: boolean; // If true, continues extraction even if this field fails
+  optional?: boolean; // If true, field is not required for successful extraction
 }
 
 /**

@@ -22,7 +22,7 @@
     {
       "type": "input",
       "selector": "#ta_searchInput",
-      "value": "CF40 2RS",
+      "value": "{{postcode}}",
       "description": "Enter postcode in the location search field",
       "clearInput": true,
       "humanInput": true
@@ -46,7 +46,7 @@
     {
       "type": "select",
       "selector": "#propertyTypes",
-      "value": "house",
+      "value": "{{type}}",
       "description": "Select property type based on variable"
     },
     {
@@ -57,67 +57,99 @@
     {
       "type": "wait",
       "value": 3000,
-      "description": "Wait for 3 seconds for results to fully load"
-    },
-    {
-      "type": "extract",
-      "name": "lists",
-      "selector": "#l-searchResults",
-      "description": "Extract the page title",
-      "source":"html"
+      "description": "Wait for results to fully load"
     },
     {
       "type": "extract",
       "name": "propertyResults",
-      "selector": "#l-searchResults",
+      "selector": ".l-searchResult, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
       "description": "Extract property search results",
       "fields": {
-        "properties": {
-          "selector": ".propertyCard-link",
-          "type": "css",
-          "multiple": true,
-          "fields": {
+            "properties": {
+              "selector": ".propertyCard, [class*=\"PropertyCard_propertyCard\"], [data-test=\"propertyCard\"]",
+              "type": "css",
+              "multiple": true,
+              "continueOnError": true,
+              "fields": {
             "address": {
-              "selector": "address",
-              "type": "css"
-            },
-            "price": {
-              "selector": ".PropertyPrice_price__VL65t",
-              "type": "css"
+              "selector": "address.propertyCard-address, [class*=\"PropertyAddress_address\"]",
+              "type": "css",
+              "continueOnError": true
             },
             "description": {
-              "selector": "#property-description",
-              "type": "css"
-            },
-            "agentName": {
-              "selector": ".PropertyCard_propertyCardAgent__1-u1P span",
-              "type": "css"
+              "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
+              "type": "css",
+              "continueOnError": true
             },
             "propertyImage": {
-              "selector": ".PropertyCard_propertyCardImage__GePiE img",
+              "selector": ".propertyCard-img img, [class*=\"PropertyImage\"] img",
               "type": "css",
-              "attribute": "src"
+              "attribute": "src",
+              "continueOnError": true
+            },
+            "price": {
+              "selectors": [
+                "[class*=\"PropertyPrice_price\"]",
+                ".propertyCard-priceValue",
+                ".propertyCard-price"
+              ],
+              "type": "css",
+              "continueOnError": true
+            },
+            "type": {
+              "selector": ".propertyCard-type, [class*=\"PropertyInformation_propertyType\"]",
+              "type": "css",
+              "continueOnError": true
+            },
+            "bedrooms": {
+              "selector": ".propertyCard-bedrooms, [class*=\"PropertyInformation_bedroomsCount\"], [class*=\"PropertyInformation_bedContainer\"] span",
+              "type": "css",
+              "continueOnError": true
+            },
+            "bathrooms": {
+              "selector": ".propertyCard-bathrooms, [class*=\"PropertyInformation_bathContainer\"] span",
+              "type": "css",
+              "continueOnError": true
+            },
+            "distance": {
+              "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
+              "type": "css",
+              "regex": "^([0-9]+\\.[0-9]+ miles)",
+              "continueOnError": true
+            },
+            "description": {
+              "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
+              "type": "css",
+              "continueOnError": true
             },
             "propertyUrl": {
-              "selector": "a.PropertyCard_propertyCardLink__fWAlL",
+              "selector": "a.propertyCard-anchor[href], a.propertyCard-link[href], a[href*=\"/properties/\"]",
               "type": "css",
-              "attribute": "href"
+              "attribute": "href",
+              "continueOnError": true
             }
           }
         },
         "pagination": {
-          "selector": ".Pagination_pagination__hj83W",
-          "type": "css"
+          "selector": ".pagination, [class*=\"Pagination_pagination\"]",
+          "type": "css",
+          "optional": true,
+          "continueOnError": true
         }
       }
     }
   ],
+  "variables": {
+    "postcode": "CF40 2RS",
+    "type":"house"
+  },
   "options": {
     "timeout": 30000,
-    "waitForSelector": ".ResultsList_resultsList__NiUEu",
+    "waitForSelector": ".l-searchResult, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
     "javascript": true,
     "screenshots": false,
     "screenshotsPath": "./screenshots",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "debug": true
   }
 }

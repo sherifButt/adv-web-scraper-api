@@ -641,6 +641,12 @@ export class CssSelectorStrategy implements SelectorStrategy {
 
   public async extract(page: Page, config: SelectorConfig, context: any): Promise<any> {
     // Implementation for CSS selector extraction
+    // Supports multiple selector patterns:
+    // 1. Wildcard class matching: [class*="partial-name"]
+    // 2. Data attribute selectors: [data-test^='propertyCard-']
+    // 3. Content-based selectors: :contains('text')
+    // 4. Structural relationships: :has(>span)
+    // 5. Multiple fallback selectors (comma separated)
   }
 }
 

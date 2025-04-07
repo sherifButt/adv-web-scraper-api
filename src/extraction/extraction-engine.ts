@@ -224,14 +224,41 @@ export class ExtractionEngine {
       try {
         if (this.isNestedExtractionConfig(fieldConfig)) {
           // Handle nested extraction
-          result[fieldName] = await this.extractNestedFields(page, fieldConfig, context);
+          const nestedResult = await this.extractNestedFields(page, fieldConfig, context);
+          if (nestedResult === null) {
+            result[fieldName] = {
+              value: null,
+              error: `No elements found for selector: ${fieldConfig.selector}`
+            };
+          } else {
+            result[fieldName] = nestedResult;
+          }
         } else {
           // Handle regular field extraction
-          result[fieldName] = await this.extractField(page, fieldConfig, context);
+          const value = await this.extractField(page, fieldConfig, context);
+          if (value === null) {
+            const selector = 'selector' in fieldConfig
+              ? fieldConfig.selector
+              : fieldConfig.type === 'regex'
+                ? fieldConfig.pattern
+                : fieldConfig.type === 'function'
+                  ? 'custom function'
+                  : 'unknown selector';
+            result[fieldName] = {
+              value: null,
+              error: `No elements found for selector: ${selector}`,
+            };
+          } else {
+            result[fieldName] = value;
+          }
         }
-      } catch (error) {
-        logger.error(`Error extracting field "${fieldName}": ${error}`);
-        result[fieldName] = null;
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.error(`Error extracting field "${fieldName}": ${errorMessage}`);
+        result[fieldName] = {
+          value: null,
+          error: `Extraction failed: ${errorMessage}`
+        };
       }
     }
 
