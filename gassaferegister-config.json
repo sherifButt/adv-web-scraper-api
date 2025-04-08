@@ -1,0 +1,174 @@
+{
+    "startUrl": "https://www.gassaferegister.co.uk/find-an-engineer-or-check-the-register/",
+    "steps": [
+      {
+        "type": "wait",
+        "value": 3000,
+        "description": "Initial longer wait to let page fully load"
+      },
+      {
+        "type": "scroll",
+        "direction": "down",
+        "distance": 100,
+        "description": "Initial scroll down"
+      },
+      {
+        "type": "wait",
+        "value": 1000,
+        "description": "Pause between scrolls"
+      },
+      {
+        "type": "scroll",
+        "direction": "down",
+        "distance": 200,
+        "description": "Continue scrolling down"
+      },
+      {
+        "type": "condition",
+        "condition": "#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll",
+        "description": "Check if consent dialog appears",
+        "thenSteps": [
+          {
+            "type": "wait",
+            "value": 2000,
+            "description": "Wait before clicking cookie dialog"
+          },
+          {
+            "type": "click",
+            "selector": "#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll",
+            "description": "Click the consent button to dismiss the cookie dialog",
+            "waitFor": 2000
+          }
+        ]
+      },
+      {
+        "type": "wait",
+        "value": 2000,
+        "description": "Wait after handling cookie dialog"
+      },
+      {
+        "type": "scroll",
+        "direction": "down",
+        "distance": 150,
+        "description": "Scroll down after cookie dialog"
+      },
+      {
+        "type": "wait",
+        "value": 800,
+        "description": "Pause between scrolls"
+      },
+      {
+        "type": "scroll",
+        "direction": "down",
+        "distance": 100,
+        "description": "Final scroll adjustment"
+      },
+      {
+        "type": "input",
+        "selector": "#WidgetSearchTerm",
+        "value": "{{postcode}}",
+        "description": "Enter postcode in the location search field",
+        "clearInput": true,
+        "humanInput": true,
+        "delay": 100
+      },
+      {
+        "type": "wait",
+        "value": 1500,
+        "description": "Wait after entering postcode"
+      },
+      {
+        "type": "input",
+        "selector": "#DomesticSearch",
+        "value": "check",
+        "description": "Enter value in domestic search field",
+        "clearInput": true,
+        "humanInput": true,
+        "delay": 120
+      },
+      {
+        "type": "wait",
+        "value": 1000,
+        "description": "Wait after entering search type"
+      },
+      {
+        "type": "mouseMove",
+        "selector": "button.search-button",
+        "description": "Move mouse to the search button"
+      },
+      {
+        "type": "wait",
+        "value": 800,
+        "description": "Wait before clicking"
+      },
+      {
+        "type": "click",
+        "selector": "button.search-button",
+        "description": "Click the 'Search' button"
+      },
+      {
+        "type": "wait",
+        "value": 5000,
+        "description": "Wait for results to load"
+      },
+      {
+        "type": "extract",
+        "name": "searchResults",
+        "selector": "body",
+        "description": "Extract the entire page to analyze if blocked",
+        "attribute": "innerHTML"
+      }
+    ],
+    "variables": {
+      "postcode": "SW1A 1AA"
+    },
+    "options": {
+      "timeout": 30000,
+      "javascript": true,
+      "screenshots": false,
+      "screenshotsPath": "./screenshots",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "debug": true,
+      "httpHeaders": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Sec-Ch-Ua": "\"Google Chrome\";v=\"122\", \"Chromium\";v=\"122\", \"Not-A.Brand\";v=\"99\"",
+        "Sec-Ch-Ua-Mobile": "?0",
+        "Sec-Ch-Ua-Platform": "\"Windows\"",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1",
+        "Referer": "https://www.google.com/"
+      },
+      "browserOptions": {
+        "stealth": true,
+        "randomizeViewport": true,
+        "mockWebGL": true,
+        "mockDeviceMemory": 8,
+        "mockChromeLocale": "en-GB",
+        "mockTimezone": "Europe/London"
+      },
+      "randomizeFingerprint": true,
+      "fingerprintOptions": {
+        "audioContextNoise": true,
+        "canvasNoise": true,
+        "fontHeapAnalysis": true
+      },
+      "ignoreHTTPSErrors": true,
+      "proxy": {
+        "enabled": true,
+        "type": "http",
+        "url": "http://${PROXY_HOST}:${PROXY_PORT}",
+        "username": "${PROXY_USER}",
+        "password": "${PROXY_PASS}",
+        "rotate": true,
+        "blacklist": ["45.60.243.102"],
+        "verify": {
+          "checkIPReputation": true,
+          "checkTLSFingerprint": true
+        }
+      }
+    }
+  }

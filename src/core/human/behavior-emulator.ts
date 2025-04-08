@@ -39,28 +39,28 @@ export class BehaviorEmulator {
    */
   private static readonly PROFILES: Record<BehaviorProfile, ProfileConfig> = {
     fast: {
-      mouseSpeed: 0.8,
-      clickDelay: [50, 150],
-      typeSpeed: [30, 100],
-      typoRate: 0.01,
-      scrollSpeed: [300, 800],
-      thinkingTime: [200, 500],
+      mouseSpeed: 0.7,
+      clickDelay: [80, 200],
+      typeSpeed: [50, 150],
+      typoRate: 0.02,
+      scrollSpeed: [400, 900],
+      thinkingTime: [300, 800],
     },
     average: {
-      mouseSpeed: 0.5,
-      clickDelay: [100, 300],
-      typeSpeed: [80, 200],
-      typoRate: 0.03,
-      scrollSpeed: [200, 500],
-      thinkingTime: [500, 1500],
+      mouseSpeed: 0.4,
+      clickDelay: [150, 400],
+      typeSpeed: [100, 250],
+      typoRate: 0.04,
+      scrollSpeed: [250, 600],
+      thinkingTime: [800, 2000],
     },
     careful: {
-      mouseSpeed: 0.3,
-      clickDelay: [200, 500],
-      typeSpeed: [150, 350],
-      typoRate: 0.05,
-      scrollSpeed: [100, 300],
-      thinkingTime: [1000, 3000],
+      mouseSpeed: 0.25,
+      clickDelay: [300, 700],
+      typeSpeed: [200, 450],
+      typoRate: 0.07,
+      scrollSpeed: [150, 400],
+      thinkingTime: [1500, 4000],
     },
   };
 
@@ -113,9 +113,14 @@ export class BehaviorEmulator {
       const point = points[i];
       await mouse.move(point.x, point.y);
       
-      // Variable delay between movements
+      // Variable delay between movements with occasional pauses
       if (i < points.length - 1) {
-        await this.randomDelay(5, 15);
+        if (Math.random() < 0.1) {
+          // 10% chance of a longer pause mid-movement
+          await this.randomDelay(50, 150);
+        } else {
+          await this.randomDelay(5, 25);
+        }
       }
     }
 

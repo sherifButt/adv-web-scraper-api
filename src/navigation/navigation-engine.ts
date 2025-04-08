@@ -179,6 +179,12 @@ export class NavigationEngine {
       case 'paginate':
         await this.executePaginateStep(step);
         break;
+      case 'scroll':
+        await this.executeScrollStep(step);
+        break;
+      case 'executeScript':
+        await this.executeScriptStep(step);
+        break;
       default:
         throw new Error(`Unknown step type: ${step.type}`);
     }
@@ -472,6 +478,47 @@ export class NavigationEngine {
         await this.executeStep(step.elseSteps[i], i);
       }
     }
+  }
+
+  private async executeScrollStep(step: NavigationStep): Promise<void> {
+    const direction = step.direction || 'down';
+    const distance = typeof step.distance === 'number' ? step.distance : 100;
+    
+    logger.info(`Scrolling ${direction} by ${distance}px`);
+    
+    if (direction === 'down') {
+      await this.page.evaluate((dist) => {
+        window.scrollBy(0, dist);
+      }, distance);
+    } else if (direction === 'up') {
+      await this.page.evaluate((dist) => {
+        window.scrollBy(0, -dist);
+      }, distance);
+    } else if (direction === 'left') {
+      await this.page.evaluate((dist) => {
+        window.scrollBy(-dist, 0);
+      }, distance);
+    } else if (direction === 'right') {
+      await this.page.evaluate((dist) => {
+        window.scrollBy(dist, 0);
+      }, distance);
+    }
+    
+    if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
+  }
+
+  private async executeScriptStep(step: NavigationStep): Promise<void> {
+    const script = this.resolveValue(step.script);
+    logger.info(`Executing script: ${script.substring(0, 50)}...`);
+    
+    try {
+      await this.page.evaluate(script);
+    } catch (error) {
+      logger.warn(`Script execution failed: ${error}`);
+      throw error;
+    }
+    
+    if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
   }
 
   private async executePaginateStep(step: NavigationStep): Promise<void> {

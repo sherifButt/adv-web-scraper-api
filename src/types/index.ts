@@ -100,7 +100,17 @@ export interface NavigationRequest {
 import { FieldConfig } from './extraction.types.js';
 
 export interface NavigationStep {
-  type: 'goto' | 'click' | 'input' | 'select' | 'wait' | 'extract' | 'condition' | 'paginate';
+  type:
+    | 'goto'
+    | 'click'
+    | 'input'
+    | 'select'
+    | 'wait'
+    | 'extract'
+    | 'condition'
+    | 'paginate'
+    | 'scroll'
+    | 'executeScript';
   selector?: string;
   value?: string;
   waitFor?: string | number;
@@ -112,6 +122,9 @@ export interface NavigationStep {
   thenSteps?: NavigationStep[];
   elseSteps?: NavigationStep[];
   maxPages?: number;
+  direction?: 'up' | 'down' | 'left' | 'right';
+  distance?: number;
+  script?: string;
   [key: string]: any;
 }
 

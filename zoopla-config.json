@@ -1,5 +1,5 @@
 {
-    "startUrl": "https://www.rightmove.co.uk/property-for-sale.html",
+    "startUrl": "https://www.zoopla.co.uk",
     "steps": [
         {
             "type": "wait",
@@ -14,14 +14,14 @@
         },
         {
             "type": "condition",
-            "condition": "#onetrust-accept-btn-handler",
+            "condition": "#uc-privacy-title",
             "description": "Check if consent dialog appears",
             "thenSteps": [
                 {
                     "type": "click",
-                    "selector": "#onetrust-accept-btn-handler",
-                    "description": "Click the consent button to dismiss the cookie dialog",
-                    "waitFor": 1000
+                    "selector": "button #accept",
+                    "description": "Click the consent button to dismiss the cookie dialog"
+                    
                 }
             ]
         },
@@ -38,17 +38,23 @@
             "description": "Continue scrolling up 200 px"
         },
         {
+            "type": "click",
+            "selector": "button #radix-:R7qnldelb:-trigger-to-rent",
+            "description": "select rental button"
+        },
+        {
             "type": "input",
-            "selector": "#ta_searchInput",
+            "selector": "#autosuggest-input",
             "value": "{{postcode}}",
             "description": "Enter postcode in the location search field",
             "clearInput": true,
             "humanInput": true
         },
+        
         {
             "type": "click",
-            "selector": "button[data-testid='forSaleCta']",
-            "description": "Click the 'For Sale' button"
+            "selector": "button[data-testid='search-button']",
+            "description": "Click the 'Search button' button"
         },
         {
             "type": "wait",
@@ -241,7 +247,7 @@
     },
     "options": {
         "timeout": 30000,
-        "waitForSelector": ".l-searchResult, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
+        "waitForSelector": "#uc-privacy-title, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
         "javascript": true,
         "screenshots": false,
         "screenshotsPath": "./screenshots",
