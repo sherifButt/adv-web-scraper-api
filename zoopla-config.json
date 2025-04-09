@@ -1,257 +1,249 @@
 {
     "startUrl": "https://www.zoopla.co.uk",
     "steps": [
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait 1 sec for dynamic content to load"
-        },
-        {
-            "type": "scroll",
-            "direction": "down",
-            "distance": 200,
-            "description": "Continue scrolling down 200 px"
-        },
-        {
-            "type": "condition",
-            "condition": "#uc-privacy-title",
-            "description": "Check if consent dialog appears",
-            "thenSteps": [
-                {
-                    "type": "click",
-                    "selector": "button #accept",
-                    "description": "Click the consent button to dismiss the cookie dialog"
-                    
-                }
-            ]
-        },
-        {
-            "type": "scroll",
-            "direction": "down",
-            "distance": 200,
-            "description": "Continue scrolling down 200 px"
-        },
-        {
-            "type": "scroll",
-            "direction": "up",
-            "distance": 200,
-            "description": "Continue scrolling up 200 px"
-        },
-        {
+      {
+        "type": "wait",
+        "value": 3000,
+        "description": "Wait for initial page load"
+      },
+      {
+        "type": "condition",
+        "condition": "#usercentrics-cmp-ui",
+        "description": "Check if Usercentrics consent dialog appears",
+        "thenSteps": [
+          {
             "type": "click",
-            "selector": "button #radix-:R7qnldelb:-trigger-to-rent",
-            "description": "select rental button"
-        },
-        {
-            "type": "input",
-            "selector": "#autosuggest-input",
-            "value": "{{postcode}}",
-            "description": "Enter postcode in the location search field",
-            "clearInput": true,
-            "humanInput": true
-        },
-        
-        {
-            "type": "click",
-            "selector": "button[data-testid='search-button']",
-            "description": "Click the 'Search button' button"
-        },
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait for 1 seconds"
-        },
-        {
-            "type": "scroll",
-            "direction": "down",
-            "distance": 200,
-            "description": "Continue scrolling down 200 px"
-        },
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait for 1 seconds"
-        },
-        {
-            "type": "scroll",
-            "direction": "up",
-            "distance": 200,
-            "description": "Continue scrolling up 200 px"
-        },
-        {
+            "selector": "button[data-testid='uc-accept-all-button']",
+            "description": "Click the accept all button to dismiss the cookie dialog",
+            "waitFor": 2000
+          }
+        ]
+      },
+      {
+        "type": "wait",
+        "value": 1000,
+        "description": "Wait after handling cookie dialog"
+      },
+      {
+        "type": "click",
+        "selector": ".TabbedSearch_tabButton__0oFjf[data-testid='to-rent-tab']",
+        "description": "Select rental tab button"
+      },
+      {
+        "type": "wait",
+        "value": 1000,
+        "description": "Wait for tab to switch"
+      },
+      {
+        "type": "input",
+        "selector": "input#autosuggest-input, .TabbedSearch_autoSuggest__aqCpI input",
+        "value": "{{postcode}}",
+        "description": "Enter postcode in the location search field",
+        "clearInput": true,
+        "humanInput": true,
+        "delay": 100
+      },
+      {
+        "type": "wait",
+        "value": 1500,
+        "description": "Wait for autosuggest to process"
+      },
+      {
+        "type": "mouseMove",
+        "selector": "button[data-testid='search-button']",
+        "description": "Move mouse to the search button"
+      },
+      {
+        "type": "click",
+        "selector": "button[data-testid='search-button']",
+        "description": "Click the 'Search button' button",
+        "waitFor": 3000
+      },
+      {
+        "type": "wait",
+        "value": 5000,
+        "description": "Wait for search results page to load"
+      },
+      {
+        "type": "screenshot",
+        "name": "after_search",
+        "description": "Take a screenshot after initial search"
+      },
+      {
+        "type": "condition",
+        "condition": "select[name='radius']",
+        "description": "Check if search radius dropdown is present",
+        "thenSteps": [
+          {
             "type": "select",
-            "selector": "#radius",
-            "value": "0.5",
-            "description": "Set search radius to within 1/2 mile"
-        },
-        {
-            "type": "wait",
-            "value": 500,
-            "description": "Wait for .5 seconds"
-        },
-        {
-            "type": "select",
-            "selector": "#radius",
+            "selector": "select[name='radius']",
             "value": "0.25",
             "description": "Set search radius to within 1/4 mile"
-        },
-        {
-            "type": "scroll",
-            "direction": "down",
-            "distance": 200,
-            "description": "Continue scrolling down"
-        },
-        {
-            "type": "scroll",
-            "direction": "up",
-            "distance": 200,
-            "description": "Continue scrolling up"
-        },
-        {
+          }
+        ]
+      },
+      {
+        "type": "condition",
+        "condition": "select[name='property_type']",
+        "description": "Check if property type dropdown is present",
+        "thenSteps": [
+          {
             "type": "select",
-            "selector": "#propertyTypes",
+            "selector": "select[name='property_type']",
             "value": "{{type}}",
             "description": "Select property type based on variable"
-        },
-        {
+          }
+        ]
+      },
+      {
+        "type": "condition",
+        "condition": "button[data-testid='search-button'], button.SearchForm_searchButton__F6FZI",
+        "description": "Check if search button is present",
+        "thenSteps": [
+          {
             "type": "click",
-            "selector": ".dsrm_button.dsrm_button--light.dsrm_primary.dsrm_core.dsrm_width_content",
-            "description": "Click the 'Search properties' button"
-        },
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait 1 sec for results to fully load"
-        },
-        {
-            "type": "scroll",
-            "direction": "down",
-            "distance": 300,
-            "description": "Continue scrolling down"
-        },
-        {
-            "type": "wait",
-            "value": 500,
-            "description": "Wait 1 sec for results to fully load"
-        },
-        {
-            "type": "scroll",
-            "direction": "down",
-            "distance": 20000,
-            "description": "Continue scrolling down"
-        },
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait 1 sec for results to fully load"
-        },
-        {
-            "type": "scroll",
-            "direction": "up",
-            "distance": 25000,
-            "description": "Continue scrolling up 500 px"
-        },
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait for 1 seconds"
-        },
-        {
-            "type": "extract",
-            "name": "lists",
-            "selector": "#l-searchResults",
-            "description": "Extract the page title",
-            "source": "html"
-        },
-        {
-            "type": "extract",
-            "name": "propertyResults",
-            "selector": ".l-searchResult, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
-            "description": "Extract property search results",
+            "selector": "button[data-testid='search-button'], button.SearchForm_searchButton__F6FZI",
+            "description": "Click the search button to apply filters",
+            "waitFor": 3000
+          }
+        ]
+      },
+      {
+        "type": "wait",
+        "value": 5000,
+        "description": "Wait for filtered results to load"
+      },
+      {
+        "type": "scroll",
+        "direction": "down",
+        "distance": 500,
+        "description": "Scroll down to see more results"
+      },
+      {
+        "type": "wait",
+        "value": 2000,
+        "description": "Wait for scroll to complete"
+      },
+      {
+        "type": "scroll",
+        "direction": "down",
+        "distance": 1000,
+        "description": "Continue scrolling down"
+      },
+      {
+        "type": "wait",
+        "value": 2000,
+        "description": "Wait for scroll to complete"
+      },
+      {
+        "type": "screenshot",
+        "name": "search_results",
+        "description": "Take a screenshot of search results"
+      },
+      {
+        "type": "extract",
+        "name": "propertyResults",
+        "selector": "#results-container, .results-container",
+        "description": "Extract property search results",
+        "fields": {
+          "properties": {
+            "selector": ".listing-results-card, .css-1anhqz4-ListingContainer, [data-testid*='regular-listing']",
+            "type": "css",
+            "multiple": true,
+            "continueOnError": true,
             "fields": {
-                "properties": {
-                    "selector": ".propertyCard, [class*=\"PropertyCard_propertyCard\"], [data-test=\"propertyCard\"]",
-                    "type": "css",
-                    "multiple": true,
-                    "continueOnError": true,
-                    "fields": {
-                        "address": {
-                            "selector": "address.propertyCard-address, [class*=\"PropertyAddress_address\"]",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "description": {
-                            "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "propertyImage": {
-                            "selector": ".propertyCard-img img, [class*=\"PropertyImage\"] img",
-                            "type": "css",
-                            "attribute": "src",
-                            "continueOnError": true
-                        },
-                        "price": {
-                            "selector": "[class*=\"PropertyPrice_price\"], .propertyCard-priceValue, .propertyCard-price",
-                            "type": "css",
-                            "pattern": "(?:£|\\b)([0-9,]+)\\b",
-                            "dataType": "number",
-                            "transform": "value.replace(/,/g, '')",
-                            "continueOnError": true
-                        },
-                        "type": {
-                            "selector": ".propertyCard-type, [class*=\"PropertyInformation_propertyType\"]",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "bedrooms": {
-                            "selector": ".propertyCard-bedrooms, [class*=\"PropertyInformation_bedroomsCount\"], [class*=\"PropertyInformation_bedContainer\"] span",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "bathrooms": {
-                            "selector": ".propertyCard-bathrooms, [class*=\"PropertyInformation_bathContainer\"] span",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "distance": {
-                            "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "description": {
-                            "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "propertyUrl": {
-                            "selector": "a.propertyCard-anchor[href], a.propertyCard-link[href], a[href*=\"/properties/\"]",
-                            "type": "css",
-                            "attribute": "href",
-                            "continueOnError": true
-                        }
-                    }
-                },
-                "pagination": {
-                    "selector": ".pagination, [class*=\"Pagination_pagination\"]",
-                    "type": "css",
-                    "optional": true,
-                    "continueOnError": true
-                }
+              "address": {
+                "selector": ".listing-results-address, [data-testid='listing-title']",
+                "type": "css",
+                "continueOnError": true
+              },
+              "price": {
+                "selector": ".listing-results-price, [data-testid='listing-price']",
+                "type": "css",
+                "continueOnError": true
+              },
+              "description": {
+                "selector": ".listing-results-description, [data-testid='listing-description']",
+                "type": "css",
+                "continueOnError": true
+              },
+              "propertyImage": {
+                "selector": ".listing-results-image img, [data-testid='listing-image'] img",
+                "type": "css",
+                "attribute": "src",
+                "continueOnError": true
+              },
+              "bedrooms": {
+                "selector": "[data-testid='beds-label']",
+                "type": "css",
+                "continueOnError": true
+              },
+              "bathrooms": {
+                "selector": "[data-testid='baths-label']",
+                "type": "css",
+                "continueOnError": true
+              },
+              "propertyUrl": {
+                "selector": ".listing-results-wrapper a, [data-testid='listing-anchor']",
+                "type": "css",
+                "attribute": "href",
+                "continueOnError": true
+              },
+              "agent": {
+                "selector": ".listing-results-agent, [data-testid='listing-agent']",
+                "type": "css",
+                "continueOnError": true
+              },
+              "availableFrom": {
+                "selector": "[data-testid='available-from']",
+                "type": "css",
+                "continueOnError": true
+              }
             }
+          },
+          "pagination": {
+            "selector": ".pagination, [data-testid='pagination']",
+            "type": "css",
+            "optional": true,
+            "continueOnError": true
+          },
+          "pageHtml": {
+            "selector": "body",
+            "type": "css",
+            "attribute": "innerHTML",
+            "continueOnError": true
+          }
         }
+      }
     ],
     "variables": {
-        "postcode": "CF40 2RS",
-        "type": "house"
+      "postcode": "SW1A 1AA",
+      "type": "houses"
     },
     "options": {
-        "timeout": 30000,
-        "waitForSelector": "#uc-privacy-title, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
-        "javascript": true,
-        "screenshots": false,
-        "screenshotsPath": "./screenshots",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "debug": true
+      "timeout": 90000,
+      "waitForSelector": "#results-container, .listing-results, body",
+      "javascript": true,
+      "screenshots": true,
+      "screenshotsPath": "./screenshots",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+      "debug": true,
+      "headless": true,
+      "stealth": false,
+      "httpHeaders": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Language": "en-GB,en;q=0.9",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-User": "?1"
+      },
+      "browserOptions": {
+        "randomizeViewport": true,
+        "mockWebGL": true,
+        "mockDeviceMemory": 8,
+        "mockChromeLocale": "en-GB",
+        "mockTimezone": "Europe/London"
+      }
     }
-}
+  }

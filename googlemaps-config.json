@@ -1,0 +1,125 @@
+{
+    "startUrl": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://maps.google.com/maps/%3Fentry%3Dwc&ved=2ahUKEwjex7WsrMqMAxXIWEEAHTaUAicQFnoECA4QAQ&usg=AOvVaw1G_vzTaDddqXWb9c6P7TKB",
+    "steps": [
+      {
+        "type": "wait",
+        "value": 1000,
+        "description": "Wait 1 sec for dynamic content to load"
+      },
+      {
+        "type": "scroll",
+        "direction": "down",
+        "distance": 500,
+        "description": "Continue scrolling down 500 px"
+      },
+      {
+        "type": "condition",
+        "condition": "button[aria-label='Accept all']",
+        "description": "Check if consent dialog appears",
+        "thenSteps": [
+          {
+            "type": "click",
+            "selector": "button[aria-label='Accept all']",
+            "description": "Click the Accept all button to dismiss the cookie dialog",
+            "waitFor": 1000
+          }
+        ]
+      },
+      {
+        "type": "wait",
+        "value": 3000,
+        "description": "Wait for the map to load after consent"
+      },
+      {
+        "type": "input",
+        "selector": ".searchboxinput",
+        "value": "{{keyword}} near {{postcode}}",
+        "description": "Enter the search query",
+        "clearInput": true,
+        "humanInput": true
+      },
+      {
+        "type": "click",
+        "selector": "#searchbox-searchbutton",
+        "description": "Click the search button"
+      },
+      {
+        "type": "wait",
+        "value": 8000,
+        "description": "Wait longer for search results to load completely"
+      },
+      {
+        "type": "scroll",
+        "direction": "down",
+        "distance": 800,
+        "description": "Scroll down to load more results"
+      },
+      {
+        "type": "wait",
+        "value": 3000,
+        "description": "Wait for more results to load after scrolling"
+      },
+      {
+        "type": "extract",
+        "name": "searchHTML",
+        "selector": ".m6QErb[role='feed']",
+        "description": "Extract the entire search results container",
+        "source": "html"
+      },
+      {
+        "type": "extract",
+        "name": "barberShops",
+        "selector": "div.Nv2PK",
+        "description": "Extract barber shop listings",
+        "multiple": true,
+        "fields": {
+          "name": {
+            "selector": "div.fontHeadlineSmall",
+            "type": "text",
+            "optional": true
+          },
+          "rating": {
+            "selector": "span[aria-label*='stars']",
+            "type": "attribute",
+            "attribute": "aria-label",
+            "pattern": "(\\d+\\.\\d+) stars",
+            "optional": true
+          },
+          "reviewCount": {
+            "selector": "span[aria-label*='stars']",
+            "type": "attribute",
+            "attribute": "aria-label",
+            "pattern": "stars (\\d+) reviews",
+            "optional": true
+          },
+          "type": {
+            "selector": "div.W4Efsd span:first-child",
+            "type": "text",
+            "optional": true
+          },
+          "address": {
+            "selector": "div.W4Efsd span:nth-child(3)",
+            "type": "text",
+            "optional": true
+          },
+          "hours": {
+            "selector": "div.W4Efsd div.W4Efsd span:first-child",
+            "type": "text",
+            "optional": true
+          }
+        }
+      }
+    ],
+    "variables": {
+      "keyword": "barber shop",
+      "postcode": "CF40 2RS"
+    },
+    "options": {
+      "timeout": 45000,
+      "javascript": true,
+      "screenshots": false,
+      "screenshotsPath": "./screenshots",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "debug": true
+    }
+  }

@@ -1,3 +1,5 @@
+// src/navigation/navigation-engine.ts
+
 import { Page, BrowserContext } from 'playwright';
 import { logger } from '../utils/logger.js';
 import { CssSelectorConfig } from '../types/extraction.types.js';
@@ -62,7 +64,11 @@ export class NavigationEngine {
 
       // Check if we have a session for this domain
       let sessionApplied = false;
-      if (this.options.useSession !== false && config.browser.session?.enabled && this.browserContext) {
+      if (
+        this.options.useSession !== false &&
+        config.browser.session?.enabled &&
+        this.browserContext
+      ) {
         try {
           const session = await this.sessionManager.getSession(startUrl);
           if (session) {
@@ -80,10 +86,19 @@ export class NavigationEngine {
       }
 
       logger.info(`Navigating to start URL: ${startUrl}`);
-      await this.page.goto(startUrl, {
-        waitUntil: 'networkidle',
-        timeout: this.options.timeout || 30000,
-      });
+      // Try with networkidle first, fall back to load if it fails
+      try {
+        await this.page.goto(startUrl, {
+          waitUntil: 'networkidle',
+          timeout: this.options.timeout || 30000,
+        });
+      } catch (error) {
+        logger.warn('networkidle wait failed, trying with load');
+        await this.page.goto(startUrl, {
+          waitUntil: 'load',
+          timeout: this.options.timeout || 30000,
+        });
+      }
 
       // Only check for CAPTCHAs if we didn't apply a session or if the session didn't have solved CAPTCHAs
       if (!sessionApplied || this.options.alwaysCheckCaptcha) {
@@ -607,11 +622,13 @@ export class NavigationEngine {
         logger.info('CAPTCHA solved successfully');
         
         // If we solved a CAPTCHA and we're using sessions, save the session
-        if (result.method !== 'session_reuse' && 
-            result.method !== 'none_required' && 
-            this.options.useSession !== false && 
-            config.browser.session?.enabled && 
-            this.browserContext) {
+        if (
+          result.method !== 'session_reuse' &&
+          result.method !== 'none_required' &&
+          this.options.useSession !== false &&
+          config.browser.session?.enabled &&
+          this.browserContext
+        ) {
           try {
             const domain = new URL(this.page.url()).hostname;
             await this.sessionManager.saveSession(this.browserContext, { domain });
