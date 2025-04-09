@@ -43,7 +43,7 @@ Clicks an element.
 ```
 
 ### `mousemove`
-Moves mouse to element or coordinates.
+Moves mouse to element or coordinates with optional actions.
 
 ```typescript
 {
@@ -52,8 +52,56 @@ Moves mouse to element or coordinates.
   x: 100, y: 200,    // or coordinates
   duration: 1000,     // movement time in ms
   humanLike: true,    // enable human-like movement
+  action: 'move',     // 'move' (default), 'click', 'drag', 'wheel'
+  pathPoints: [       // optional intermediate points
+    { x: 50, y: 50 },
+    { selector: '#intermediate' }
+  ],
+  // For drag action:
+  dragTo: { x: 200, y: 200 }, // or selector
+  // For wheel action:
+  deltaX: 0, deltaY: 100,     // wheel scroll deltas
   waitFor: '#tooltip' // optional
 }
+```
+
+**Advanced Mouse Movement Features:**
+1. **Path Points**: Define intermediate points for complex movement paths
+2. **Actions**:
+   - `move`: Just move the cursor (default)
+   - `click`: Move then click
+   - `drag`: Move, press down, move to target, release
+   - `wheel`: Move then scroll wheel
+3. **Human-like Movement**: Uses Bezier curves with random variations
+4. **Coordinate Precision**: Exact pixel positioning when needed
+5. **Element Targeting**: Works with both selectors and raw coordinates
+
+**Example Complex Mouse Flow:**
+```typescript
+[
+  {
+    type: 'mousemove',
+    x: 100, y: 100,
+    duration: 800,
+    pathPoints: [
+      { x: 50, y: 50 },
+      { selector: '#menu-trigger' }
+    ]
+  },
+  {
+    type: 'mousemove',
+    selector: '#menu-item',
+    action: 'click',
+    duration: 1200
+  },
+  {
+    type: 'mousemove',
+    selector: '#slider',
+    action: 'drag',
+    dragTo: { x: 500, y: 300 },
+    duration: 2000
+  }
+]
 ```
 
 ### `hover`

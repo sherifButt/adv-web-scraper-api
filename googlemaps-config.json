@@ -50,7 +50,7 @@
       },
       {
         "type": "mousemove",
-        "y": "50",
+        "selector": ".m6QErb[role='feed']",
         "duration": 1000, 
         "humanLike": true
       },

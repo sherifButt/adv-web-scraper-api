@@ -96,33 +96,76 @@ export class BehaviorEmulator {
   /**
    * Move the mouse to a specific position with human-like motion
    */
-  public async moveMouseToCoordinates(x: number, y: number, duration?: number): Promise<void> {
-    // Get current mouse position or use a default starting point
-    const mouse = this.page.mouse;
-    // Playwright doesn't expose current mouse position, so we'll use the viewport center as a starting point
-    // if this is the first movement, or the target coordinates of the previous movement otherwise
-    const viewportSize = this.page.viewportSize() || { width: 1280, height: 720 };
-    const startX = viewportSize.width / 2; // Default to center of viewport
-    const startY = viewportSize.height / 2;
+  public async moveMouseToCoordinates(
+    x: number,
+    y: number,
+    duration?: number,
+    from?: { x: number; y: number } | { selector: string },
+    pathPoints: Array<{ x: number; y: number } | { selector: string }> = []
+  ): Promise<void> {
+    let startX: number;
+    let startY: number;
 
-    // Generate a natural path using Bezier curves
-    const points = this.generateNaturalPath({ x: startX, y: startY }, { x, y });
+    if (from) {
+      if ('selector' in from) {
+        const element = await this.page.$(from.selector);
+        if (!element) throw new Error(`From element not found: ${from.selector}`);
+        const box = await element.boundingBox();
+        if (!box) throw new Error(`Cannot get bounding box for: ${from.selector}`);
+        startX = box.x + box.width / 2;
+        startY = box.y + box.height / 2;
+      } else {
+        startX = from.x;
+        startY = from.y;
+      }
+    } else {
+      // Default to viewport center if no from position specified
+      const viewportSize = this.page.viewportSize() || { width: 1280, height: 720 };
+      startX = viewportSize.width / 2;
+      startY = viewportSize.height / 2;
+    }
+
+    // Generate path with intermediate points
+    const allPoints = [{ x: startX, y: startY }];
+
+    // Add path points if any
+    for (const point of pathPoints) {
+      if ('selector' in point) {
+        const element = await this.page.$(point.selector);
+        if (!element) continue;
+        const box = await element.boundingBox();
+        if (!box) continue;
+        allPoints.push({
+          x: box.x + box.width / 2,
+          y: box.y + box.height / 2,
+        });
+      } else {
+        allPoints.push(point);
+      }
+    }
+
+    // Add final destination
+    allPoints.push({ x, y });
+
+    // Generate smooth path through all points
+    const points = this.generateMultiPointPath(allPoints);
 
     // Calculate total movement time based on distance and profile speed
     const distance = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
     const totalTime = duration || distance / this.profile.mouseSpeed;
 
     // Move through points with timing adjusted for duration
+    const mouse = this.page.mouse;
     const startTime = Date.now();
     for (let i = 0; i < points.length; i++) {
       const point = points[i];
       await mouse.move(point.x, point.y);
-      
+
       // Calculate elapsed time and adjust delays to meet total duration
       const elapsed = Date.now() - startTime;
       const remaining = totalTime - elapsed;
       const pointsLeft = points.length - i - 1;
-      
+
       if (pointsLeft > 0) {
         const delay = Math.min(remaining / pointsLeft, 25);
         await this.randomDelay(delay * 0.8, delay * 1.2);
@@ -189,13 +232,13 @@ export class BehaviorEmulator {
     // Scroll in smaller increments for more natural movement
     const steps = Math.floor(scrollDistance / 50) + 1;
     const increment = scrollDistance / steps;
-    
+
     for (let i = 0; i < steps; i++) {
       const stepDistance = direction === 'down' ? increment : -increment;
       await this.page.mouse.wheel(0, stepDistance);
       await this.randomDelay(10, 30);
     }
-    
+
     // Pause after scrolling
     await this.randomDelay(300, 800);
   }
@@ -210,31 +253,39 @@ export class BehaviorEmulator {
   /**
    * Generate a natural mouse path using Bezier curves
    */
-  private generateNaturalPath(start: Point, end: Point): Point[] {
-    const points: Point[] = [];
-    const numPoints = Math.floor(
-      Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)) / 10
-    );
-    
-    // Add some randomness to the control points
-    const controlPoint1 = {
-      x: start.x + (end.x - start.x) / 3 + (Math.random() * 100 - 50),
-      y: start.y + (end.y - start.y) / 3 + (Math.random() * 100 - 50),
-    };
-    
-    const controlPoint2 = {
-      x: start.x + (2 * (end.x - start.x)) / 3 + (Math.random() * 100 - 50),
-      y: start.y + (2 * (end.y - start.y)) / 3 + (Math.random() * 100 - 50),
-    };
-    
-    // Calculate points along the Bezier curve
-    for (let i = 0; i <= numPoints; i++) {
-      const t = i / numPoints;
-      const point = this.bezierPoint(start, controlPoint1, controlPoint2, end, t);
-      points.push(point);
+  private generateMultiPointPath(points: Point[]): Point[] {
+    if (points.length < 2) return points;
+
+    const path: Point[] = [];
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const start = points[i];
+      const end = points[i + 1];
+
+      const segmentPoints = Math.floor(
+        Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)) / 5
+      );
+
+      // Add some randomness to the control points
+      const controlPoint1 = {
+        x: start.x + (end.x - start.x) / 3 + (Math.random() * 100 - 50),
+        y: start.y + (end.y - start.y) / 3 + (Math.random() * 100 - 50),
+      };
+
+      const controlPoint2 = {
+        x: start.x + (2 * (end.x - start.x)) / 3 + (Math.random() * 100 - 50),
+        y: start.y + (2 * (end.y - start.y)) / 3 + (Math.random() * 100 - 50),
+      };
+
+      // Calculate points along the Bezier curve
+      for (let j = 0; j <= segmentPoints; j++) {
+        const t = j / segmentPoints;
+        const point = this.bezierPoint(start, controlPoint1, controlPoint2, end, t);
+        path.push(point);
+      }
     }
-    
-    return points;
+
+    return path;
   }
   
   /**
@@ -246,13 +297,13 @@ export class BehaviorEmulator {
       3 * Math.pow(1 - t, 2) * t * p1.x +
       3 * (1 - t) * Math.pow(t, 2) * p2.x +
       Math.pow(t, 3) * p3.x;
-      
+
     const y =
       Math.pow(1 - t, 3) * p0.y +
       3 * Math.pow(1 - t, 2) * t * p1.y +
       3 * (1 - t) * Math.pow(t, 2) * p2.y +
       Math.pow(t, 3) * p3.y;
-      
+
     return { x, y };
   }
 
@@ -268,13 +319,13 @@ export class BehaviorEmulator {
       f: ['d', 'r', 'g', 'v', 'c'],
       // Add more mappings as needed
     };
-    
+
     // Default to a random letter if no mapping exists
     if (!adjacentKeys[char.toLowerCase()]) {
       const letters = 'abcdefghijklmnopqrstuvwxyz';
       return letters.charAt(Math.floor(Math.random() * letters.length));
     }
-    
+
     // Get a random adjacent key
     const adjacent = adjacentKeys[char.toLowerCase()];
     return adjacent[Math.floor(Math.random() * adjacent.length)];

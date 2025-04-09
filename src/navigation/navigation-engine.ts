@@ -7,6 +7,11 @@ import { BehaviorEmulator } from '../core/human/behavior-emulator.js';
 import { CaptchaSolver } from '../core/captcha/captcha-solver.js';
 import { SessionManager } from '../core/session/session-manager.js';
 import { NavigationStep, NavigationOptions, NavigationResult } from '../types/index.js';
+
+interface Point {
+  x: number;
+  y: number;
+}
 import { config } from '../config/index.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -508,19 +513,19 @@ export class NavigationEngine {
     logger.info(`Scrolling ${direction} by ${distance}px`);
     
     if (direction === 'down') {
-      await this.page.evaluate((dist) => {
+      await this.page.evaluate(dist => {
         window.scrollBy(0, dist);
       }, distance);
     } else if (direction === 'up') {
-      await this.page.evaluate((dist) => {
+      await this.page.evaluate(dist => {
         window.scrollBy(0, -dist);
       }, distance);
     } else if (direction === 'left') {
-      await this.page.evaluate((dist) => {
+      await this.page.evaluate(dist => {
         window.scrollBy(-dist, 0);
       }, distance);
     } else if (direction === 'right') {
-      await this.page.evaluate((dist) => {
+      await this.page.evaluate(dist => {
         window.scrollBy(dist, 0);
       }, distance);
     }
@@ -534,8 +539,10 @@ export class NavigationEngine {
     const y = typeof step.y === 'number' ? step.y : undefined;
     const duration = typeof step.duration === 'number' ? step.duration : 500;
     const humanLike = step.humanLike !== false;
+    const pathPoints = step.pathPoints || [];
+    const action = step.action || 'move'; // 'move', 'drag', 'click', 'wheel'
 
-    logger.info(`Moving mouse to ${selector || `coordinates (${x},${y})`}`);
+    logger.info(`Executing mouse ${action} to ${selector || `coordinates (${x},${y})`}`);
     
     if (selector) {
       await this.page.waitForSelector(selector, {
@@ -543,16 +550,90 @@ export class NavigationEngine {
         timeout: step.timeout || this.options.timeout || 30000,
       });
       
+      const box = await this.page.$eval(selector, el => {
+        const rect = el.getBoundingClientRect();
+        return {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+        };
+      });
+
       if (humanLike) {
         await this.behaviorEmulator.moveMouseToElement(selector, duration);
       } else {
-        await this.page.hover(selector);
+        await this.page.mouse.move(box.x, box.y);
+      }
+
+      // Perform additional action if specified
+      if (action === 'click') {
+        await this.page.mouse.down();
+        await this.page.waitForTimeout(50 + Math.random() * 100);
+        await this.page.mouse.up();
+      } else if (action === 'drag') {
+        await this.page.mouse.down();
+        if (step.dragTo) {
+          const dragTo = this.resolveValue(step.dragTo);
+          if (typeof dragTo === 'string') {
+            await this.behaviorEmulator.moveMouseToElement(dragTo, duration);
+          } else if (dragTo.x !== undefined && dragTo.y !== undefined) {
+            await this.behaviorEmulator.moveMouseToCoordinates(dragTo.x, dragTo.y, duration);
+          }
+        }
+        await this.page.mouse.up();
+      } else if (action === 'wheel') {
+        const deltaX = typeof step.deltaX === 'number' ? step.deltaX : 0;
+        const deltaY = typeof step.deltaY === 'number' ? step.deltaY : 0;
+        await this.page.mouse.wheel(deltaX, deltaY);
       }
     } else if (x !== undefined && y !== undefined) {
       if (humanLike) {
-        await this.behaviorEmulator.moveMouseToCoordinates(x, y, duration);
+        // Convert path points to coordinates if they are selectors
+        const resolvedPathPoints = await Promise.all(
+          pathPoints.map(async (point: { selector: string } | Point) => {
+          if (typeof point === 'object' && 'selector' in point) {
+            const element = await this.page.$(point.selector);
+            if (!element) return point;
+            const box = await element.boundingBox();
+            if (!box) return point;
+            return {
+              x: box.x + box.width / 2,
+              y: box.y + box.height / 2
+            };
+          }
+          return point;
+        }));
+
+        await this.behaviorEmulator.moveMouseToCoordinates(
+          x, 
+          y, 
+          duration,
+          undefined,
+          resolvedPathPoints
+        );
       } else {
         await this.page.mouse.move(x, y);
+      }
+
+      // Perform additional action if specified
+      if (action === 'click') {
+        await this.page.mouse.down();
+        await this.page.waitForTimeout(50 + Math.random() * 100);
+        await this.page.mouse.up();
+      } else if (action === 'drag') {
+        await this.page.mouse.down();
+        if (step.dragTo) {
+          const dragTo = this.resolveValue(step.dragTo);
+          if (typeof dragTo === 'string') {
+            await this.behaviorEmulator.moveMouseToElement(dragTo, duration);
+          } else if (dragTo.x !== undefined && dragTo.y !== undefined) {
+            await this.behaviorEmulator.moveMouseToCoordinates(dragTo.x, dragTo.y, duration);
+          }
+        }
+        await this.page.mouse.up();
+      } else if (action === 'wheel') {
+        const deltaX = typeof step.deltaX === 'number' ? step.deltaX : 0;
+        const deltaY = typeof step.deltaY === 'number' ? step.deltaY : 0;
+        await this.page.mouse.wheel(deltaX, deltaY);
       }
     } else {
       throw new Error('Mouse move step requires either selector or x/y coordinates');
