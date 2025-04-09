@@ -188,13 +188,73 @@ Handles pagination.
 ## Advanced
 
 ### `scroll`
-Scrolls the page.
+Scrolls the page or to a specific element with advanced options.
 
 ```typescript
 {
   type: 'scroll',
+  // Either use directional scrolling:
   direction: 'down', // 'up'/'left'/'right'
-  distance: 500      // pixels
+  distance: 500,     // pixels
+  
+  // OR scroll to an element:
+  selector: '#element',
+  scrollIntoView: true, // use native scrollIntoView (default: false)
+  scrollMargin: 50,     // additional margin in pixels
+  behavior: 'smooth',   // 'smooth' or 'auto'
+  timeout: 5000,       // maximum wait time in ms
+  
+  // Common options:
+  waitFor: '#next-section' // optional selector to wait for
+}
+```
+
+**Scroll Features:**
+1. **Directional Scrolling**: Scroll by fixed amount in any direction
+2. **Element Scrolling**: Scroll to bring element into view with configurable margin
+3. **Scroll Behavior**: Control smoothness with 'smooth' or instant with 'auto'
+4. **Timeout Handling**: Set maximum wait time for scroll operations
+5. **Native vs Custom**: Choose between browser-native or human-like scrolling
+6. **Wait Conditions**: Optionally wait for elements after scrolling
+
+**Implementation Details:**
+- Uses Playwright's scroll functionality with human-like emulation
+- Supports both absolute pixel scrolling and element-based scrolling
+- Automatically handles edge cases like scroll containers
+- Includes intelligent waiting for scroll completion
+
+**Examples:**
+```typescript
+// Directional scrolling with smooth behavior
+{
+  type: 'scroll',
+  direction: 'down',
+  distance: 1000,
+  behavior: 'smooth',
+  timeout: 3000
+}
+
+// Scroll to element with margin and wait
+{
+  type: 'scroll',
+  selector: '#footer',
+  scrollMargin: 100,
+  waitFor: '#content-loaded'
+}
+
+// Native browser scrollIntoView with timeout
+{
+  type: 'scroll',
+  selector: '#header',
+  scrollIntoView: true,
+  timeout: 5000
+}
+
+// Horizontal scrolling
+{
+  type: 'scroll',
+  direction: 'right',
+  distance: 300
 }
 ```
 

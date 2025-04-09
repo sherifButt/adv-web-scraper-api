@@ -78,7 +78,7 @@ export class NavigationEngine {
           const session = await this.sessionManager.getSession(startUrl);
           if (session) {
             logger.info(`Found existing session for domain: ${session.domain}`);
-            
+
             // Apply session before navigating
             await this.sessionManager.applySession(this.browserContext, session);
             sessionApplied = true;
@@ -308,7 +308,7 @@ export class NavigationEngine {
                   if (typeof fieldDef === 'object' && 'fields' in fieldDef) {
                     // Use a Set to track unique property URLs to avoid duplicates
                     const uniqueItems = new Map();
-                    
+
                     const items = await this.page.$$eval(
                       fieldSelector,
                       (elements, fields) => {
@@ -329,39 +329,40 @@ export class NavigationEngine {
                       },
                       fieldDef.fields
                     );
-                    
+
                     // Filter out duplicates based on propertyUrl or address
                     const filteredItems = items.filter(item => {
                       // Skip empty items
                       if (!item.propertyUrl && !item.address) return false;
-                      
+
                       const key = item.propertyUrl || item.address || JSON.stringify(item);
                       if (!key) return false;
-                      
+
                       // If we've seen this item before, check if the current one has more data
                       if (uniqueItems.has(key)) {
                         const existingItem = uniqueItems.get(key);
-                        
+
                         // Merge the items to get the most complete data
                         for (const [field, value] of Object.entries(item)) {
                           if (value && (!existingItem[field] || existingItem[field] === null)) {
                             existingItem[field] = value;
                           }
                         }
-                        
+
                         uniqueItems.set(key, existingItem);
                         return false;
                       }
-                      
+
                       uniqueItems.set(key, item);
                       return true;
                     });
-                    
+
                     result[fieldName] = filteredItems;
                   } else {
-                    const attr = fieldDef && fieldDef.type === 'css' && 'attribute' in fieldDef
-                      ? fieldDef.attribute
-                      : null;
+                    const attr =
+                      fieldDef && fieldDef.type === 'css' && 'attribute' in fieldDef
+                        ? fieldDef.attribute
+                        : null;
                     result[fieldName] = await this.page.$$eval(
                       fieldSelector,
                       (elements, attr) => {
@@ -515,32 +516,45 @@ export class NavigationEngine {
       });
 
       if (step.scrollIntoView) {
-        // Native browser scrollIntoView behavior
+        // Hybrid scroll approach
         await this.page.evaluate(
           ({ selector, scrollMargin }: { selector: string; scrollMargin?: number }) => {
             const element = document.querySelector(selector);
             if (element) {
+              // Initial smooth scroll into view
               element.scrollIntoView({
                 behavior: 'smooth',
                 block: 'center',
                 inline: 'center',
               });
-              
-              // Apply scroll margin if specified
+
+              // Apply margin offset immediately
               if (scrollMargin) {
-                const scrollY = window.scrollY - scrollMargin;
-                window.scrollTo({ top: scrollY, behavior: 'smooth' });
+                window.scrollBy(0, -scrollMargin);
               }
             }
           },
-          { 
-            selector: step.selector, 
-            scrollMargin: step.scrollMargin 
+          {
+            selector: step.selector,
+            scrollMargin: step.scrollMargin,
           }
         );
+
+        // Additional manual distance scroll after initial positioning
+        if (step.distance) {
+          await this.page.evaluate(distance => {
+            window.scrollBy({
+              top: distance,
+              behavior: 'smooth',
+            });
+          }, step.distance);
+        }
+
+        // Add stabilization wait
+        await this.page.waitForTimeout(800);
       } else {
         // Custom scroll behavior with human-like movement
-        const box = await this.page.$eval(step.selector, (el) => {
+        const box = await this.page.$eval(step.selector, el => {
           const rect = el.getBoundingClientRect();
           return {
             x: rect.left + rect.width / 2,
@@ -562,9 +576,9 @@ export class NavigationEngine {
       // Original directional scrolling behavior
       const direction = step.direction || 'down';
       const distance = typeof step.distance === 'number' ? step.distance : 100;
-      
+
       logger.info(`Scrolling ${direction} by ${distance}px`);
-      
+
       if (direction === 'down') {
         await this.page.evaluate(dist => {
           window.scrollBy(0, dist);
@@ -583,7 +597,9 @@ export class NavigationEngine {
         }, distance);
       }
     }
-    
+
+    // Wait for either specified timeout or distance scroll duration
+    await this.page.waitForTimeout(step.timeout || 5000);
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
   }
 
@@ -597,14 +613,14 @@ export class NavigationEngine {
     const action = step.action || 'move'; // 'move', 'drag', 'click', 'wheel'
 
     logger.info(`Executing mouse ${action} to ${selector || `coordinates (${x},${y})`}`);
-    
+
     if (selector) {
       await this.page.waitForSelector(selector, {
         state: 'visible',
         timeout: step.timeout || this.options.timeout || 30000,
       });
-      
-      const box = await this.page.$eval(selector, (el) => {
+
+      const box = await this.page.$eval(selector, el => {
         const rect = el.getBoundingClientRect();
         return {
           x: rect.left + rect.width / 2,
@@ -644,22 +660,23 @@ export class NavigationEngine {
         // Convert path points to coordinates if they are selectors
         const resolvedPathPoints = await Promise.all(
           pathPoints.map(async (point: { selector: string } | Point) => {
-          if (typeof point === 'object' && 'selector' in point) {
-            const element = await this.page.$(point.selector);
-            if (!element) return point;
-            const box = await element.boundingBox();
-            if (!box) return point;
-            return {
-              x: box.x + box.width / 2,
-              y: box.y + box.height / 2
-            };
-          }
-          return point;
-        }));
+            if (typeof point === 'object' && 'selector' in point) {
+              const element = await this.page.$(point.selector);
+              if (!element) return point;
+              const box = await element.boundingBox();
+              if (!box) return point;
+              return {
+                x: box.x + box.width / 2,
+                y: box.y + box.height / 2,
+              };
+            }
+            return point;
+          })
+        );
 
         await this.behaviorEmulator.moveMouseToCoordinates(
-          x, 
-          y, 
+          x,
+          y,
           duration,
           undefined,
           resolvedPathPoints
@@ -699,35 +716,35 @@ export class NavigationEngine {
   private async executeHoverStep(step: NavigationStep): Promise<void> {
     const selector = this.resolveValue(step.selector);
     const duration = typeof step.duration === 'number' ? step.duration : 1000;
-    
+
     logger.info(`Hovering over element: ${selector}`);
     await this.page.waitForSelector(selector, {
       state: 'visible',
       timeout: step.timeout || this.options.timeout || 30000,
     });
-    
+
     await this.executeMouseMoveStep({
       ...step,
       humanLike: true,
-      duration: duration / 2
+      duration: duration / 2,
     });
-    
+
     await this.page.waitForTimeout(duration / 2);
-    
+
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
   }
 
   private async executeScriptStep(step: NavigationStep): Promise<void> {
     const script = this.resolveValue(step.script);
     logger.info(`Executing script: ${script.substring(0, 50)}...`);
-    
+
     try {
       await this.page.evaluate(script);
     } catch (error) {
       logger.warn(`Script execution failed: ${error}`);
       throw error;
     }
-    
+
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
   }
 
@@ -815,7 +832,7 @@ export class NavigationEngine {
       });
       if (result.success) {
         logger.info('CAPTCHA solved successfully');
-        
+
         // If we solved a CAPTCHA and we're using sessions, save the session
         if (
           result.method !== 'session_reuse' &&
