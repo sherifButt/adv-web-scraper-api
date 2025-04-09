@@ -26,7 +26,7 @@ The project has progressed from planning to initial implementation. We now have 
    - CAPTCHA detection for multiple CAPTCHA types
    - CAPTCHA solving framework with multiple strategies
    - Proxy management system with rotation and health checking
-   - Navigation engine for multi-step flows and crawling
+   - **Navigation engine:** Refactored to use a handler-based system (Strategy/Factory pattern) for improved modularity and extensibility. Core logic for flow control, session handling, CAPTCHA checks, and screenshots remains in the engine.
 
 3. **API Foundation**
    - Express.js server setup
@@ -194,8 +194,8 @@ Key decisions have evolved as implementation has progressed:
 | Project Scaffolding | May 11, 2025 | Completed | Set up project structure and development environment |
 | Browser Automation | May 25, 2025 | Completed | Implement browser automation with human emulation |
 | CAPTCHA Solving | June 8, 2025 | In Progress | Implement CAPTCHA detection and solving capabilities |
-| Navigation Engine | June 22, 2025 | Completed | Build multi-step navigation and crawling system |
-| Data Extraction | July 6, 2025 | Not Started | Implement data extraction and transformation |
+| Navigation Engine | June 22, 2025 | Completed | Built multi-step navigation system. Refactored to handler-based architecture. |
+| Data Extraction | July 6, 2025 | Completed | Implemented data extraction engine, validation, transformation, and storage adapters. |
 | API Completion | July 20, 2025 | In Progress | Complete REST API implementation |
 | MVP Release | August 3, 2025 | On Track | First usable version with core functionality |
 | Optimization | August 24, 2025 | Not Started | Performance optimization and scaling improvements |

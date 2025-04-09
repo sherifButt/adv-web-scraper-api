@@ -187,7 +187,7 @@ console.log(`Healthy proxies: ${stats.healthy}/${stats.total}`);
 
 ### Navigation Engine
 
-The navigation engine executes multi-step navigation flows:
+The navigation engine executes multi-step navigation flows. It has recently been refactored to use a handler-based architecture (Strategy/Factory pattern), where each step type (`goto`, `click`, `input`, etc.) has its own dedicated handler class. This makes the engine more modular and extensible.
 
 ```typescript
 // Example: Using the navigation engine

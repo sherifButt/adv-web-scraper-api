@@ -179,35 +179,41 @@ This pattern is applied to:
 - Browser and context creation (implemented)
 - Proxy instance creation (implemented)
 
-### Command Pattern
+### Strategy/Factory Pattern (Navigation Steps)
 
-The Command pattern is used for navigation steps:
+The execution of navigation steps now utilizes a combination of the Strategy and Factory patterns. Each step type (`goto`, `click`, `input`, etc.) has a dedicated handler class (Strategy) responsible for its execution logic. A `StepHandlerFactory` is used to create and provide the appropriate handler instance based on the step's `type`.
 
 ```typescript
-// Example from navigation engine
-interface NavigationStep {
-  type: 'goto' | 'click' | 'input' | 'wait' | 'extract' | 'condition' | 'paginate';
-  selector?: string;
-  value?: string | number;
-  waitFor?: string | number;
-  // Other properties...
+// Example from navigation engine refactoring
+// Interface for step handlers
+export interface IStepHandler {
+  canHandle(step: NavigationStep): boolean;
+  execute(step: NavigationStep, context: NavigationContext, page: Page): Promise<void>;
 }
 
-// Execute different steps based on type
-switch (step.type) {
-  case 'goto':
-    await this.executeGotoStep(step);
-    break;
-  case 'click':
-    await this.executeClickStep(step);
-    break;
-  // Other step types...
+// Factory to get handlers
+export class StepHandlerFactory {
+  private handlers: IStepHandler[];
+  constructor(page: Page);
+  public getHandler(stepType: string): IStepHandler;
+  // ...
+}
+
+// Engine uses the factory
+export class NavigationEngine {
+  private handlerFactory: StepHandlerFactory;
+  // ...
+  private async executeStep(step: NavigationStep, stepIndex: number): Promise<void> {
+    const handler = this.handlerFactory.getHandler(step.type);
+    await handler.execute(step, this.context, this.page);
+    // ...
+  }
 }
 ```
 
 This pattern is applied to:
-- Navigation steps (implemented)
-- Extraction operations (in progress)
+- Navigation step execution (implemented via handlers)
+- Extraction operations (in progress, potentially similar handler pattern)
 
 ## Critical Implementation Paths
 
@@ -422,12 +428,12 @@ export interface CaptchaSolveOptions {
 }
 ```
 
-### Navigation Interface
+### Navigation Interface (Refactored)
 
-The navigation interface has been implemented:
+The navigation interface has been refactored to use a handler-based approach:
 
 ```typescript
-// Navigation engine interface
+// Navigation engine interface (Simplified)
 export class NavigationEngine {
   constructor(page: Page, options?: NavigationOptions);
   public async executeFlow(
@@ -435,16 +441,33 @@ export class NavigationEngine {
     steps: NavigationStep[],
     initialContext?: NavigationContext
   ): Promise<NavigationResult>;
+  // Internal executeStep now delegates to handlers via StepHandlerFactory
 }
 
-// Navigation step interface
+// Step Handler Factory Interface
+export class StepHandlerFactory {
+   constructor(page: Page);
+   public getHandler(stepType: string): IStepHandler;
+}
+
+// Base Step Handler (Illustrative)
+export abstract class BaseStepHandler implements IStepHandler {
+  protected page: Page;
+  constructor(page: Page);
+  abstract canHandle(step: NavigationStep): boolean;
+  abstract execute(step: NavigationStep, context: NavigationContext, page: Page): Promise<void>;
+  protected resolveValue(value: any, context: NavigationContext): any;
+  protected async handleWaitFor(waitFor: any, timeout?: number): Promise<void>;
+}
+
+// Navigation step interface (Remains the same for configuration)
 export interface NavigationStep {
-  type: 'goto' | 'click' | 'input' | 'select' | 'wait' | 'extract' | 'condition' | 'paginate';
+  type: 'goto' | 'click' | 'input' | 'select' | 'wait' | 'extract' | 'condition' | 'paginate' | 'scroll' | 'mousemove' | 'hover' | 'executeScript';
   selector?: string;
-  value?: string | number;
-  waitFor?: string | number;
+  value?: any; // More flexible type
+  waitFor?: string | number | 'navigation' | 'networkidle';
   timeout?: number;
-  // Other step-specific properties
+  // ... other step-specific properties (e.g., fields, maxPages, direction, action, script)
 }
 
 // Navigation result interface
