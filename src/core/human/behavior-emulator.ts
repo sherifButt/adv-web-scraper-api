@@ -90,18 +90,30 @@ export class BehaviorEmulator {
     const targetX = box.x + box.width / 2;
     const targetY = box.y + box.height / 2;
 
-    await this.moveMouseToCoordinates(targetX, targetY, duration);
+    await this.moveMouseToCoordinates(targetX, targetY, duration || 0);
   }
 
   /**
    * Move the mouse to a specific position with human-like motion
    */
+  public async scrollTo(options: {
+    x: number;
+    y: number;
+    margin?: number;
+    duration: number;
+  }): Promise<void> {
+    const { x, y, margin = 0, duration } = options;
+    await this.page.mouse.wheel(x + margin, y + margin);
+    await this.page.waitForTimeout(duration);
+  }
+
   public async moveMouseToCoordinates(
     x: number,
     y: number,
-    duration?: number,
-    from?: { x: number; y: number } | { selector: string },
-    pathPoints: Array<{ x: number; y: number } | { selector: string }> = []
+    duration: number,
+    button?: 'left' | 'right' | 'middle',
+    pathPoints: Point[] = [],
+    from?: { x: number; y: number } | { selector: string }
   ): Promise<void> {
     let startX: number;
     let startY: number;
@@ -131,7 +143,7 @@ export class BehaviorEmulator {
     // Add path points if any
     for (const point of pathPoints) {
       if ('selector' in point) {
-        const element = await this.page.$(point.selector);
+        const element = await this.page.$(point.selector as string);
         if (!element) continue;
         const box = await element.boundingBox();
         if (!box) continue;
@@ -228,7 +240,7 @@ export class BehaviorEmulator {
         Math.random() * (this.profile.scrollSpeed[1] - this.profile.scrollSpeed[0]) +
           this.profile.scrollSpeed[0]
       );
-    
+
     // Scroll in smaller increments for more natural movement
     const steps = Math.floor(scrollDistance / 50) + 1;
     const increment = scrollDistance / steps;
@@ -287,7 +299,7 @@ export class BehaviorEmulator {
 
     return path;
   }
-  
+
   /**
    * Calculate a point on a cubic Bezier curve
    */

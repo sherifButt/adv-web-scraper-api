@@ -507,27 +507,81 @@ export class NavigationEngine {
   }
 
   private async executeScrollStep(step: NavigationStep): Promise<void> {
-    const direction = step.direction || 'down';
-    const distance = typeof step.distance === 'number' ? step.distance : 100;
-    
-    logger.info(`Scrolling ${direction} by ${distance}px`);
-    
-    if (direction === 'down') {
-      await this.page.evaluate(dist => {
-        window.scrollBy(0, dist);
-      }, distance);
-    } else if (direction === 'up') {
-      await this.page.evaluate(dist => {
-        window.scrollBy(0, -dist);
-      }, distance);
-    } else if (direction === 'left') {
-      await this.page.evaluate(dist => {
-        window.scrollBy(-dist, 0);
-      }, distance);
-    } else if (direction === 'right') {
-      await this.page.evaluate(dist => {
-        window.scrollBy(dist, 0);
-      }, distance);
+    if (step.selector) {
+      logger.info(`Scrolling to element: ${step.selector}`);
+      await this.page.waitForSelector(step.selector, {
+        state: 'visible',
+        timeout: step.timeout || this.options.timeout || 30000,
+      });
+
+      if (step.scrollIntoView) {
+        // Native browser scrollIntoView behavior
+        await this.page.evaluate(
+          ({ selector, scrollMargin }: { selector: string; scrollMargin?: number }) => {
+            const element = document.querySelector(selector);
+            if (element) {
+              element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center',
+              });
+              
+              // Apply scroll margin if specified
+              if (scrollMargin) {
+                const scrollY = window.scrollY - scrollMargin;
+                window.scrollTo({ top: scrollY, behavior: 'smooth' });
+              }
+            }
+          },
+          { 
+            selector: step.selector, 
+            scrollMargin: step.scrollMargin 
+          }
+        );
+      } else {
+        // Custom scroll behavior with human-like movement
+        const box = await this.page.$eval(step.selector, (el) => {
+          const rect = el.getBoundingClientRect();
+          return {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          };
+        });
+
+        const scrollY = box.y - window.innerHeight / 2;
+        const scrollX = box.x - window.innerWidth / 2;
+
+        await this.behaviorEmulator.scrollTo({
+          x: scrollX,
+          y: scrollY,
+          margin: step.scrollMargin,
+          duration: 1000 + Math.random() * 1000,
+        });
+      }
+    } else {
+      // Original directional scrolling behavior
+      const direction = step.direction || 'down';
+      const distance = typeof step.distance === 'number' ? step.distance : 100;
+      
+      logger.info(`Scrolling ${direction} by ${distance}px`);
+      
+      if (direction === 'down') {
+        await this.page.evaluate(dist => {
+          window.scrollBy(0, dist);
+        }, distance);
+      } else if (direction === 'up') {
+        await this.page.evaluate(dist => {
+          window.scrollBy(0, -dist);
+        }, distance);
+      } else if (direction === 'left') {
+        await this.page.evaluate(dist => {
+          window.scrollBy(-dist, 0);
+        }, distance);
+      } else if (direction === 'right') {
+        await this.page.evaluate(dist => {
+          window.scrollBy(dist, 0);
+        }, distance);
+      }
     }
     
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
@@ -550,11 +604,11 @@ export class NavigationEngine {
         timeout: step.timeout || this.options.timeout || 30000,
       });
       
-      const box = await this.page.$eval(selector, el => {
+      const box = await this.page.$eval(selector, (el) => {
         const rect = el.getBoundingClientRect();
         return {
           x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2
+          y: rect.top + rect.height / 2,
         };
       });
 

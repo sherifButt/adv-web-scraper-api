@@ -48,15 +48,12 @@
         "value": 8000,
         "description": "Wait longer for search results to load completely"
       },
-      {
-        "type": "mousemove",
-        "selector": ".m6QErb[role='feed']",
-        "duration": 1000, 
-        "humanLike": true
-      },
+      
       {
         "type": "scroll",
         "direction": "down",
+        "selector": ".m6QErb[role='feed']",
+        "scrollIntoView": true,
         "distance": 800,
         "description": "Scroll down to load more results"
       },
