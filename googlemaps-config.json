@@ -49,6 +49,12 @@
         "description": "Wait longer for search results to load completely"
       },
       {
+        "type": "mousemove",
+        "y": "50",
+        "duration": 1000, 
+        "humanLike": true
+      },
+      {
         "type": "scroll",
         "direction": "down",
         "distance": 800,

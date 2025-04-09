@@ -200,6 +200,12 @@ export class NavigationEngine {
       case 'executeScript':
         await this.executeScriptStep(step);
         break;
+      case 'mousemove':
+        await this.executeMouseMoveStep(step);
+        break;
+      case 'hover':
+        await this.executeHoverStep(step);
+        break;
       default:
         throw new Error(`Unknown step type: ${step.type}`);
     }
@@ -518,6 +524,60 @@ export class NavigationEngine {
         window.scrollBy(dist, 0);
       }, distance);
     }
+    
+    if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
+  }
+
+  private async executeMouseMoveStep(step: NavigationStep): Promise<void> {
+    const selector = this.resolveValue(step.selector);
+    const x = typeof step.x === 'number' ? step.x : undefined;
+    const y = typeof step.y === 'number' ? step.y : undefined;
+    const duration = typeof step.duration === 'number' ? step.duration : 500;
+    const humanLike = step.humanLike !== false;
+
+    logger.info(`Moving mouse to ${selector || `coordinates (${x},${y})`}`);
+    
+    if (selector) {
+      await this.page.waitForSelector(selector, {
+        state: 'visible',
+        timeout: step.timeout || this.options.timeout || 30000,
+      });
+      
+      if (humanLike) {
+        await this.behaviorEmulator.moveMouseToElement(selector, duration);
+      } else {
+        await this.page.hover(selector);
+      }
+    } else if (x !== undefined && y !== undefined) {
+      if (humanLike) {
+        await this.behaviorEmulator.moveMouseToCoordinates(x, y, duration);
+      } else {
+        await this.page.mouse.move(x, y);
+      }
+    } else {
+      throw new Error('Mouse move step requires either selector or x/y coordinates');
+    }
+
+    if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
+  }
+
+  private async executeHoverStep(step: NavigationStep): Promise<void> {
+    const selector = this.resolveValue(step.selector);
+    const duration = typeof step.duration === 'number' ? step.duration : 1000;
+    
+    logger.info(`Hovering over element: ${selector}`);
+    await this.page.waitForSelector(selector, {
+      state: 'visible',
+      timeout: step.timeout || this.options.timeout || 30000,
+    });
+    
+    await this.executeMouseMoveStep({
+      ...step,
+      humanLike: true,
+      duration: duration / 2
+    });
+    
+    await this.page.waitForTimeout(duration / 2);
     
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
   }

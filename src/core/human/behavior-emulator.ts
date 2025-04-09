@@ -75,7 +75,7 @@ export class BehaviorEmulator {
   /**
    * Move the mouse to an element with human-like motion
    */
-  public async moveMouseToElement(selector: string): Promise<void> {
+  public async moveMouseToElement(selector: string, duration?: number): Promise<void> {
     const element = await this.page.$(selector);
     if (!element) {
       throw new Error(`Element not found: ${selector}`);
@@ -90,13 +90,13 @@ export class BehaviorEmulator {
     const targetX = box.x + box.width / 2;
     const targetY = box.y + box.height / 2;
 
-    await this.moveMouseToPosition(targetX, targetY);
+    await this.moveMouseToCoordinates(targetX, targetY, duration);
   }
 
   /**
    * Move the mouse to a specific position with human-like motion
    */
-  public async moveMouseToPosition(x: number, y: number): Promise<void> {
+  public async moveMouseToCoordinates(x: number, y: number, duration?: number): Promise<void> {
     // Get current mouse position or use a default starting point
     const mouse = this.page.mouse;
     // Playwright doesn't expose current mouse position, so we'll use the viewport center as a starting point
@@ -108,19 +108,24 @@ export class BehaviorEmulator {
     // Generate a natural path using Bezier curves
     const points = this.generateNaturalPath({ x: startX, y: startY }, { x, y });
 
-    // Move through points with variable speed
+    // Calculate total movement time based on distance and profile speed
+    const distance = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+    const totalTime = duration || distance / this.profile.mouseSpeed;
+
+    // Move through points with timing adjusted for duration
+    const startTime = Date.now();
     for (let i = 0; i < points.length; i++) {
       const point = points[i];
       await mouse.move(point.x, point.y);
       
-      // Variable delay between movements with occasional pauses
-      if (i < points.length - 1) {
-        if (Math.random() < 0.1) {
-          // 10% chance of a longer pause mid-movement
-          await this.randomDelay(50, 150);
-        } else {
-          await this.randomDelay(5, 25);
-        }
+      // Calculate elapsed time and adjust delays to meet total duration
+      const elapsed = Date.now() - startTime;
+      const remaining = totalTime - elapsed;
+      const pointsLeft = points.length - i - 1;
+      
+      if (pointsLeft > 0) {
+        const delay = Math.min(remaining / pointsLeft, 25);
+        await this.randomDelay(delay * 0.8, delay * 1.2);
       }
     }
 

@@ -110,7 +110,9 @@ export interface NavigationStep {
     | 'condition'
     | 'paginate'
     | 'scroll'
-    | 'executeScript';
+    | 'executeScript'
+    | 'mousemove'
+    | 'hover';
   selector?: string;
   value?: string;
   waitFor?: string | number;
