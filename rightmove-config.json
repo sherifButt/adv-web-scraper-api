@@ -137,7 +137,7 @@
             "description": "Extract property search results",
             "fields": {
                 "properties": {
-                    "selector": ".propertyCard, [class*=\"PropertyCard_propertyCard\"], [data-test=\"propertyCard\"]",
+                    "selector": "[data-test=\"propertyCard\"], .propertyCard[data-property-id], [class*=\"PropertyCard_propertyCard\"][data-testid]",
                     "type": "css",
                     "multiple": true,
                     "continueOnError": true,
@@ -188,11 +188,6 @@
                             "continueOnError": true
                         },
                         "distance": {
-                            "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "description": {
                             "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
                             "type": "css",
                             "continueOnError": true

@@ -110,7 +110,7 @@ export class ExtractStepHandler extends BaseStepHandler {
   // Refactored to handle mixed CSS/Regex nested fields correctly
   private async extractMultipleFields(
     selector: string,
-    fields: Record<string, SelectorConfig> // Use SelectorConfig type
+    fields: Record<string, SelectorConfig>
   ): Promise<any[]> {
     const elements = await this.page.$$(selector);
     if (!elements || elements.length === 0) {
@@ -119,7 +119,22 @@ export class ExtractStepHandler extends BaseStepHandler {
     }
 
     const results: any[] = [];
+    const seenIds = new Set<string>();
+
     for (const element of elements) {
+      // Get unique identifier for property (either data-property-id or href)
+      const propertyId = await element.evaluate(
+        el =>
+          el.getAttribute('data-property-id') ||
+          el.querySelector('a[href*="/properties/"]')?.getAttribute('href')?.split('/')[2]
+      );
+
+      // Skip duplicates
+      if (propertyId && seenIds.has(propertyId)) {
+        await element.dispose();
+        continue;
+      }
+      if (propertyId) seenIds.add(propertyId);
       const item: Record<string, any> = {};
       const elementHtml = await element.evaluate(el => el.outerHTML); // Get outerHTML for regex
 
