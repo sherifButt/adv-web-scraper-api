@@ -5,10 +5,10 @@ import fs from 'fs';
 
 async function testRightmoveConfig() {
   try {
-    console.log('Starting test of rightmove-config copy.json');
+    console.log('Starting test of rightmove-config.json');
 
     // Read the configuration file
-    const configPath = './rightmove-config copy.json';
+    const configPath = './rightmove-config.json';
     const configContent = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configContent);
 

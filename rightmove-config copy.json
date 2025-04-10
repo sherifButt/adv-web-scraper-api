@@ -1,11 +1,7 @@
 {
     "startUrl": "https://www.rightmove.co.uk/property-for-sale.html",
     "steps": [
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait 1 sec for dynamic content to load"
-        },
+        
         {
             "type": "scroll",
             "direction": "down",
@@ -28,15 +24,10 @@
         {
             "type": "scroll",
             "direction": "down",
-            "distance": 200,
+            "distance": 50,
             "description": "Continue scrolling down 200 px"
         },
-        {
-            "type": "scroll",
-            "direction": "up",
-            "distance": 200,
-            "description": "Continue scrolling up 200 px"
-        },
+       
         {
             "type": "input",
             "selector": "#ta_searchInput",
@@ -50,28 +41,14 @@
             "selector": "button[data-testid='forSaleCta']",
             "description": "Click the 'For Sale' button"
         },
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait for 1 seconds"
-        },
+       
         {
             "type": "scroll",
             "direction": "down",
-            "distance": 200,
+            "distance": 50,
             "description": "Continue scrolling down 200 px"
         },
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait for 1 seconds"
-        },
-        {
-            "type": "scroll",
-            "direction": "up",
-            "distance": 200,
-            "description": "Continue scrolling up 200 px"
-        },
+        
         {
             "type": "select",
             "selector": "#radius",
@@ -89,18 +66,7 @@
             "value": "0.25",
             "description": "Set search radius to within 1/4 mile"
         },
-        {
-            "type": "scroll",
-            "direction": "down",
-            "distance": 200,
-            "description": "Continue scrolling down"
-        },
-        {
-            "type": "scroll",
-            "direction": "up",
-            "distance": 200,
-            "description": "Continue scrolling up"
-        },
+       
         {
             "type": "select",
             "selector": "#propertyTypes",
@@ -112,11 +78,7 @@
             "selector": ".dsrm_button.dsrm_button--light.dsrm_primary.dsrm_core.dsrm_width_content",
             "description": "Click the 'Search properties' button"
         },
-        {
-            "type": "wait",
-            "value": 1000,
-            "description": "Wait 1 sec for results to fully load"
-        },
+       
         {
             "type": "scroll",
             "direction": "down",
@@ -187,10 +149,9 @@
                         },
                         "price": {
                             "selector": "[class*=\"PropertyPrice_price\"], .propertyCard-priceValue, .propertyCard-price",
-                            "type": "css",
+                            "type": "regex",
                             "pattern": "(?:£|\\b)([0-9,]+)\\b",
                             "dataType": "number",
-                            "transform": "value.replace(/,/g, '')",
                             "continueOnError": true
                         },
                         "type": {
