@@ -691,6 +691,16 @@ curl -X POST http://localhost:3000/api/v1/navigate/crawl \
 # }
 ```
 
+## Data Extraction
+
+The API supports multiple extraction strategies:
+- CSS selectors
+- XPath selectors 
+- Regex patterns
+- Function-based selectors
+
+For detailed regex extraction documentation, see [Regex Extraction Guide](docs/regex-extraction.md)
+
 ## Data Extraction Configuration
 
 ### Field Configuration Options

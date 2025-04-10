@@ -193,6 +193,19 @@
                             "transform": "value.replace(/,/g, '')",
                             "continueOnError": true
                         },
+                        "priceRegex": {
+                            "selector": "/£([0-9,]+)/",
+                            "type": "regex",
+                            "dataType": "number",
+                            "transform": "value.replace(/,/g, '')",
+                            "continueOnError": true
+                        },
+                        "postcode": {
+                            "selector": "address.propertyCard-address",
+                            "type": "regex",
+                            "pattern": "/\\b([A-Z]{1,2}\\d[A-Z\\d]?\\s\\d[A-Z]{2})\\b/",
+                            "continueOnError": true
+                        },
                         "type": {
                             "selector": ".propertyCard-type, [class*=\"PropertyInformation_propertyType\"]",
                             "type": "css",

@@ -3,9 +3,7 @@
   "steps": [
     {
       "type": "scroll",
-
       "distance": 500,
-      
       "description": "Initial page scroll"
     },
     {
@@ -22,7 +20,7 @@
     },
     {
       "type": "wait",
-      "value": 3000,
+      "value": 500,
       "description": "Wait for page to load"
     },
     {
@@ -43,39 +41,16 @@
       "value": 1000,
       "description": "Wait for search results"
     },
+    {
+      "type": "mousemove",
+      "selector": ".m6QErb[role='feed']",
+      "duration": 4000,
+      "action": "wheel",
+      "deltaY": 6000,
+      "description": "(1/5) Scroll results feed"
+    },
    
-    {
-      "type": "mousemove",
-      "selector": ".m6QErb[role='feed']",
-      "duration": 1000,
-      "action": "wheel",
-      "deltaY": 500,
-      "description": "Scroll results feed"
-    },
-    {
-      "type": "mousemove",
-      "selector": ".m6QErb[role='feed']",
-      "duration": 500,
-      "action": "wheel",
-      "deltaY": 500,
-      "description": "Scroll results feed"
-    },
-    {
-      "type": "mousemove",
-      "selector": ".m6QErb[role='feed']",
-      "duration": 500,
-      "action": "wheel",
-      "deltaY": 500,
-      "description": "Scroll results feed"
-    },
-    {
-      "type": "mousemove",
-      "selector": ".m6QErb[role='feed']",
-      "duration": 500,
-      "action": "wheel",
-      "deltaY": 500,
-      "description": "Scroll results feed"
-    },
+   
     {
       "type": "wait",
       "value": 3000,
@@ -90,44 +65,30 @@
     },
     {
       "type": "extract",
-      "name": "barberShops",
-      "selector": "div.Nv2PK",
-      "description": "Extract listings",
-      "multiple": true,
+      "name": "searchResults",
+      "selector": ".m6QErb[role='feed']",
+      "description": "Extract listings from the search results container",
       "fields": {
-        "name": {
-          "selector": "div.fontHeadlineSmall",
-          "type": "text",
-          "optional": true
-        },
-        "rating": {
-          "selector": "span[aria-label*='stars']",
-          "type": "attribute",
-          "attribute": "aria-label",
-          "pattern": "(\\d+\\.\\d+) stars",
-          "optional": true
-        },
-        "reviewCount": {
-          "selector": "span[aria-label*='stars']",
-          "type": "attribute",
-          "attribute": "aria-label",
-          "pattern": "stars (\\d+) reviews",
-          "optional": true
-        },
-        "type": {
-          "selector": "div.W4Efsd span:first-child",
-          "type": "text",
-          "optional": true
-        },
-        "address": {
-          "selector": "div.W4Efsd span:nth-child(3)",
-          "type": "text",
-          "optional": true
-        },
-        "hours": {
-          "selector": "div.W4Efsd div.W4Efsd span:first-child",
-          "type": "text",
-          "optional": true
+        "listings": {
+          "selector": ".Nv2PK",
+          "type": "css",
+          "multiple": true,
+          "continueOnError": true,
+          "fields": {
+            "name": {
+              "selector": ".fontHeadlineSmall",
+              "type": "css",
+              "continueOnError": true
+            },
+            "name2": {
+              "selector": "span .UY7F9",
+              "type": "regex",
+              "pattern": "/\\((\\d+)\\)/",
+              "group": 1,
+              "dataType": "number",
+              "continueOnError": true
+            }
+          }
         }
       }
     }
@@ -138,6 +99,7 @@
   },
   "options": {
     "timeout": 45000,
+    "waitForSelector": ".m6QErb[role='feed']",
     "javascript": true,
     "screenshots": false,
     "screenshotsPath": "./screenshots",

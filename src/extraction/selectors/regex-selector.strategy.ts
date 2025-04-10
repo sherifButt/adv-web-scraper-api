@@ -58,13 +58,20 @@ export class RegexSelectorStrategy implements SelectorStrategy {
         sourceText = await page.content();
       }
 
+      // Clean and validate the pattern
+      const cleanedPattern = this.cleanPattern(pattern);
+      if (!this.isValidPattern(cleanedPattern)) {
+        logger.warn(`Invalid regex pattern: ${pattern}`);
+        return regexConfig.defaultValue !== undefined ? regexConfig.defaultValue : null;
+      }
+
       // Create the regex
-      const regex = new RegExp(pattern, flags);
+      const regex = new RegExp(cleanedPattern, flags);
       // Extract data based on whether we want multiple matches or a single one
       if (multiple) {
         return this.extractMultiple(sourceText, regex, group);
       } else {
-        return this.extractSingle(sourceText, regex, group);
+        return this.extractSingle(sourceText, regex, group, regexConfig);
       }
     } catch (error) {
       logger.error(`Error extracting data with regex pattern "${pattern}": ${error}`);
@@ -79,12 +86,35 @@ export class RegexSelectorStrategy implements SelectorStrategy {
    * @param group Capture group to extract
    * @returns Extracted data
    */
-  private extractSingle(sourceText: string, regex: RegExp, group: number): string | null {
-    const match = regex.exec(sourceText);
-    if (!match) {
+  private extractSingle(
+    sourceText: string,
+    regex: RegExp,
+    group: number,
+    config: RegexSelectorConfig
+  ): string | number | null {
+    try {
+      const match = regex.exec(sourceText);
+      if (!match) {
+        return null;
+      }
+      // Handle invalid group numbers
+      const result = group < 0 || group >= match.length ? match[0] : match[group];
+      if (!result) return null;
+
+      // Convert to number if specified
+      if (config.dataType === 'number') {
+        // First try direct conversion, then fallback to cleaning non-numeric chars
+        let numericValue = Number(result);
+        if (isNaN(numericValue)) {
+          numericValue = Number(result.replace(/[^0-9.-]/g, ''));
+        }
+        return isNaN(numericValue) ? null : numericValue;
+      }
+      return result;
+    } catch (error) {
+      logger.warn(`Regex execution error: ${error}`);
       return null;
     }
-    return match[group] || null;
   }
 
   /**
@@ -97,17 +127,50 @@ export class RegexSelectorStrategy implements SelectorStrategy {
   private extractMultiple(sourceText: string, regex: RegExp, group: number): string[] {
     const results: string[] = [];
     let match;
-    // Reset regex lastIndex to ensure we start from the beginning
-    regex.lastIndex = 0;
-    while ((match = regex.exec(sourceText)) !== null) {
-      if (match[group]) {
-        results.push(match[group]);
+    try {
+      // Reset regex lastIndex to ensure we start from the beginning
+      regex.lastIndex = 0;
+      while ((match = regex.exec(sourceText)) !== null) {
+        // Handle invalid group numbers
+        const result = group >= 0 && group < match.length ? match[group] : match[0];
+        if (result) {
+          results.push(result);
+        }
+        // Prevent infinite loops for zero-width matches
+        if (match.index === regex.lastIndex) {
+          regex.lastIndex++;
+        }
       }
-      // Prevent infinite loops for zero-width matches
-      if (match.index === regex.lastIndex) {
-        regex.lastIndex++;
-      }
+    } catch (error) {
+      logger.warn(`Regex execution error: ${error}`);
     }
     return results;
+  }
+
+  /**
+   * Clean regex pattern by removing surrounding slashes if present
+   * @param pattern Input pattern
+   * @returns Cleaned pattern
+   */
+  private cleanPattern(pattern: string): string {
+    // Remove surrounding slashes if they exist
+    if (pattern.startsWith('/') && pattern.endsWith('/')) {
+      return pattern.slice(1, -1);
+    }
+    return pattern;
+  }
+
+  /**
+   * Validate regex pattern syntax
+   * @param pattern Pattern to validate
+   * @returns True if pattern is valid
+   */
+  private isValidPattern(pattern: string): boolean {
+    try {
+      new RegExp(pattern);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
