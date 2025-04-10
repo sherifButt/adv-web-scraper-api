@@ -32,7 +32,8 @@ export class MouseStepHandler extends BaseStepHandler {
     const selector = this.resolveValue(step.selector, context);
     const x = typeof step.x === 'number' ? this.resolveValue(step.x, context) : undefined;
     const y = typeof step.y === 'number' ? this.resolveValue(step.y, context) : undefined;
-    const duration = typeof step.duration === 'number' ? this.resolveValue(step.duration, context) : 500;
+    const duration =
+      typeof step.duration === 'number' ? this.resolveValue(step.duration, context) : 500;
     const humanLike = step.humanLike !== false;
     const pathPointsRaw = step.pathPoints || [];
     const action = step.action || 'move'; // Default to 'move'
@@ -79,7 +80,7 @@ export class MouseStepHandler extends BaseStepHandler {
         if (targetX !== undefined && targetY !== undefined) {
           await page.mouse.move(targetX, targetY);
         } else {
-           throw new Error('Target coordinates for mouse move are undefined.');
+          throw new Error('Target coordinates for mouse move are undefined.');
         }
       }
     } else if (targetX !== undefined && targetY !== undefined) {
@@ -141,9 +142,22 @@ export class MouseStepHandler extends BaseStepHandler {
         break;
       }
       case 'wheel': {
-        const deltaX = typeof step.deltaX === 'number' ? this.resolveValue(step.deltaX, context) : 0;
-        const deltaY = typeof step.deltaY === 'number' ? this.resolveValue(step.deltaY, context) : 0;
-        await page.mouse.wheel(deltaX, deltaY);
+        const deltaX =
+          typeof step.deltaX === 'number' ? this.resolveValue(step.deltaX, context) : 0;
+        const deltaY =
+          typeof step.deltaY === 'number' ? this.resolveValue(step.deltaY, context) : 0;
+
+        if (step.humanLike !== false) {
+          await this.behaviorEmulator.scroll({
+            x: deltaX,
+            y: deltaY,
+            duration,
+          });
+        } else {
+          await page.mouse.wheel(deltaX, deltaY);
+        }
+
+        await page.waitForTimeout(100);
         break;
       }
       case 'move':

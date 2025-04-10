@@ -6,11 +6,7 @@ import { BehaviorEmulator } from '../core/human/behavior-emulator.js';
 import { CaptchaSolver } from '../core/captcha/captcha-solver.js';
 import { SessionManager } from '../core/session/session-manager.js';
 import { StepHandlerFactory } from './handlers/step-handler-factory.js';
-import {
-  NavigationStep,
-  NavigationOptions,
-  NavigationResult,
-} from '../types/index.js'; // Combined imports
+import { NavigationStep, NavigationOptions, NavigationResult } from '../types/index.js'; // Combined imports
 import { NavigationContext } from './types/navigation.types.js'; // Import from specific file
 import { config } from '../config/index.js';
 import * as fs from 'fs';
@@ -115,7 +111,6 @@ export class NavigationEngine {
 
       // --- Flow Completion ---
       return this.formatResult('completed', startUrl, stepsExecuted);
-
     } catch (error) {
       // --- Error Handling ---
       logger.error('Error executing navigation flow:', error);

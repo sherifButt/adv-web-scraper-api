@@ -233,26 +233,27 @@ export class BehaviorEmulator {
   /**
    * Scroll with human-like behavior
    */
-  public async scroll(direction: 'up' | 'down', distance?: number): Promise<void> {
-    const scrollDistance =
-      distance ||
-      Math.floor(
-        Math.random() * (this.profile.scrollSpeed[1] - this.profile.scrollSpeed[0]) +
-          this.profile.scrollSpeed[0]
-      );
-
-    // Scroll in smaller increments for more natural movement
-    const steps = Math.floor(scrollDistance / 50) + 1;
-    const increment = scrollDistance / steps;
+  public async scroll(options: { x: number; y: number; duration?: number }): Promise<void> {
+    const { x, y, duration = 1000 } = options;
+    const distance = Math.sqrt(x * x + y * y);
+    const steps = Math.max(10, Math.floor(duration / 100));
+    const stepDelay = duration / steps;
+    const stepX = x / steps;
+    const stepY = y / steps;
 
     for (let i = 0; i < steps; i++) {
-      const stepDistance = direction === 'down' ? increment : -increment;
-      await this.page.mouse.wheel(0, stepDistance);
-      await this.randomDelay(10, 30);
-    }
+      const progress = i / steps;
+      const ease = this.easeInOutCubic(progress);
+      const currentX = Math.round(stepX * ease);
+      const currentY = Math.round(stepY * ease);
 
-    // Pause after scrolling
-    await this.randomDelay(300, 800);
+      await this.page.mouse.wheel(currentX, currentY);
+      await this.page.waitForTimeout(stepDelay + Math.random() * 20);
+    }
+  }
+
+  private easeInOutCubic(t: number): number {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
   /**

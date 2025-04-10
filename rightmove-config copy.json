@@ -1,0 +1,251 @@
+{
+    "startUrl": "https://www.rightmove.co.uk/property-for-sale.html",
+    "steps": [
+        {
+            "type": "wait",
+            "value": 1000,
+            "description": "Wait 1 sec for dynamic content to load"
+        },
+        {
+            "type": "scroll",
+            "direction": "down",
+            "distance": 200,
+            "description": "Continue scrolling down 200 px"
+        },
+        {
+            "type": "condition",
+            "condition": "#onetrust-accept-btn-handler",
+            "description": "Check if consent dialog appears",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": "#onetrust-accept-btn-handler",
+                    "description": "Click the consent button to dismiss the cookie dialog",
+                    "waitFor": 1000
+                }
+            ]
+        },
+        {
+            "type": "scroll",
+            "direction": "down",
+            "distance": 200,
+            "description": "Continue scrolling down 200 px"
+        },
+        {
+            "type": "scroll",
+            "direction": "up",
+            "distance": 200,
+            "description": "Continue scrolling up 200 px"
+        },
+        {
+            "type": "input",
+            "selector": "#ta_searchInput",
+            "value": "{{postcode}}",
+            "description": "Enter postcode in the location search field",
+            "clearInput": true,
+            "humanInput": true
+        },
+        {
+            "type": "click",
+            "selector": "button[data-testid='forSaleCta']",
+            "description": "Click the 'For Sale' button"
+        },
+        {
+            "type": "wait",
+            "value": 1000,
+            "description": "Wait for 1 seconds"
+        },
+        {
+            "type": "scroll",
+            "direction": "down",
+            "distance": 200,
+            "description": "Continue scrolling down 200 px"
+        },
+        {
+            "type": "wait",
+            "value": 1000,
+            "description": "Wait for 1 seconds"
+        },
+        {
+            "type": "scroll",
+            "direction": "up",
+            "distance": 200,
+            "description": "Continue scrolling up 200 px"
+        },
+        {
+            "type": "select",
+            "selector": "#radius",
+            "value": "0.5",
+            "description": "Set search radius to within 1/2 mile"
+        },
+        {
+            "type": "wait",
+            "value": 500,
+            "description": "Wait for .5 seconds"
+        },
+        {
+            "type": "select",
+            "selector": "#radius",
+            "value": "0.25",
+            "description": "Set search radius to within 1/4 mile"
+        },
+        {
+            "type": "scroll",
+            "direction": "down",
+            "distance": 200,
+            "description": "Continue scrolling down"
+        },
+        {
+            "type": "scroll",
+            "direction": "up",
+            "distance": 200,
+            "description": "Continue scrolling up"
+        },
+        {
+            "type": "select",
+            "selector": "#propertyTypes",
+            "value": "{{type}}",
+            "description": "Select property type based on variable"
+        },
+        {
+            "type": "click",
+            "selector": ".dsrm_button.dsrm_button--light.dsrm_primary.dsrm_core.dsrm_width_content",
+            "description": "Click the 'Search properties' button"
+        },
+        {
+            "type": "wait",
+            "value": 1000,
+            "description": "Wait 1 sec for results to fully load"
+        },
+        {
+            "type": "scroll",
+            "direction": "down",
+            "distance": 300,
+            "description": "Continue scrolling down"
+        },
+        {
+            "type": "wait",
+            "value": 500,
+            "description": "Wait 1 sec for results to fully load"
+        },
+        {
+            "type": "scroll",
+            "direction": "down",
+            "distance": 20000,
+            "description": "Continue scrolling down"
+        },
+        {
+            "type": "wait",
+            "value": 1000,
+            "description": "Wait 1 sec for results to fully load"
+        },
+        {
+            "type": "scroll",
+            "direction": "up",
+            "distance": 25000,
+            "description": "Continue scrolling up 500 px"
+        },
+        {
+            "type": "wait",
+            "value": 1000,
+            "description": "Wait for 1 seconds"
+        },
+        {
+            "type": "extract",
+            "name": "lists",
+            "selector": "#l-searchResults",
+            "description": "Extract the page title",
+            "source": "html"
+        },
+        {
+            "type": "extract",
+            "name": "propertyResults",
+            "selector": ".l-searchResult, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
+            "description": "Extract property search results",
+            "fields": {
+                "properties": {
+                    "selector": ".propertyCard, [class*=\"PropertyCard_propertyCard\"], [data-test=\"propertyCard\"]",
+                    "type": "css",
+                    "multiple": true,
+                    "continueOnError": true,
+                    "fields": {
+                        "address": {
+                            "selector": "address.propertyCard-address, [class*=\"PropertyAddress_address\"]",
+                            "type": "css",
+                            "continueOnError": true
+                        },
+                        "description": {
+                            "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
+                            "type": "css",
+                            "continueOnError": true
+                        },
+                        "propertyImage": {
+                            "selector": ".propertyCard-img img, [class*=\"PropertyImage\"] img",
+                            "type": "css",
+                            "attribute": "src",
+                            "continueOnError": true
+                        },
+                        "price": {
+                            "selector": "[class*=\"PropertyPrice_price\"], .propertyCard-priceValue, .propertyCard-price",
+                            "type": "css",
+                            "pattern": "(?:£|\\b)([0-9,]+)\\b",
+                            "dataType": "number",
+                            "transform": "value.replace(/,/g, '')",
+                            "continueOnError": true
+                        },
+                        "type": {
+                            "selector": ".propertyCard-type, [class*=\"PropertyInformation_propertyType\"]",
+                            "type": "css",
+                            "continueOnError": true
+                        },
+                        "bedrooms": {
+                            "selector": ".propertyCard-bedrooms, [class*=\"PropertyInformation_bedroomsCount\"], [class*=\"PropertyInformation_bedContainer\"] span",
+                            "type": "css",
+                            "continueOnError": true
+                        },
+                        "bathrooms": {
+                            "selector": ".propertyCard-bathrooms, [class*=\"PropertyInformation_bathContainer\"] span",
+                            "type": "css",
+                            "continueOnError": true
+                        },
+                        "distance": {
+                            "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
+                            "type": "css",
+                            "continueOnError": true
+                        },
+                        "description": {
+                            "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
+                            "type": "css",
+                            "continueOnError": true
+                        },
+                        "propertyUrl": {
+                            "selector": "a.propertyCard-anchor[href], a.propertyCard-link[href], a[href*=\"/properties/\"]",
+                            "type": "css",
+                            "attribute": "href",
+                            "continueOnError": true
+                        }
+                    }
+                },
+                "pagination": {
+                    "selector": ".pagination, [class*=\"Pagination_pagination\"]",
+                    "type": "css",
+                    "optional": true,
+                    "continueOnError": true
+                }
+            }
+        }
+    ],
+    "variables": {
+        "postcode": "CF40 2RS",
+        "type": "house"
+    },
+    "options": {
+        "timeout": 30000,
+        "waitForSelector": ".l-searchResult, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
+        "javascript": true,
+        "screenshots": false,
+        "screenshotsPath": "./screenshots",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "debug": true
+    }
+}

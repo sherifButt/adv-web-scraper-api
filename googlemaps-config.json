@@ -40,19 +40,40 @@
     },
     {
       "type": "wait",
-      "value": 8000,
+      "value": 1000,
       "description": "Wait for search results"
     },
+   
     {
-      "type": "click",
+      "type": "mousemove",
       "selector": ".m6QErb[role='feed']",
-      "description": "Click search button"
+      "duration": 1000,
+      "action": "wheel",
+      "deltaY": 500,
+      "description": "Scroll results feed"
     },
     {
-      "type": "scroll",
-     
-      "distance": 800,
-     
+      "type": "mousemove",
+      "selector": ".m6QErb[role='feed']",
+      "duration": 500,
+      "action": "wheel",
+      "deltaY": 500,
+      "description": "Scroll results feed"
+    },
+    {
+      "type": "mousemove",
+      "selector": ".m6QErb[role='feed']",
+      "duration": 500,
+      "action": "wheel",
+      "deltaY": 500,
+      "description": "Scroll results feed"
+    },
+    {
+      "type": "mousemove",
+      "selector": ".m6QErb[role='feed']",
+      "duration": 500,
+      "action": "wheel",
+      "deltaY": 500,
       "description": "Scroll results feed"
     },
     {

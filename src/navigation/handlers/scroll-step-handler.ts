@@ -62,7 +62,6 @@ export class ScrollStepHandler extends BaseStepHandler {
           }, step.distance);
         }
         await page.waitForTimeout(800); // Stabilization wait
-
       } else {
         // Custom scroll behavior with human-like movement
         const box = await page.$eval(resolvedSelector, el => {
@@ -83,7 +82,8 @@ export class ScrollStepHandler extends BaseStepHandler {
     } else {
       // Original directional scrolling behavior
       const direction = step.direction || 'down';
-      const distance = typeof step.distance === 'number' ? this.resolveValue(step.distance, context) : 100;
+      const distance =
+        typeof step.distance === 'number' ? this.resolveValue(step.distance, context) : 100;
 
       logger.info(`Scrolling ${direction} by ${distance}px`);
 
