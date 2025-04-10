@@ -83,7 +83,7 @@
             "name2": {
               "selector": "span .UY7F9",
               "type": "regex",
-              "pattern": "/\\((\\d+)\\)/",
+              "pattern": "\\((\\d+)\\)",
               "group": 1,
               "dataType": "number",
               "continueOnError": true

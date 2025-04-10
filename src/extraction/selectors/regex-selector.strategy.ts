@@ -22,40 +22,53 @@ export class RegexSelectorStrategy implements SelectorStrategy {
    * Extract data from the page using regular expressions
    * @param page Playwright page object
    * @param config Regex selector configuration
-   * @param context Optional context for the extraction
+   * @param context Optional context, can include { htmlContent?: string } to bypass page fetching
    * @returns Extracted data
    */
-  async extract(page: Page, config: SelectorConfig, context?: any): Promise<any> {
+  async extract(
+    page: Page | null,
+    config: SelectorConfig,
+    context?: { htmlContent?: string }
+  ): Promise<any> {
     const regexConfig = config as RegexSelectorConfig;
     const { pattern, flags = 'g', group = 0, multiple = false, source } = regexConfig;
 
     try {
       // Get the source text to apply the regex to
       let sourceText: string;
-      if (source) {
-        if (source === 'html') {
-          // Get the entire HTML content
-          sourceText = await page.content();
-        } else if (source === 'text') {
-          // Get the entire text content
-          sourceText = await page.evaluate(() => document.body.innerText);
-        } else {
-          // Assume source is a CSS or XPath selector
-          try {
-            const element = await page.$(source);
-            if (!element) {
-              logger.warn(`Source selector "${source}" not found on page`);
+
+      if (context?.htmlContent) {
+        // Use provided HTML content directly
+        sourceText = context.htmlContent;
+      } else if (page) {
+        // Fetch source text from the page if htmlContent is not provided
+        if (source) {
+          if (source === 'html') {
+            sourceText = await page.content();
+          } else if (source === 'text') {
+            sourceText = await page.evaluate(() => document.body.innerText);
+          } else {
+            // Assume source is a CSS or XPath selector
+            try {
+              const element = await page.$(source);
+              if (!element) {
+                logger.warn(`Source selector "${source}" not found on page`);
+                return regexConfig.defaultValue !== undefined ? regexConfig.defaultValue : null;
+              }
+              sourceText = (await element.textContent()) || '';
+            } catch (error) {
+              logger.error(`Error getting source text from selector "${source}": ${error}`);
               return regexConfig.defaultValue !== undefined ? regexConfig.defaultValue : null;
             }
-            sourceText = (await element.textContent()) || '';
-          } catch (error) {
-            logger.error(`Error getting source text from selector "${source}": ${error}`);
-            return regexConfig.defaultValue !== undefined ? regexConfig.defaultValue : null;
           }
+        } else {
+          // Default to HTML content if no source specified
+          sourceText = await page.content();
         }
       } else {
-        // Default to HTML content
-        sourceText = await page.content();
+        // Cannot proceed without a page or htmlContent
+        logger.error('Regex extraction requires either a Page object or htmlContent in context.');
+        return regexConfig.defaultValue !== undefined ? regexConfig.defaultValue : null;
       }
 
       // Clean and validate the pattern

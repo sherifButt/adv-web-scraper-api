@@ -1,10 +1,20 @@
-import { Page } from 'playwright';
+// src/navigation/handlers/extract-step-handler.ts
+
+import { ElementHandle, Page } from 'playwright'; // Add ElementHandle
 import { NavigationStep } from '../types/navigation.types.js';
 import { logger } from '../../utils/logger.js';
-import { CssSelectorConfig } from '../../types/extraction.types.js';
+import {
+  CssSelectorConfig,
+  RegexSelectorConfig, // Add RegexSelectorConfig
+  SelectorConfig, // Add SelectorConfig
+  SelectorType, // Add SelectorType
+} from '../../types/extraction.types.js';
 import { BaseStepHandler } from './base-step-handler.js';
+import { ExtractionEngine } from '../../extraction/extraction-engine.js'; // Keep for potential future use
+import { RegexSelectorStrategy } from '../../extraction/selectors/regex-selector.strategy.js'; // Import Regex strategy
 
 export class ExtractStepHandler extends BaseStepHandler {
+  private regexStrategy = new RegexSelectorStrategy(); // Instantiate regex strategy
   public canHandle(step: NavigationStep): boolean {
     return step.type === 'extract';
   }
@@ -43,8 +53,39 @@ export class ExtractStepHandler extends BaseStepHandler {
                 logger.warn(`Failed to extract CSS field ${fieldName}:`, error);
                 result[fieldName] = null;
               }
+            } else if (fieldDef.type === 'regex') {
+              try {
+                const extractionEngine = new ExtractionEngine();
+                const regexResult = await extractionEngine.extract({
+                  url: this.page.url(),
+                  fields: {
+                    [fieldName]: fieldDef,
+                  },
+                  options: {
+                    browser: {
+                      headless: true,
+                    },
+                  },
+                });
+                let extractedValue = regexResult?.data?.[fieldName] || null;
+                // Handle both direct regex matches and string values
+                if (extractedValue !== null) {
+                  if (typeof extractedValue === 'object' && extractedValue.value !== undefined) {
+                    // Handle structured regex result
+                    extractedValue = extractedValue.value;
+                  }
+                  // Convert numbers in parentheses to numeric values
+                  if (typeof extractedValue === 'string' && extractedValue.match(/^\(\d+\)$/)) {
+                    extractedValue = Number(extractedValue.replace(/[()]/g, ''));
+                  }
+                }
+                result[fieldName] = extractedValue;
+              } catch (error) {
+                logger.warn(`Failed to extract regex field ${fieldName}:`, error);
+                result[fieldName] = null;
+              }
             } else {
-              logger.warn(`Non-CSS selector type ${fieldDef.type} not fully supported`);
+              logger.warn(`Unsupported selector type ${fieldDef.type}`);
               result[fieldName] = null;
             }
           } else {
@@ -66,29 +107,86 @@ export class ExtractStepHandler extends BaseStepHandler {
     }
   }
 
+  // Refactored to handle mixed CSS/Regex nested fields correctly
   private async extractMultipleFields(
     selector: string,
-    fields: Record<string, any>
+    fields: Record<string, SelectorConfig> // Use SelectorConfig type
   ): Promise<any[]> {
-    return this.page.$$eval(
-      selector,
-      (elements, fields) =>
-        elements.map(el => {
-          const item: Record<string, string | null> = {};
-          for (const [subFieldName, subFieldDef] of Object.entries(fields)) {
-            if (typeof subFieldDef === 'object' && subFieldDef && 'selector' in subFieldDef) {
-              const subEl = el.querySelector(subFieldDef.selector);
-              item[subFieldName] = subEl
-                ? 'attribute' in subFieldDef
-                  ? subEl.getAttribute(subFieldDef.attribute as string) || ''
-                  : subEl.textContent?.trim() || ''
-                : null;
+    const elements = await this.page.$$(selector);
+    if (!elements || elements.length === 0) {
+      logger.warn(`No elements found for multiple fields selector: ${selector}`);
+      return [];
+    }
+
+    const results: any[] = [];
+    for (const element of elements) {
+      const item: Record<string, any> = {};
+      const elementHtml = await element.evaluate(el => el.outerHTML); // Get outerHTML for regex
+
+      for (const [subFieldName, subFieldDef] of Object.entries(fields)) {
+        try {
+          if (subFieldDef.type === SelectorType.CSS) {
+            const cssConfig = subFieldDef as CssSelectorConfig;
+            if (cssConfig.multiple) {
+              // Extract multiple sub-values using CSS within the element
+              const attr = 'attribute' in cssConfig ? cssConfig.attribute : null;
+              // Pass attr into the function scope
+              item[subFieldName] = await element.$$eval(
+                cssConfig.selector,
+                (
+                  subElements,
+                  localAttr // Use localAttr inside the function
+                ) =>
+                  subElements.map(subEl =>
+                    localAttr
+                      ? subEl.getAttribute(localAttr) || ''
+                      : subEl.textContent?.trim() || ''
+                  ),
+                attr // Pass attr here to be received as localAttr
+              );
+            } else {
+              // Extract single sub-value using CSS within the element
+              const attr = 'attribute' in cssConfig ? cssConfig.attribute : null;
+              // Pass attr into the function scope
+              item[subFieldName] = await element
+                .$eval(
+                  cssConfig.selector,
+                  (
+                    subEl,
+                    localAttr // Use localAttr inside the function
+                  ) =>
+                    localAttr
+                      ? subEl.getAttribute(localAttr) || ''
+                      : subEl.textContent?.trim() || '',
+                  attr // Pass attr here to be received as localAttr
+                )
+                .catch(() => null); // Handle cases where sub-selector doesn't match
             }
+          } else if (subFieldDef.type === SelectorType.REGEX) {
+            // Extract sub-value using Regex strategy on the element's HTML
+            item[subFieldName] = await this.regexStrategy.extract(null, subFieldDef, {
+              htmlContent: elementHtml,
+            });
+          } else {
+            logger.warn(
+              `Unsupported selector type "${subFieldDef.type}" in extractMultipleFields for field "${subFieldName}"`
+            );
+            item[subFieldName] = null;
           }
-          return item;
-        }),
-      fields
-    );
+        } catch (error) {
+          logger.warn(
+            `Failed to extract sub-field "${subFieldName}" from element with selector "${selector}":`,
+            error
+          );
+          item[subFieldName] = null;
+        }
+      }
+      results.push(item);
+
+      // Dispose element handle to free up memory
+      await element.dispose();
+    }
+    return results;
   }
 
   private async extractMultipleValues(selector: string, config: CssSelectorConfig): Promise<any[]> {
