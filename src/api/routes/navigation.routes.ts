@@ -111,7 +111,7 @@ router.post(
       const responseData = {
         ...result,
         screenshots: result.screenshots?.map(
-          screenshot => `http://${config.server.host}:${config.server.port}/${screenshot}`
+          screenshot => `http://${config.server.host}/${screenshot}`
         ),
       };
 
