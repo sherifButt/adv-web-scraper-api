@@ -79,19 +79,22 @@ export class CaptchaDetector {
   private static async detectRecaptchaV2(page: Page): Promise<CaptchaDetectionResult> {
     // Check for reCAPTCHA iframe
     const recaptchaIframe = await page.$('iframe[src*="google.com/recaptcha/api2/anchor"]');
-    
+
     // Check for reCAPTCHA div
     const recaptchaDiv = await page.$('div.g-recaptcha');
-    
+
     // Check for reCAPTCHA script
     const recaptchaScript = await page.$('script[src*="google.com/recaptcha/api.js"]');
-    
+
     // Extract site key if available
     let siteKey: string | undefined;
     if (recaptchaDiv) {
-      siteKey = await page.evaluate(el => el.getAttribute('data-sitekey'), recaptchaDiv);
+      siteKey = await page.evaluate(
+        el => el.getAttribute('data-sitekey') ?? undefined,
+        recaptchaDiv
+      );
     }
-    
+
     // If no site key from div, try to extract from script
     if (!siteKey && recaptchaScript) {
       const scriptContent = await page.evaluate(() => document.documentElement.outerHTML);
@@ -100,14 +103,14 @@ export class CaptchaDetector {
         siteKey = siteKeyMatch[1];
       }
     }
-    
+
     const detected = !!(recaptchaIframe || recaptchaDiv || recaptchaScript);
     const confidence = recaptchaIframe ? 1.0 : recaptchaDiv ? 0.9 : recaptchaScript ? 0.7 : 0;
-    
+
     if (detected) {
       logger.info(`Detected reCAPTCHA v2 with confidence ${confidence}`);
     }
-    
+
     return {
       detected,
       type: detected ? CaptchaType.RECAPTCHA_V2 : null,
@@ -124,7 +127,7 @@ export class CaptchaDetector {
   private static async detectRecaptchaV3(page: Page): Promise<CaptchaDetectionResult> {
     // Check for reCAPTCHA v3 script
     const recaptchaScript = await page.$('script[src*="google.com/recaptcha/api.js?render="]');
-    
+
     // Extract site key if available
     let siteKey: string | undefined;
     if (recaptchaScript) {
@@ -134,7 +137,7 @@ export class CaptchaDetector {
         siteKey = siteKeyMatch[1];
       }
     }
-    
+
     // If no site key from script src, try to extract from page content
     if (!siteKey && recaptchaScript) {
       const scriptContent = await page.evaluate(() => document.documentElement.outerHTML);
@@ -143,14 +146,14 @@ export class CaptchaDetector {
         siteKey = siteKeyMatch[1];
       }
     }
-    
+
     const detected = !!recaptchaScript;
     const confidence = detected ? 0.9 : 0;
-    
+
     if (detected) {
       logger.info(`Detected reCAPTCHA v3 with confidence ${confidence}`);
     }
-    
+
     return {
       detected,
       type: detected ? CaptchaType.RECAPTCHA_V3 : null,
@@ -165,19 +168,22 @@ export class CaptchaDetector {
   private static async detectHCaptcha(page: Page): Promise<CaptchaDetectionResult> {
     // Check for hCaptcha iframe
     const hcaptchaIframe = await page.$('iframe[src*="hcaptcha.com/captcha"]');
-    
+
     // Check for hCaptcha div
     const hcaptchaDiv = await page.$('div.h-captcha');
-    
+
     // Check for hCaptcha script
     const hcaptchaScript = await page.$('script[src*="hcaptcha.com/1/api.js"]');
-    
+
     // Extract site key if available
     let siteKey: string | undefined;
     if (hcaptchaDiv) {
-      siteKey = await page.evaluate(el => el.getAttribute('data-sitekey'), hcaptchaDiv);
+      siteKey = await page.evaluate(
+        el => el.getAttribute('data-sitekey') ?? undefined,
+        hcaptchaDiv
+      );
     }
-    
+
     // If no site key from div, try to extract from script
     if (!siteKey && hcaptchaScript) {
       const scriptContent = await page.evaluate(() => document.documentElement.outerHTML);
@@ -186,14 +192,14 @@ export class CaptchaDetector {
         siteKey = siteKeyMatch[1];
       }
     }
-    
+
     const detected = !!(hcaptchaIframe || hcaptchaDiv || hcaptchaScript);
     const confidence = hcaptchaIframe ? 1.0 : hcaptchaDiv ? 0.9 : hcaptchaScript ? 0.7 : 0;
-    
+
     if (detected) {
       logger.info(`Detected hCaptcha with confidence ${confidence}`);
     }
-    
+
     return {
       detected,
       type: detected ? CaptchaType.HCAPTCHA : null,
@@ -209,28 +215,33 @@ export class CaptchaDetector {
    */
   private static async detectCloudflare(page: Page): Promise<CaptchaDetectionResult> {
     // Check for Cloudflare challenge elements
-    const cfChallenge = await page.$('#cf-challenge-running, #cf-please-wait, .cf-browser-verification');
-    
+    const cfChallenge = await page.$(
+      '#cf-challenge-running, #cf-please-wait, .cf-browser-verification'
+    );
+
     // Check for Cloudflare challenge in title
     const title = await page.title();
-    const cfTitleMatch = title.includes('Cloudflare') && 
-                         (title.includes('challenge') || title.includes('security check'));
-    
+    const cfTitleMatch =
+      title.includes('Cloudflare') &&
+      (title.includes('challenge') || title.includes('security check'));
+
     // Check for Cloudflare challenge in URL
     const url = page.url();
     const cfUrlMatch = url.includes('cloudflare') && url.includes('challenge');
-    
+
     const detected = !!(cfChallenge || cfTitleMatch || cfUrlMatch);
     const confidence = cfChallenge ? 1.0 : cfTitleMatch ? 0.9 : cfUrlMatch ? 0.8 : 0;
-    
+
     if (detected) {
       logger.info(`Detected Cloudflare challenge with confidence ${confidence}`);
     }
-    
+
     return {
       detected,
       type: detected ? CaptchaType.CLOUDFLARE : null,
-      selector: cfChallenge ? '#cf-challenge-running, #cf-please-wait, .cf-browser-verification' : undefined,
+      selector: cfChallenge
+        ? '#cf-challenge-running, #cf-please-wait, .cf-browser-verification'
+        : undefined,
       confidence,
     };
   }
@@ -249,25 +260,27 @@ export class CaptchaDetector {
       'label[for*="captcha"]',
       'img[src*="securimage"]',
     ];
-    
+
     // Check for any of the indicators
     const captchaElement = await page.$(captchaIndicators.join(', '));
-    
+
     // Check for CAPTCHA-related text
     const captchaText = await page.evaluate(() => {
       const bodyText = document.body.innerText.toLowerCase();
-      return bodyText.includes('captcha') || 
-             bodyText.includes('security code') || 
-             bodyText.includes('verification code');
+      return (
+        bodyText.includes('captcha') ||
+        bodyText.includes('security code') ||
+        bodyText.includes('verification code')
+      );
     });
-    
+
     const detected = !!(captchaElement || captchaText);
     const confidence = captchaElement ? 0.9 : captchaText ? 0.7 : 0;
-    
+
     if (detected) {
       logger.info(`Detected image CAPTCHA with confidence ${confidence}`);
     }
-    
+
     return {
       detected,
       type: detected ? CaptchaType.IMAGE_CAPTCHA : null,

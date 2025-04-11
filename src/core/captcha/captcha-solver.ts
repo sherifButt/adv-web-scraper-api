@@ -5,6 +5,18 @@ import { config } from '../../config/index.js';
 import { BehaviorEmulator } from '../human/behavior-emulator.js';
 import { SessionManager } from '../session/session-manager.js';
 
+declare global {
+  interface Window {
+    ___grecaptcha_cfg?: {
+      clients?: {
+        [key: string]: {
+          callbacks?: Array<(token: string) => void>;
+        };
+      };
+    };
+  }
+}
+
 /**
  * Result of a CAPTCHA solving attempt
  */
@@ -35,7 +47,7 @@ export class CaptchaSolver {
   private page: Page;
   private behaviorEmulator: BehaviorEmulator;
   private sessionManager: SessionManager;
-  
+
   /**
    * Create a new CaptchaSolver
    */
@@ -44,19 +56,19 @@ export class CaptchaSolver {
     this.behaviorEmulator = new BehaviorEmulator(page);
     this.sessionManager = SessionManager.getInstance();
   }
-  
+
   /**
    * Detect and solve a CAPTCHA on the current page
    */
   public async solve(options: CaptchaSolveOptions = {}): Promise<CaptchaSolveResult> {
     const startTime = Date.now();
     const url = this.page.url();
-    
+
     try {
       // Check if we have a session with solved CAPTCHAs for this domain
       if (options.useSession !== false && config.browser.session?.enabled) {
         const session = await this.sessionManager.getSession(url);
-        
+
         if (session && session.captchaSolved) {
           logger.info(`Using existing session with solved CAPTCHAs for ${session.domain}`);
           return {
@@ -66,10 +78,10 @@ export class CaptchaSolver {
           };
         }
       }
-      
+
       // Detect CAPTCHA
       const detection = await CaptchaDetector.detect(this.page);
-      
+
       if (!detection.detected) {
         logger.info('No CAPTCHA detected on the page');
         return {
@@ -78,9 +90,9 @@ export class CaptchaSolver {
           timeSpent: Date.now() - startTime,
         };
       }
-      
+
       logger.info(`Attempting to solve ${detection.type} CAPTCHA`);
-      
+
       // Set timeout
       const timeout = options.timeout || config.captcha.solveTimeout;
       const timeoutPromise = new Promise<CaptchaSolveResult>((_, reject) => {
@@ -88,10 +100,10 @@ export class CaptchaSolver {
           reject(new Error(`CAPTCHA solving timed out after ${timeout}ms`));
         }, timeout);
       });
-      
+
       // Choose solving method based on CAPTCHA type
       let solvingPromise: Promise<CaptchaSolveResult>;
-      
+
       switch (detection.type) {
         case CaptchaType.RECAPTCHA_V2:
           solvingPromise = this.solveRecaptchaV2(detection.siteKey, detection.selector, options);
@@ -115,13 +127,18 @@ export class CaptchaSolver {
             timeSpent: Date.now() - startTime,
           };
       }
-      
+
       // Race against timeout
       const result = await Promise.race([solvingPromise, timeoutPromise]);
       result.timeSpent = Date.now() - startTime;
-      
+
       // If CAPTCHA was solved successfully, save the session
-      if (result.success && options.useSession !== false && config.browser.session?.enabled && options.context) {
+      if (
+        result.success &&
+        options.useSession !== false &&
+        config.browser.session?.enabled &&
+        options.context
+      ) {
         try {
           const domain = new URL(url).hostname;
           await this.sessionManager.saveSession(options.context, { domain });
@@ -130,9 +147,8 @@ export class CaptchaSolver {
           logger.warn(`Failed to save session after solving CAPTCHA: ${error}`);
         }
       }
-      
+
       return result;
-      
     } catch (error) {
       logger.error('Error solving CAPTCHA:', error);
       return {
@@ -142,24 +158,24 @@ export class CaptchaSolver {
       };
     }
   }
-  
+
   /**
    * Solve reCAPTCHA v2
    */
   private async solveRecaptchaV2(
-    siteKey?: string, 
-    selector?: string, 
+    siteKey?: string,
+    selector?: string,
     options: CaptchaSolveOptions = {}
   ): Promise<CaptchaSolveResult> {
     // Try external service first if enabled
     if (options.useExternalService && siteKey) {
       try {
         const externalResult = await this.solveWithExternalService(
-          'recaptcha_v2', 
-          siteKey, 
+          'recaptcha_v2',
+          siteKey,
           options.service
         );
-        
+
         if (externalResult.success) {
           // Apply the token to the page
           await this.applyRecaptchaToken(externalResult.token);
@@ -169,7 +185,7 @@ export class CaptchaSolver {
         logger.warn('External service failed, falling back to browser solving:', error);
       }
     }
-    
+
     // Fall back to browser-based solving
     try {
       // Find and click on the reCAPTCHA checkbox
@@ -182,13 +198,13 @@ export class CaptchaSolver {
         await frame.locator('.recaptcha-checkbox').click();
         await this.page.waitForTimeout(2000);
       }
-      
+
       // Check if we need to solve an audio challenge
       const audioChallenge = await this.solveAudioChallenge();
       if (audioChallenge.success) {
         return audioChallenge;
       }
-      
+
       // If audio challenge failed or wasn't available, we can't solve it in the browser yet
       return {
         success: false,
@@ -204,12 +220,12 @@ export class CaptchaSolver {
       };
     }
   }
-  
+
   /**
    * Solve reCAPTCHA v3
    */
   private async solveRecaptchaV3(
-    siteKey?: string, 
+    siteKey?: string,
     options: CaptchaSolveOptions = {}
   ): Promise<CaptchaSolveResult> {
     if (!siteKey) {
@@ -219,19 +235,18 @@ export class CaptchaSolver {
         method: 'none',
       };
     }
-    
+
     // reCAPTCHA v3 can only be solved with an external service or token harvesting
     if (options.useExternalService) {
       return this.solveWithExternalService('recaptcha_v3', siteKey, options.service);
     }
-    
+
     // Try to extract token from page
     try {
-      const token = await this.page.evaluate((key) => {
-        // @ts-ignore - grecaptcha is a global variable injected by reCAPTCHA
-        return window.grecaptcha?.execute(key, { action: 'submit' });
+      const token = await this.page.evaluate((key: string) => {
+        return (window as any).grecaptcha?.execute(key, { action: 'submit' });
       }, siteKey);
-      
+
       if (token) {
         return {
           success: true,
@@ -242,31 +257,31 @@ export class CaptchaSolver {
     } catch (error) {
       logger.error('Error extracting reCAPTCHA v3 token:', error);
     }
-    
+
     return {
       success: false,
       error: 'Could not solve reCAPTCHA v3 without external service',
       method: 'none',
     };
   }
-  
+
   /**
    * Solve hCaptcha
    */
   private async solveHCaptcha(
-    siteKey?: string, 
-    selector?: string, 
+    siteKey?: string,
+    selector?: string,
     options: CaptchaSolveOptions = {}
   ): Promise<CaptchaSolveResult> {
     // Try external service first if enabled
     if (options.useExternalService && siteKey) {
       try {
         const externalResult = await this.solveWithExternalService(
-          'hcaptcha', 
-          siteKey, 
+          'hcaptcha',
+          siteKey,
           options.service
         );
-        
+
         if (externalResult.success) {
           // Apply the token to the page
           await this.applyHCaptchaToken(externalResult.token);
@@ -276,7 +291,7 @@ export class CaptchaSolver {
         logger.warn('External service failed, falling back to browser solving:', error);
       }
     }
-    
+
     // Browser-based solving of hCaptcha is not implemented yet
     return {
       success: false,
@@ -284,35 +299,40 @@ export class CaptchaSolver {
       method: 'none',
     };
   }
-  
+
   /**
    * Solve Cloudflare challenge
    */
   private async solveCloudflare(options: CaptchaSolveOptions = {}): Promise<CaptchaSolveResult> {
     // Cloudflare challenges often just need to wait
     logger.info('Waiting for Cloudflare challenge to resolve...');
-    
+
     try {
       // Wait for the challenge to disappear
-      await this.page.waitForSelector('#cf-challenge-running, #cf-please-wait, .cf-browser-verification', {
-        state: 'detached',
-        timeout: 15000,
-      });
-      
+      await this.page.waitForSelector(
+        '#cf-challenge-running, #cf-please-wait, .cf-browser-verification',
+        {
+          state: 'detached',
+          timeout: 15000,
+        }
+      );
+
       // Additional wait to ensure page is fully loaded
       await this.page.waitForLoadState('networkidle');
-      
+
       // Check if we're still on a Cloudflare page
       const title = await this.page.title();
-      if (title.includes('Cloudflare') && 
-          (title.includes('challenge') || title.includes('security check'))) {
+      if (
+        title.includes('Cloudflare') &&
+        (title.includes('challenge') || title.includes('security check'))
+      ) {
         return {
           success: false,
           error: 'Still on Cloudflare challenge page after waiting',
           method: 'wait',
         };
       }
-      
+
       return {
         success: true,
         method: 'wait',
@@ -326,32 +346,32 @@ export class CaptchaSolver {
       };
     }
   }
-  
+
   /**
    * Solve image CAPTCHA
    */
   private async solveImageCaptcha(
-    selector?: string, 
+    selector?: string,
     options: CaptchaSolveOptions = {}
   ): Promise<CaptchaSolveResult> {
     // Image CAPTCHAs are best solved with external services
     if (options.useExternalService && selector) {
       try {
         // Get the image data
-        const imageData = await this.page.evaluate((sel) => {
+        const imageData = await this.page.evaluate(sel => {
           const img = document.querySelector(sel) as HTMLImageElement;
           if (!img || !img.src) return null;
-          
+
           // If it's a data URL, return it directly
           if (img.src.startsWith('data:')) {
             return img.src;
           }
-          
+
           // Otherwise, we'd need to fetch and convert to base64
           // This is a simplified version - in production, you'd want to handle this more robustly
           return img.src;
         }, selector);
-        
+
         if (!imageData) {
           return {
             success: false,
@@ -359,7 +379,7 @@ export class CaptchaSolver {
             method: 'none',
           };
         }
-        
+
         // Solve with external service
         // This is a placeholder - actual implementation would depend on the service API
         logger.info('Image CAPTCHA solving with external service not fully implemented');
@@ -377,25 +397,27 @@ export class CaptchaSolver {
         };
       }
     }
-    
+
     return {
       success: false,
       error: 'Image CAPTCHA solving requires an external service',
       method: 'none',
     };
   }
-  
+
   /**
    * Solve audio challenge for reCAPTCHA
    */
   private async solveAudioChallenge(): Promise<CaptchaSolveResult> {
     try {
       // Switch to audio challenge
-      const recaptchaFrame = this.page.frameLocator('iframe[src*="google.com/recaptcha/api2/bframe"]');
+      const recaptchaFrame = this.page.frameLocator(
+        'iframe[src*="google.com/recaptcha/api2/bframe"]'
+      );
       const audioButton = recaptchaFrame.locator('#recaptcha-audio-button');
-      
+
       // Check if audio button exists
-      const audioButtonExists = await audioButton.count() > 0;
+      const audioButtonExists = (await audioButton.count()) > 0;
       if (!audioButtonExists) {
         return {
           success: false,
@@ -403,11 +425,11 @@ export class CaptchaSolver {
           method: 'audio',
         };
       }
-      
+
       // Click the audio button
       await audioButton.click();
       await this.page.waitForTimeout(2000);
-      
+
       // Get the audio source
       const audioSrc = await recaptchaFrame.locator('audio#audio-source').getAttribute('src');
       if (!audioSrc) {
@@ -417,13 +439,13 @@ export class CaptchaSolver {
           method: 'audio',
         };
       }
-      
+
       // In a real implementation, you would:
       // 1. Download the audio file
       // 2. Convert it to text using a speech-to-text service
       // 3. Enter the text into the response field
       // 4. Click the verify button
-      
+
       // This is a placeholder for the actual implementation
       logger.info('Audio CAPTCHA solving not fully implemented');
       return {
@@ -440,7 +462,7 @@ export class CaptchaSolver {
       };
     }
   }
-  
+
   /**
    * Solve CAPTCHA using an external service
    */
@@ -450,10 +472,14 @@ export class CaptchaSolver {
     service?: 'twocaptcha' | 'anticaptcha'
   ): Promise<CaptchaSolveResult> {
     // Determine which service to use
-    const serviceToUse = service || 
-      (config.captcha.services.twoCaptcha.enabled ? 'twocaptcha' : 
-       config.captcha.services.antiCaptcha.enabled ? 'anticaptcha' : null);
-    
+    const serviceToUse =
+      service ||
+      (config.captcha.services.twoCaptcha.enabled
+        ? 'twocaptcha'
+        : config.captcha.services.antiCaptcha.enabled
+        ? 'anticaptcha'
+        : null);
+
     if (!serviceToUse) {
       return {
         success: false,
@@ -461,12 +487,13 @@ export class CaptchaSolver {
         method: 'external_service',
       };
     }
-    
+
     // Get API key for the selected service
-    const apiKey = serviceToUse === 'twocaptcha' 
-      ? config.captcha.services.twoCaptcha.apiKey
-      : config.captcha.services.antiCaptcha.apiKey;
-    
+    const apiKey =
+      serviceToUse === 'twocaptcha'
+        ? config.captcha.services.twoCaptcha.apiKey
+        : config.captcha.services.antiCaptcha.apiKey;
+
     if (!apiKey) {
       return {
         success: false,
@@ -474,21 +501,21 @@ export class CaptchaSolver {
         method: 'external_service',
       };
     }
-    
+
     // Get the page URL
     const pageUrl = this.page.url();
-    
+
     // This is a placeholder for the actual API call to the external service
     // In a real implementation, you would:
     // 1. Send a request to the service API with the site key, page URL, and other parameters
     // 2. Poll for the result
     // 3. Return the token when available
-    
+
     logger.info(`Solving ${captchaType} using ${serviceToUse} (placeholder implementation)`);
-    
+
     // Simulate a delay for the external service
     await new Promise(resolve => setTimeout(resolve, 3000));
-    
+
     // Return a placeholder result
     return {
       success: false,
@@ -496,28 +523,28 @@ export class CaptchaSolver {
       method: 'external_service',
     };
   }
-  
+
   /**
    * Apply a reCAPTCHA token to the page
    */
   private async applyRecaptchaToken(token?: string): Promise<void> {
     if (!token) return;
-    
-    await this.page.evaluate((t) => {
+
+    await this.page.evaluate(t => {
       // Find the g-recaptcha-response textarea and set its value
-      const responseTextarea = document.querySelector('textarea#g-recaptcha-response') as HTMLTextAreaElement;
+      const responseTextarea = document.querySelector(
+        'textarea#g-recaptcha-response'
+      ) as HTMLTextAreaElement;
       if (responseTextarea) {
         responseTextarea.value = t;
       }
-      
+
       // Trigger the callback if it exists
-      // @ts-ignore - grecaptcha is a global variable injected by reCAPTCHA
-      if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {
+      if ((window as any).___grecaptcha_cfg?.clients) {
         // Find the callback
-        const clientKeys = Object.keys(window.___grecaptcha_cfg.clients);
+        const clientKeys = Object.keys((window as any).___grecaptcha_cfg.clients);
         for (const key of clientKeys) {
-          // @ts-ignore - accessing dynamic properties
-          const client = window.___grecaptcha_cfg.clients[key];
+          const client = (window as any).___grecaptcha_cfg.clients[key];
           if (client && client.callbacks && client.callbacks.length > 0) {
             // Call all callbacks with the token
             for (const callback of client.callbacks) {
@@ -530,26 +557,26 @@ export class CaptchaSolver {
       }
     }, token);
   }
-  
+
   /**
    * Apply an hCaptcha token to the page
    */
   private async applyHCaptchaToken(token?: string): Promise<void> {
     if (!token) return;
-    
-    await this.page.evaluate((t) => {
+
+    await this.page.evaluate(t => {
       // Find the h-captcha-response textarea and set its value
-      const responseTextarea = document.querySelector('textarea#h-captcha-response') as HTMLTextAreaElement;
+      const responseTextarea = document.querySelector(
+        'textarea#h-captcha-response'
+      ) as HTMLTextAreaElement;
       if (responseTextarea) {
         responseTextarea.value = t;
       }
-      
+
       // Trigger the callback if it exists
-      // @ts-ignore - hcaptcha is a global variable injected by hCaptcha
-      if (window.hcaptcha && typeof window.hcaptcha.getResponse === 'function') {
+      if ((window as any).hcaptcha && typeof (window as any).hcaptcha.getResponse === 'function') {
         // Find the callback
-        // @ts-ignore - accessing private properties
-        const callbacks = window.hcaptcha.getResponse.callbacks;
+        const callbacks = (window as any).hcaptcha.getResponse.callbacks;
         if (callbacks && callbacks.length > 0) {
           // Call all callbacks with the token
           for (const callback of callbacks) {
