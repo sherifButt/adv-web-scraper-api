@@ -68,6 +68,7 @@ export interface NavigationStep {
   humanLike?: boolean;
   pathPoints?: Array<{ x: number; y: number } | { selector: string }>;
   action?: string;
+  triggerType?: 'mouse' | 'keyboard';
   dragTo?: any;
   deltaX?: number;
   deltaY?: number;

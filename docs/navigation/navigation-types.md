@@ -32,13 +32,28 @@ Waits for a condition.
 ## Mouse Interactions
 
 ### `click`
-Clicks an element.
+Clicks an element with mouse or keyboard.
 
 ```typescript
 {
   type: 'click',
   selector: '#button',
+  triggerType: 'mouse', // 'mouse' (default) or 'keyboard'
   waitFor: '#next-page' // optional
+}
+```
+
+**Trigger Types:**
+1. **mouse** (default): Standard mouse click
+2. **keyboard**: Simulates spacebar key press on element (useful for accessibility testing)
+
+**Example Keyboard Click:**
+```typescript
+{
+  type: 'click',
+  selector: 'button.submit',
+  triggerType: 'keyboard',
+  waitFor: 1000 // wait after key press
 }
 ```
 

@@ -24,7 +24,18 @@ export class ClickStepHandler implements IStepHandler {
       state: 'visible',
       timeout: step.timeout || 30000,
     });
-    await this.behaviorEmulator.clickElement(selector);
+
+    if (step.triggerType === 'keyboard') {
+      logger.info('Triggering spacebar keyboard click');
+      const element = await this.page.$(selector);
+      await element?.focus();
+      await this.page.keyboard.down('Space');
+      await this.page.waitForTimeout(100);
+      await this.page.keyboard.up('Space');
+    } else {
+      await this.behaviorEmulator.clickElement(selector);
+    }
+
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
   }
 
