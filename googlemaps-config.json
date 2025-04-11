@@ -80,12 +80,38 @@
               "type": "css",
               "continueOnError": true
             },
-            "name2": {
+            "rating": {
+              "selector": ".MW4etd",
+              "type": "css",
+              "continueOnError": true
+            },
+            "reviews": {
               "selector": "span .UY7F9",
               "type": "regex",
               "pattern": "\\((\\d+)\\)",
               "group": 1,
               "dataType": "number",
+              "continueOnError": true
+            },
+            "services": {
+              "selector": ".W4Efsd .W4Efsd span span",
+              "type": "css",
+              "continueOnError": true
+            },
+            "address": {
+              "selector": ".W4Efsd .W4Efsd span + span span + span",
+              "type": "css",
+              "continueOnError": true
+            },
+            "phone": {
+              "selector": ".W4Efsd .W4Efsd + .W4Efsd span + span span + span",
+              "type": "css",
+              "continueOnError": true
+            },
+            "website": {
+              "selector": "div.lI9IFe  div.Rwjeuc  div:nth-child(1) a",
+              "type": "css",
+              "attribute": "href",
               "continueOnError": true
             }
           }

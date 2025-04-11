@@ -255,7 +255,7 @@ export class NavigationEngine {
       stepsExecuted,
       result: this.context, // Include the final context
       // Prepend domain to screenshot paths
-      screenshots: this.screenshotsTaken.map(p => `http://localhost:3001/${p}`),
+      screenshots: this.screenshotsTaken.map(p => `${config.server.host}/${p}`),
       timestamp: new Date().toISOString(),
     };
     if (error) {
