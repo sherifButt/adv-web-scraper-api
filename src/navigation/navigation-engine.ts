@@ -255,7 +255,7 @@ export class NavigationEngine {
       stepsExecuted,
       result: this.context, // Include the final context
       // Prepend domain to screenshot paths (use just the base domain)
-      screenshots: this.screenshotsTaken.map(p => `https://scraper.apps.loyalleads.co.uk/${p}`),
+      screenshots: this.screenshotsTaken.map(p => `${p}`),
       timestamp: new Date().toISOString(),
     };
     if (error) {
