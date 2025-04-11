@@ -16,12 +16,12 @@
     },
     {
       "type": "condition",
-      "condition": "[data-lc='en-GB']",
+      "condition": "[data-lc='en']",
       "description": "Check if consent dialog appears",
       "thenSteps": [
         {
           "type": "click",
-          "selector": "[data-lc='en-GB']",
+          "selector": "[data-lc='en']",
           "description": "Accept cookies"
         }
       ]

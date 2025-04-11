@@ -162,11 +162,38 @@ export class NavigationEngine {
    */
   private async gotoInitialUrl(url: string): Promise<void> {
     const timeout = this.options.timeout || 30000;
+
+    // Set language and location preferences before navigation
+    await this.page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+    });
+
+    await this.page.context().addInitScript(() => {
+      Object.defineProperty(navigator, 'language', {
+        get: function () {
+          return 'en-GB';
+        },
+      });
+      Object.defineProperty(navigator, 'languages', {
+        get: function () {
+          return ['en-GB', 'en-US', 'en'];
+        },
+      });
+    });
+
     try {
-      await this.page.goto(url, { waitUntil: 'networkidle', timeout });
+      await this.page.goto(url, {
+        waitUntil: 'networkidle',
+        timeout,
+        referer: 'https://www.google.com/',
+      });
     } catch (error) {
       logger.warn(`'networkidle' wait failed for ${url}, trying 'load'`);
-      await this.page.goto(url, { waitUntil: 'load', timeout });
+      await this.page.goto(url, {
+        waitUntil: 'load',
+        timeout,
+        referer: 'https://www.google.com/',
+      });
     }
   }
 
