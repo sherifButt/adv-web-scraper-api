@@ -1,11 +1,37 @@
 {
   "startUrl": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://maps.google.com/maps/%3Fentry%3Dwc&ved=2ahUKEwjex7WsrMqMAxXIWEEAHTaUAicQFnoECA4QAQ&usg=AOvVaw1G_vzTaDddqXWb9c6P7TKB",
   "steps": [
+   
+    {
+      "type": "condition",
+      "condition": "[aria-haspopup='menu']",
+      "description": "Check if consent dialog appears",
+      "thenSteps": [
+        {
+          "type": "click",
+          "selector": "[aria-haspopup='menu']",
+          "description": "Accept cookies"
+        }
+      ]
+    },
+    {
+      "type": "condition",
+      "condition": "[data-lc='en-GB']",
+      "description": "Check if consent dialog appears",
+      "thenSteps": [
+        {
+          "type": "click",
+          "selector": "[data-lc='en-GB']",
+          "description": "Accept cookies"
+        }
+      ]
+    },
     {
       "type": "scroll",
       "distance": 500,
       "description": "Initial page scroll"
     },
+
     {
       "type": "condition",
       "condition": "button[aria-label='Accept all']",
@@ -127,7 +153,7 @@
     "timeout": 45000,
     "waitForSelector": ".m6QErb[role='feed']",
     "javascript": true,
-    "screenshots": true,
+    "screenshots": false,
     "screenshotsPath": "./screenshots",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "debug": true
