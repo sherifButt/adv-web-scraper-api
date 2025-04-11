@@ -8,7 +8,9 @@ Welcome to the Advanced Web Scraper API documentation. This documentation provid
 - [API Reference](api-reference.md): Detailed API reference for all endpoints (coming soon).
 - [Examples](examples.md): Examples of common use cases (coming soon).
 - [Configuration](configuration.md): Configuration options and environment variables (coming soon).
-- [Deployment](deployment.md): Deployment guides and best practices (coming soon).
+- [Deployment](deployment.md): Deployment guides and best practices.
+- [Session Management](sessions/session-management.md): Managing persistent scraping sessions.
+- [Storage Adapters](sessions/storage-adapters.md): Comparing session storage options.
 
 ## Architecture
 

@@ -1,6 +1,10 @@
 // src/storage/adapters/storage-adapter.interface.ts
 
 import { ExtractionResult } from '../../types/extraction.types.js';
+import { SessionData } from '../../core/session/session-manager.js'; // Import SessionData if needed for union type
+
+// Define a generic type for stored data, ensuring it has an ID
+export type StorableData = Record<string, any> & { id: string }; // Export the type
 
 /**
  * Interface for storage adapters
@@ -8,29 +12,30 @@ import { ExtractionResult } from '../../types/extraction.types.js';
  */
 export interface StorageAdapter {
   /**
-   * Store an extraction result
-   * @param result The extraction result to store
-   * @returns A promise that resolves to the ID of the stored result
+   * Store data (e.g., ExtractionResult, SessionData)
+   * @param data The data object to store (must have an 'id' property)
+   * @param ttl Optional Time-to-Live in milliseconds
+   * @returns A promise that resolves to the ID of the stored data
    */
-  store(result: ExtractionResult): Promise<string>;
+  store(data: StorableData, ttl?: number): Promise<string>;
 
   /**
-   * Retrieve an extraction result by ID
-   * @param id The ID of the extraction result to retrieve
-   * @returns A promise that resolves to the extraction result or null if not found
+   * Retrieve data by ID
+   * @param id The ID of the data to retrieve
+   * @returns A promise that resolves to the data object or null if not found
    */
-  retrieve(id: string): Promise<ExtractionResult | null>;
+  retrieve(id: string): Promise<StorableData | null>;
 
   /**
-   * Update an existing extraction result
-   * @param id The ID of the extraction result to update
-   * @param result The updated extraction result
+   * Update existing data
+   * @param id The ID of the data to update
+   * @param data The partial data object with updates
    * @returns A promise that resolves to true if the update was successful, false otherwise
    */
-  update(id: string, result: Partial<ExtractionResult>): Promise<boolean>;
+  update(id: string, data: Partial<StorableData>): Promise<boolean>;
 
   /**
-   * Delete an extraction result by ID
+   * Delete data by ID
    * @param id The ID of the extraction result to delete
    * @returns A promise that resolves to true if the deletion was successful, false otherwise
    */

@@ -215,27 +215,27 @@ export class MongoDBStorageAdapter implements StorageAdapter {
 
       // Build the query
       const query: any = {};
-      
+
       if (options.status) {
         query.status = options.status;
       }
-      
+
       if (options.url) {
         query.url = { $regex: options.url, $options: 'i' };
       }
-      
+
       if (options.fromDate || options.toDate) {
         query.timestamp = {};
-        
+
         if (options.fromDate) {
           query.timestamp.$gte = options.fromDate.toISOString();
         }
-        
+
         if (options.toDate) {
           query.timestamp.$lte = options.toDate.toISOString();
         }
       }
-      
+
       // Execute the query with pagination
       const results = (await this.collection
         .find(query)
@@ -243,7 +243,7 @@ export class MongoDBStorageAdapter implements StorageAdapter {
         .skip(options.offset || 0)
         .limit(options.limit || 100)
         .toArray()) as unknown as ExtractionResult[];
-      
+
       logger.debug(`Listed ${results.length} extraction results from MongoDB`);
       return results;
     } catch (error: any) {

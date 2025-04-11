@@ -102,7 +102,7 @@ export class FileStorageAdapter implements StorageAdapter {
   public async retrieve(id: string): Promise<ExtractionResult | null> {
     try {
       const filePath = this.getFilePath(id);
-      
+
       try {
         const content = await fs.readFile(filePath, 'utf8');
         const result = JSON.parse(content) as ExtractionResult;
@@ -153,7 +153,7 @@ export class FileStorageAdapter implements StorageAdapter {
   public async delete(id: string): Promise<boolean> {
     try {
       const filePath = this.getFilePath(id);
-      
+
       try {
         await fs.unlink(filePath);
         logger.debug(`Deleted extraction result with ID: ${id} from ${filePath}`);
@@ -189,10 +189,10 @@ export class FileStorageAdapter implements StorageAdapter {
     try {
       // Get all files in the directory
       const files = await fs.readdir(this.directory);
-      
+
       // Filter files by extension
       const resultFiles = files.filter(file => file.endsWith(this.fileExtension));
-      
+
       // Read all files
       const results: ExtractionResult[] = [];
       for (const file of resultFiles) {
@@ -206,44 +206,44 @@ export class FileStorageAdapter implements StorageAdapter {
           // Skip invalid files
         }
       }
-      
+
       // Apply filters
       let filteredResults = results;
-      
+
       if (options.status) {
         filteredResults = filteredResults.filter(result => result.status === options.status);
       }
-      
+
       if (options.url) {
         filteredResults = filteredResults.filter(result => result.url.includes(options.url || ''));
       }
-      
+
       if (options.fromDate) {
         filteredResults = filteredResults.filter(result => {
           const timestamp = new Date(result.timestamp);
           return timestamp >= options.fromDate!;
         });
       }
-      
+
       if (options.toDate) {
         filteredResults = filteredResults.filter(result => {
           const timestamp = new Date(result.timestamp);
           return timestamp <= options.toDate!;
         });
       }
-      
+
       // Sort by timestamp (newest first)
       filteredResults.sort((a, b) => {
         const timestampA = new Date(a.timestamp).getTime();
         const timestampB = new Date(b.timestamp).getTime();
         return timestampB - timestampA;
       });
-      
+
       // Apply pagination
       const offset = options.offset || 0;
       const limit = options.limit || filteredResults.length;
       const paginatedResults = filteredResults.slice(offset, offset + limit);
-      
+
       logger.debug(`Listed ${paginatedResults.length} extraction results from file storage`);
       return paginatedResults;
     } catch (error: any) {

@@ -1,6 +1,7 @@
 import { BrowserContext, Cookie } from 'playwright';
 import { logger } from '../../utils/logger.js';
 import { StorageService } from '../../storage/index.js';
+import { StorageAdapterType } from '../../storage/storage-factory.js';
 import { config } from '../../config/index.js';
 import crypto from 'crypto';
 
@@ -61,7 +62,7 @@ export class SessionManager {
 
     try {
       await this.storageService.initialize();
-      
+
       // Load existing sessions from storage
       const sessions = await this.storageService.list({
         // Filter to only include session data
@@ -71,13 +72,13 @@ export class SessionManager {
       for (const session of sessions) {
         if (session.id.startsWith('session_')) {
           const sessionData = session as unknown as SessionData;
-          
+
           // Skip expired sessions
           if (new Date(sessionData.expiresAt) < new Date()) {
             await this.storageService.delete(sessionData.id);
             continue;
           }
-          
+
           this.sessions.set(sessionData.id, sessionData);
         }
       }
@@ -91,11 +92,10 @@ export class SessionManager {
   }
 
   /**
-   * Create a session ID from domain
+   * Create a random session ID
    */
-  private createSessionId(domain: string): string {
-    const hash = crypto.createHash('md5').update(domain).digest('hex');
-    return `session_${hash}`;
+  private createSessionId(): string {
+    return `session_${crypto.randomBytes(16).toString('hex')}`;
   }
 
   /**
@@ -117,11 +117,11 @@ export class SessionManager {
     if (!this.initialized) await this.initialize();
 
     const domain = options.domain;
-    const sessionId = this.createSessionId(domain);
-    
+    const sessionId = this.createSessionId();
+
     // Get cookies from the browser context
     const cookies = await context.cookies();
-    
+
     // Get localStorage if possible (this requires a page)
     let localStorage: Record<string, string> | undefined;
     try {
@@ -168,18 +168,15 @@ export class SessionManager {
   }
 
   /**
-   * Get a session for a domain if it exists
+   * Get a session by ID
    */
-  public async getSession(url: string): Promise<SessionData | null> {
+  public async getSession(sessionId: string): Promise<SessionData | null> {
     if (!this.initialized) await this.initialize();
 
-    const domain = this.extractDomain(url);
-    const sessionId = this.createSessionId(domain);
+    // Check if session exists in memory
+    let sessionData = this.sessions.get(sessionId);
 
-      // Check if session exists in memory
-      let sessionData = this.sessions.get(sessionId);
-
-      // If not in memory, try to get from storage
+    // If not in memory, try to get from storage
     if (!sessionData) {
       const storedSession = await this.storageService.retrieve(sessionId);
       if (storedSession) {
@@ -190,7 +187,7 @@ export class SessionManager {
 
     // Check if session is expired
     if (sessionData && new Date(sessionData.expiresAt) < new Date()) {
-      logger.info(`Session for domain ${domain} has expired`);
+      logger.info(`Session ${sessionId} has expired`);
       await this.deleteSession(sessionId);
       return null;
     }
@@ -199,8 +196,8 @@ export class SessionManager {
       // Update last used timestamp
       sessionData.lastUsedAt = new Date().toISOString();
       await this.storageService.update(sessionId, sessionData as any);
-      
-      logger.info(`Retrieved session for domain: ${domain}`);
+
+      logger.info(`Retrieved session: ${sessionId}`);
     }
 
     return sessionData || null;
@@ -231,18 +228,15 @@ export class SessionManager {
   /**
    * Mark a session as having solved CAPTCHAs
    */
-  public async markCaptchaSolved(url: string): Promise<void> {
+  public async markCaptchaSolved(sessionId: string): Promise<void> {
     if (!this.initialized) await this.initialize();
-
-    const domain = this.extractDomain(url);
-    const sessionId = this.createSessionId(domain);
 
     const sessionData = this.sessions.get(sessionId);
     if (sessionData) {
       sessionData.captchaSolved = true;
       sessionData.lastUsedAt = new Date().toISOString();
       await this.storageService.update(sessionId, sessionData as any);
-      logger.info(`Marked session for domain ${domain} as having solved CAPTCHAs`);
+      logger.info(`Marked session ${sessionId} as having solved CAPTCHAs`);
     }
   }
 
@@ -277,5 +271,51 @@ export class SessionManager {
   public async getAllSessions(): Promise<SessionData[]> {
     if (!this.initialized) await this.initialize();
     return Array.from(this.sessions.values());
+  }
+
+  /**
+   * Create a new session with specified options
+   */
+  public async createSession(options: {
+    adapter: string;
+    ttl: number;
+    browserOptions?: {
+      userAgent?: string;
+      viewport?: { width: number; height: number };
+    };
+  }): Promise<SessionData> {
+    if (!this.initialized) await this.initialize();
+
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + options.ttl);
+
+    const sessionData: SessionData = {
+      id: `session_${crypto.randomBytes(16).toString('hex')}`,
+      domain: 'new_session',
+      cookies: [],
+      userAgent: options.browserOptions?.userAgent,
+      createdAt: now.toISOString(),
+      lastUsedAt: now.toISOString(),
+      captchaSolved: false,
+      expiresAt: expiresAt.toISOString(),
+    };
+
+    // Set storage adapter if specified
+    if (options.adapter) {
+      const validAdapters = ['memory', 'file', 'mongodb', 'redis', 'api'];
+      if (!validAdapters.includes(options.adapter)) {
+        throw new Error(
+          `Invalid storage adapter: ${options.adapter}. Must be one of: ${validAdapters.join(', ')}`
+        );
+      }
+      await this.storageService.changePrimaryAdapter(options.adapter as StorageAdapterType);
+    }
+
+    // Save to memory and storage
+    this.sessions.set(sessionData.id, sessionData);
+    await this.storageService.store(sessionData as any);
+
+    logger.info(`Created new session with ID: ${sessionData.id}`);
+    return sessionData;
   }
 }

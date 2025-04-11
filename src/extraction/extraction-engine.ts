@@ -142,7 +142,7 @@ export class ExtractionEngine {
       // Extract data
       pagesProcessed++;
       const data = await this.extractFields(page, config.fields, {});
-      
+
       // Handle pagination if configured
       if (config.pagination) {
         // Pagination implementation would go here
@@ -182,11 +182,11 @@ export class ExtractionEngine {
       };
     } catch (error: any) {
       logger.error(`Extraction error: ${error}`);
-      
+
       // Calculate duration
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
-      
+
       // Return error result
       return {
         id,
@@ -228,7 +228,7 @@ export class ExtractionEngine {
           if (nestedResult === null) {
             result[fieldName] = {
               value: null,
-              error: `No elements found for selector: ${fieldConfig.selector}`
+              error: `No elements found for selector: ${fieldConfig.selector}`,
             };
           } else {
             result[fieldName] = nestedResult;
@@ -237,13 +237,14 @@ export class ExtractionEngine {
           // Handle regular field extraction
           const value = await this.extractField(page, fieldConfig, context);
           if (value === null) {
-            const selector = 'selector' in fieldConfig
-              ? fieldConfig.selector
-              : fieldConfig.type === 'regex'
+            const selector =
+              'selector' in fieldConfig
+                ? fieldConfig.selector
+                : fieldConfig.type === 'regex'
                 ? fieldConfig.pattern
                 : fieldConfig.type === 'function'
-                  ? 'custom function'
-                  : 'unknown selector';
+                ? 'custom function'
+                : 'unknown selector';
             result[fieldName] = {
               value: null,
               error: `No elements found for selector: ${selector}`,
@@ -257,7 +258,7 @@ export class ExtractionEngine {
         logger.error(`Error extracting field "${fieldName}": ${errorMessage}`);
         result[fieldName] = {
           value: null,
-          error: `Extraction failed: ${errorMessage}`
+          error: `Extraction failed: ${errorMessage}`,
         };
       }
     }
@@ -272,31 +273,27 @@ export class ExtractionEngine {
    * @param context Extraction context
    * @returns Extracted data
    */
-  private async extractField(
-    page: Page,
-    config: SelectorConfig,
-    context: any
-  ): Promise<any> {
+  private async extractField(page: Page, config: SelectorConfig, context: any): Promise<any> {
     // Find the appropriate strategy for this selector
     const strategy = this.selectorStrategies.find(s => s.canHandle(config));
-    
+
     if (!strategy) {
       throw new Error(`No strategy found for selector type: ${config.type}`);
     }
-    
+
     // Extract the data using the strategy
     let value = await strategy.extract(page, config, context);
-    
+
     // Apply transformation if specified
     if (config.transform) {
       value = await this.applyTransformation(value, config.transform, context);
     }
-    
+
     // Apply data type conversion if specified
     if (config.dataType) {
       value = this.convertDataType(value, config.dataType);
     }
-    
+
     return value;
   }
 
@@ -313,67 +310,76 @@ export class ExtractionEngine {
     context: any
   ): Promise<any> {
     const { selector, type, multiple = false, fields } = config;
-    
+
     try {
       if (multiple) {
         // Extract multiple items
         if (type === SelectorType.CSS) {
           // For CSS selectors, use $$eval for better performance
-          return page.$$eval(selector, (elements, fieldsJson) => {
-            const fields = JSON.parse(fieldsJson);
-            return elements.map(element => {
-              const result: Record<string, any> = {};
-              
-              for (const [fieldName, fieldConfig] of Object.entries(fields)) {
-                try {
-                  if ((fieldConfig as any).type === 'css') {
-                    const subElements = element.querySelectorAll((fieldConfig as any).selector);
-                    if ((fieldConfig as any).multiple) {
-                      result[fieldName] = Array.from(subElements).map(el => {
-                    if ((fieldConfig as any).attribute) {
-                      return el.getAttribute((fieldConfig as any).attribute) || '';
-                    } else if ((fieldConfig as any).source === 'html') {
-                      // Preserve HTML structure by wrapping in CDATA
-                      return `<![CDATA[\n${el.innerHTML}\n]]>`;
-                    } else {
-                      return el.textContent?.trim() || '';
-                    }
-                      });
-                    } else if (subElements.length > 0) {
-                      if ((fieldConfig as any).attribute) {
-                        result[fieldName] = subElements[0].getAttribute((fieldConfig as any).attribute) || '';
+          return page.$$eval(
+            selector,
+            (elements, fieldsJson) => {
+              const fields = JSON.parse(fieldsJson);
+              return elements.map(element => {
+                const result: Record<string, any> = {};
+
+                for (const [fieldName, fieldConfig] of Object.entries(fields)) {
+                  try {
+                    if ((fieldConfig as any).type === 'css') {
+                      const subElements = element.querySelectorAll((fieldConfig as any).selector);
+                      if ((fieldConfig as any).multiple) {
+                        result[fieldName] = Array.from(subElements).map(el => {
+                          if ((fieldConfig as any).attribute) {
+                            return el.getAttribute((fieldConfig as any).attribute) || '';
+                          } else if ((fieldConfig as any).source === 'html') {
+                            // Preserve HTML structure by wrapping in CDATA
+                            return `<![CDATA[\n${el.innerHTML}\n]]>`;
+                          } else {
+                            return el.textContent?.trim() || '';
+                          }
+                        });
+                      } else if (subElements.length > 0) {
+                        if ((fieldConfig as any).attribute) {
+                          result[fieldName] =
+                            subElements[0].getAttribute((fieldConfig as any).attribute) || '';
+                        } else {
+                          result[fieldName] = subElements[0].textContent?.trim() || '';
+                        }
                       } else {
-                        result[fieldName] = subElements[0].textContent?.trim() || '';
+                        result[fieldName] = null;
                       }
                     } else {
+                      // For non-CSS selectors, we can't handle them in the browser context
                       result[fieldName] = null;
                     }
-                  } else {
-                    // For non-CSS selectors, we can't handle them in the browser context
+                  } catch (error) {
                     result[fieldName] = null;
                   }
-                } catch (error) {
-                  result[fieldName] = null;
                 }
-              }
-              
-              return result;
-            });
-          }, JSON.stringify(fields));
+
+                return result;
+              });
+            },
+            JSON.stringify(fields)
+          );
         } else {
           // For XPath selectors, we need to handle each element individually
           const elements = await page.$$(selector);
           const results: any[] = [];
-          
+
           for (const element of elements) {
             const elementContext = { ...context, element };
             const result: Record<string, any> = {};
-            
+
             for (const [fieldName, fieldConfig] of Object.entries(fields)) {
               try {
                 if (this.isNestedExtractionConfig(fieldConfig)) {
                   // Handle nested extraction
-                  result[fieldName] = await this.extractNestedFields(page, fieldConfig, elementContext);
+                  result[fieldName] = await this.extractNestedFields(
+                    page,
+                    fieldConfig,
+                    elementContext
+                  );
                 } else {
                   // Handle regular field extraction
                   result[fieldName] = await this.extractField(page, fieldConfig, elementContext);
@@ -383,10 +389,10 @@ export class ExtractionEngine {
                 result[fieldName] = null;
               }
             }
-            
+
             results.push(result);
           }
-          
+
           return results;
         }
       } else {
@@ -396,7 +402,7 @@ export class ExtractionEngine {
           logger.warn(`Selector "${selector}" not found for nested extraction`);
           return null;
         }
-        
+
         const elementContext = { ...context, element };
         return this.extractFields(page, fields, elementContext);
       }
@@ -440,7 +446,7 @@ export class ExtractionEngine {
           }
         }
       }
-      
+
       // If no transformation applied, return original value
       return value;
     } catch (error) {
@@ -488,11 +494,11 @@ export class ExtractionEngine {
     if (!data) {
       return 0;
     }
-    
+
     if (Array.isArray(data)) {
       return data.length;
     }
-    
+
     if (typeof data === 'object') {
       let count = 0;
       for (const value of Object.values(data)) {
@@ -500,7 +506,7 @@ export class ExtractionEngine {
       }
       return count || 1; // Count at least 1 for non-empty objects
     }
-    
+
     return 1; // Count primitive values as 1
   }
 

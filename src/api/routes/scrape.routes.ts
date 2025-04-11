@@ -89,10 +89,10 @@ router.get(
   '/:id',
   asyncHandler(async (req, res) => {
     const id = req.params.id;
-    
+
     // Get the result from storage service
     const result = await storageService.retrieve(id);
-    
+
     if (!result) {
       return res.status(404).json({
         success: false,
@@ -101,7 +101,7 @@ router.get(
         timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Return the result
     return res.status(200).json({
       success: true,
@@ -122,10 +122,10 @@ router.put(
   asyncHandler(async (req, res) => {
     const id = req.params.id;
     const updateData = req.body;
-    
+
     // Update the result in storage service
     const success = await storageService.update(id, updateData);
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
@@ -134,10 +134,10 @@ router.put(
         timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Get the updated result
     const result = await storageService.retrieve(id);
-    
+
     // Return the updated result
     return res.status(200).json({
       success: true,
@@ -157,10 +157,10 @@ router.delete(
   '/:id',
   asyncHandler(async (req, res) => {
     const id = req.params.id;
-    
+
     // Delete the result from storage service
     const success = await storageService.delete(id);
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
@@ -169,7 +169,7 @@ router.delete(
         timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Return success response
     return res.status(200).json({
       success: true,
@@ -194,7 +194,7 @@ router.get(
     const url = req.query.url as string | undefined;
     const fromDate = req.query.fromDate ? new Date(req.query.fromDate as string) : undefined;
     const toDate = req.query.toDate ? new Date(req.query.toDate as string) : undefined;
-    
+
     // Get results from storage service
     const results = await storageService.list({
       limit,
@@ -204,7 +204,7 @@ router.get(
       fromDate,
       toDate,
     });
-    
+
     // Return the results
     return res.status(200).json({
       success: true,

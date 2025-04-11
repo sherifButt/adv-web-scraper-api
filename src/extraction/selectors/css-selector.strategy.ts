@@ -44,7 +44,7 @@ export class CssSelectorStrategy implements SelectorStrategy {
           if (exists) {
             // Use this selector since it exists
             logger.debug(`Using selector option: ${transformedSelector}`);
-            
+
             // Extract data based on whether we want multiple elements or a single one
             if (multiple) {
               return this.extractMultiple(page, transformedSelector, attribute, cssConfig.source);
@@ -57,7 +57,7 @@ export class CssSelectorStrategy implements SelectorStrategy {
           logger.debug(`Selector option ${selectorOption} failed, trying next option`);
         }
       }
-      
+
       // If we get here, none of the selectors worked
       logger.warn(`None of the provided selectors worked for ${name || 'unnamed field'}`);
       return cssConfig.defaultValue !== undefined ? cssConfig.defaultValue : null;

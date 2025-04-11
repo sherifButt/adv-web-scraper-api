@@ -2,7 +2,11 @@
 
 import { ExtractionResult } from '../types/extraction.types.js';
 import { StorageFactory, StorageAdapterType } from './storage-factory.js';
-import { StorageAdapter, StorageAdapterOptions } from './adapters/storage-adapter.interface.js';
+import {
+  StorageAdapter,
+  StorageAdapterOptions,
+  StorableData,
+} from './adapters/storage-adapter.interface.js'; // Import StorableData
 import { logger } from '../utils/logger.js';
 
 /**
@@ -109,119 +113,120 @@ export class StorageService {
   }
 
   /**
-   * Store an extraction result
-   * @param result The extraction result to store
-   * @returns The ID of the stored result
+   * Store data
+   * @param data The data to store (must have an 'id' property)
+   * @param ttl Optional Time-to-Live in milliseconds
+   * @returns The ID of the stored data
    */
-  public async store(result: ExtractionResult): Promise<string> {
+  public async store(data: StorableData, ttl?: number): Promise<string> {
     try {
       if (!this.primaryAdapter) {
         await this.initialize();
       }
 
       // Store in primary adapter
-      const id = await this.primaryAdapter!.store(result);
-      logger.debug(`Stored extraction result with ID: ${id} in primary storage`);
+      const id = await this.primaryAdapter!.store(data, ttl); // Pass ttl
+      logger.debug(`Stored data with ID: ${id} in primary storage`);
 
       // Store in backup adapter if configured
       if (this.useBackup && this.backupAdapter) {
         try {
-          await this.backupAdapter.store(result);
-          logger.debug(`Stored extraction result with ID: ${id} in backup storage`);
+          await this.backupAdapter.store(data, ttl); // Pass ttl
+          logger.debug(`Stored data with ID: ${id} in backup storage`);
         } catch (error: any) {
-          logger.error(`Error storing extraction result in backup storage: ${error.message}`);
+          logger.error(`Error storing data in backup storage: ${error.message}`);
           // Continue even if backup storage fails
         }
       }
 
       return id;
     } catch (error: any) {
-      logger.error(`Error storing extraction result: ${error.message}`);
+      logger.error(`Error storing data: ${error.message}`);
       throw error;
     }
   }
 
   /**
-   * Retrieve an extraction result by ID
-   * @param id The ID of the extraction result to retrieve
-   * @returns The extraction result or null if not found
+   * Retrieve data by ID
+   * @param id The ID of the data to retrieve
+   * @returns The data object or null if not found
    */
-  public async retrieve(id: string): Promise<ExtractionResult | null> {
+  public async retrieve(id: string): Promise<StorableData | null> {
     try {
       if (!this.primaryAdapter) {
         await this.initialize();
       }
 
       // Try to retrieve from primary adapter
-      let result = await this.primaryAdapter!.retrieve(id);
-      
+      let data = await this.primaryAdapter!.retrieve(id);
+
       // If not found in primary and backup is configured, try backup
-      if (!result && this.useBackup && this.backupAdapter) {
+      if (!data && this.useBackup && this.backupAdapter) {
         try {
-          result = await this.backupAdapter.retrieve(id);
-          
-          if (result) {
-            logger.debug(`Retrieved extraction result with ID: ${id} from backup storage`);
-            
-            // Sync back to primary storage
-            await this.primaryAdapter!.store(result);
-            logger.debug(`Synced extraction result with ID: ${id} from backup to primary storage`);
+          data = await this.backupAdapter.retrieve(id);
+
+          if (data) {
+            logger.debug(`Retrieved data with ID: ${id} from backup storage`);
+
+            // Sync back to primary storage (Note: TTL is not preserved here)
+            await this.primaryAdapter!.store(data);
+            logger.debug(`Synced data with ID: ${id} from backup to primary storage`);
           }
         } catch (error: any) {
-          logger.error(`Error retrieving extraction result from backup storage: ${error.message}`);
+          logger.error(`Error retrieving data from backup storage: ${error.message}`);
           // Continue with null result
         }
-      } else if (result) {
-        logger.debug(`Retrieved extraction result with ID: ${id} from primary storage`);
+      } else if (data) {
+        logger.debug(`Retrieved data with ID: ${id} from primary storage`);
       }
-      
-      return result;
+
+      return data;
     } catch (error: any) {
-      logger.error(`Error retrieving extraction result: ${error.message}`);
+      logger.error(`Error retrieving data: ${error.message}`);
       throw error;
     }
   }
 
   /**
-   * Update an existing extraction result
-   * @param id The ID of the extraction result to update
-   * @param result The updated extraction result
+   * Update existing data
+   * @param id The ID of the data to update
+   * @param data The partial data object with updates
    * @returns True if the update was successful, false otherwise
    */
-  public async update(id: string, result: Partial<ExtractionResult>): Promise<boolean> {
+  public async update(id: string, data: Partial<StorableData>): Promise<boolean> {
     try {
       if (!this.primaryAdapter) {
         await this.initialize();
       }
 
       // Update in primary adapter
-      const success = await this.primaryAdapter!.update(id, result);
-      
+      const success = await this.primaryAdapter!.update(id, data);
+
       if (success) {
-        logger.debug(`Updated extraction result with ID: ${id} in primary storage`);
-        
+        logger.debug(`Updated data with ID: ${id} in primary storage`);
+
         // Update in backup adapter if configured
         if (this.useBackup && this.backupAdapter) {
           try {
-            await this.backupAdapter.update(id, result);
-            logger.debug(`Updated extraction result with ID: ${id} in backup storage`);
+            await this.backupAdapter.update(id, data);
+            logger.debug(`Updated data with ID: ${id} in backup storage`);
           } catch (error: any) {
-            logger.error(`Error updating extraction result in backup storage: ${error.message}`);
+            logger.error(`Error updating data in backup storage: ${error.message}`);
             // Continue even if backup storage fails
           }
         }
       }
-      
+
       return success;
     } catch (error: any) {
-      logger.error(`Error updating extraction result: ${error.message}`);
+      logger.error(`Error updating data: ${error.message}`);
       throw error;
     }
   }
 
   /**
-   * Delete an extraction result by ID
-   * @param id The ID of the extraction result to delete
+   * Delete data by ID
+   * @param id The ID of the data to delete
    * @returns True if the deletion was successful, false otherwise
    */
   public async delete(id: string): Promise<boolean> {
@@ -232,25 +237,25 @@ export class StorageService {
 
       // Delete from primary adapter
       const success = await this.primaryAdapter!.delete(id);
-      
+
       if (success) {
-        logger.debug(`Deleted extraction result with ID: ${id} from primary storage`);
-        
+        logger.debug(`Deleted data with ID: ${id} from primary storage`);
+
         // Delete from backup adapter if configured
         if (this.useBackup && this.backupAdapter) {
           try {
             await this.backupAdapter.delete(id);
-            logger.debug(`Deleted extraction result with ID: ${id} from backup storage`);
+            logger.debug(`Deleted data with ID: ${id} from backup storage`);
           } catch (error: any) {
-            logger.error(`Error deleting extraction result from backup storage: ${error.message}`);
+            logger.error(`Error deleting data from backup storage: ${error.message}`);
             // Continue even if backup storage fails
           }
         }
       }
-      
+
       return success;
     } catch (error: any) {
-      logger.error(`Error deleting extraction result: ${error.message}`);
+      logger.error(`Error deleting data: ${error.message}`);
       throw error;
     }
   }
@@ -278,7 +283,7 @@ export class StorageService {
       // List from primary adapter
       const results = await this.primaryAdapter!.list(options);
       logger.debug(`Listed ${results.length} extraction results from primary storage`);
-      
+
       return results;
     } catch (error: any) {
       logger.error(`Error listing extraction results: ${error.message}`);
@@ -313,27 +318,27 @@ export class StorageService {
     try {
       // Get the new adapter
       const newAdapter = await this.storageFactory.getAdapter(type, options);
-      
+
       // If we already have a primary adapter, migrate data
       if (this.primaryAdapter) {
         logger.info(`Migrating data from ${this.primaryAdapterType} to ${type}`);
-        
+
         // Get all data from current adapter
         const results = await this.primaryAdapter.list();
-        
+
         // Store all data in new adapter
         for (const result of results) {
           await newAdapter.store(result);
         }
-        
+
         logger.info(`Migrated ${results.length} extraction results to ${type}`);
       }
-      
+
       // Update adapter references
       this.primaryAdapterType = type;
       this.primaryAdapterOptions = options || {};
       this.primaryAdapter = newAdapter;
-      
+
       logger.info(`Changed primary storage adapter to ${type}`);
     } catch (error: any) {
       logger.error(`Error changing primary storage adapter: ${error.message}`);
@@ -356,34 +361,34 @@ export class StorageService {
       if (useBackup) {
         // Get the new adapter
         const newAdapter = await this.storageFactory.getAdapter(type, options);
-        
+
         // If we already have a primary adapter, sync data
         if (this.primaryAdapter) {
           logger.info(`Syncing data from primary adapter to ${type}`);
-          
+
           // Get all data from primary adapter
           const results = await this.primaryAdapter.list();
-          
+
           // Store all data in new adapter
           for (const result of results) {
             await newAdapter.store(result);
           }
-          
+
           logger.info(`Synced ${results.length} extraction results to ${type}`);
         }
-        
+
         // Update adapter references
         this.backupAdapterType = type;
         this.backupAdapterOptions = options;
         this.backupAdapter = newAdapter;
         this.useBackup = true;
-        
+
         logger.info(`Changed backup storage adapter to ${type}`);
       } else {
         // Disable backup adapter
         this.backupAdapter = null;
         this.useBackup = false;
-        
+
         logger.info('Disabled backup storage adapter');
       }
     } catch (error: any) {

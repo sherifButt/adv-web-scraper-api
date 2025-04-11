@@ -309,38 +309,38 @@ export class ApiStorageAdapter implements StorageAdapter {
     try {
       // Convert options to query parameters
       const params: Record<string, any> = {};
-      
+
       if (options.limit !== undefined) {
         params.limit = options.limit;
       }
-      
+
       if (options.offset !== undefined) {
         params.offset = options.offset;
       }
-      
+
       if (options.status) {
         params.status = options.status;
       }
-      
+
       if (options.url) {
         params.url = options.url;
       }
-      
+
       if (options.fromDate) {
         params.fromDate = options.fromDate.toISOString();
       }
-      
+
       if (options.toDate) {
         params.toDate = options.toDate.toISOString();
       }
-      
+
       const config = this.getRequestConfig();
       config.params = params;
-      
+
       const response = await this.executeWithRetry(() =>
         this.client.get(this.endpoints.list, config)
       );
-      
+
       const results = response.data as ExtractionResult[];
       logger.debug(`Listed ${results.length} extraction results from API`);
       return results;
@@ -364,7 +364,7 @@ export class ApiStorageAdapter implements StorageAdapter {
    */
   private getRequestConfig(): AxiosRequestConfig {
     const config: AxiosRequestConfig = {};
-    
+
     if (this.auth) {
       switch (this.auth.type) {
         case 'basic':
@@ -401,7 +401,7 @@ export class ApiStorageAdapter implements StorageAdapter {
           break;
       }
     }
-    
+
     return config;
   }
 
@@ -412,13 +412,13 @@ export class ApiStorageAdapter implements StorageAdapter {
    */
   private async executeWithRetry<T>(request: () => Promise<T>): Promise<T> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt <= this.retry.maxRetries; attempt++) {
       try {
         return await request();
       } catch (error: any) {
         lastError = error;
-        
+
         // Don't retry if it's a 4xx error (except 429 Too Many Requests)
         if (
           error.response &&
@@ -428,19 +428,21 @@ export class ApiStorageAdapter implements StorageAdapter {
         ) {
           throw error;
         }
-        
+
         // Last attempt, throw the error
         if (attempt === this.retry.maxRetries) {
           throw error;
         }
-        
+
         // Wait before retrying
         const delay = this.retry.retryDelay * Math.pow(2, attempt);
-        logger.debug(`Retrying API request in ${delay}ms (attempt ${attempt + 1}/${this.retry.maxRetries})`);
+        logger.debug(
+          `Retrying API request in ${delay}ms (attempt ${attempt + 1}/${this.retry.maxRetries})`
+        );
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-    
+
     // This should never happen, but TypeScript requires a return statement
     throw lastError || new Error('Unknown error during request retry');
   }
