@@ -229,8 +229,10 @@ export class NavigationEngine {
 
       await this.page.screenshot({ path: filepath, fullPage: true });
       logger.info(`Screenshot taken: ${filepath}`);
-      this.screenshotsTaken.push(filepath);
-      return filepath;
+      // Store relative path for API response
+      const relativePath = path.relative(process.cwd(), filepath);
+      this.screenshotsTaken.push(relativePath);
+      return relativePath;
     } catch (error) {
       logger.error('Error taking screenshot:', error);
       return null;
@@ -252,7 +254,8 @@ export class NavigationEngine {
       status,
       stepsExecuted,
       result: this.context, // Include the final context
-      screenshots: this.screenshotsTaken,
+      // Prepend domain to screenshot paths
+      screenshots: this.screenshotsTaken.map(p => `http://localhost:3001/${p}`),
       timestamp: new Date().toISOString(),
     };
     if (error) {
