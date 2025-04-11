@@ -20,7 +20,7 @@ const storageService = StorageService.getInstance();
   try {
     await storageService.initialize();
     logger.info('Storage service initialized for navigation routes');
-    
+
     await sessionManager.initialize();
     logger.info('Session manager initialized for navigation routes');
   } catch (error: any) {
@@ -107,11 +107,18 @@ router.post(
       // Release the browser back to the pool
       browserPool.releaseBrowser(browser);
 
-      // Return the result
+      // Return the result with full screenshot URLs if they exist
+      const responseData = {
+        ...result,
+        screenshots: result.screenshots?.map(
+          screenshot => `${config.server.host}/screenshots/${screenshot}`
+        ),
+      };
+
       return res.status(200).json({
         success: true,
         message: 'Navigation flow executed successfully',
-        data: result,
+        data: responseData,
         timestamp: new Date().toISOString(),
       });
     } catch (error: any) {
@@ -135,10 +142,10 @@ router.get(
   '/:id',
   asyncHandler(async (req, res) => {
     const id = req.params.id;
-    
+
     // Get the result from storage service
     const result = await storageService.retrieve(id);
-    
+
     if (!result) {
       return res.status(404).json({
         success: false,
@@ -147,7 +154,7 @@ router.get(
         timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Return the result
     return res.status(200).json({
       success: true,
@@ -216,7 +223,9 @@ router.post(
           // Get a proxy if requested
           let proxy = null;
           if (options?.proxy) {
-            proxy = await proxyManager.getProxy(typeof options.proxy === 'object' ? options.proxy : {});
+            proxy = await proxyManager.getProxy(
+              typeof options.proxy === 'object' ? options.proxy : {}
+            );
           }
 
           // Create a browser context with the proxy if available
@@ -282,7 +291,7 @@ router.post(
           logger.info(`Crawl completed for URL: ${startUrl}`);
         } catch (error: any) {
           logger.error(`Error in crawl process: ${error.message}`);
-          
+
           // Update the result with error
           await storageService.update(crawlId, {
             status: 'failed',
@@ -330,7 +339,7 @@ router.get(
     const url = req.query.url as string | undefined;
     const fromDate = req.query.fromDate ? new Date(req.query.fromDate as string) : undefined;
     const toDate = req.query.toDate ? new Date(req.query.toDate as string) : undefined;
-    
+
     // Get results from storage service
     const results = await storageService.list({
       limit,
@@ -340,12 +349,12 @@ router.get(
       fromDate,
       toDate,
     });
-    
+
     // Filter to only include navigation results (IDs starting with 'nav_' or 'crawl_')
     const navigationResults = results.filter(
       result => result.id.startsWith('nav_') || result.id.startsWith('crawl_')
     );
-    
+
     // Return the results
     return res.status(200).json({
       success: true,

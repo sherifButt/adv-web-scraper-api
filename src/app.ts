@@ -14,6 +14,9 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 
+// Serve static files from screenshots directory
+app.use('/screenshots', express.static('screenshots'));
+
 // Parse JSON bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
