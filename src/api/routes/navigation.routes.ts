@@ -71,6 +71,9 @@ router.post(
         proxy = await proxyManager.getProxy(typeof options.proxy === 'object' ? options.proxy : {});
       }
 
+      // Get session ID from header if provided
+      const sessionId = req.headers['x-session-id'] as string | undefined;
+
       // Create a browser context with the proxy if available
       const context = await browserPool.createContext(browser, {
         proxy: proxy
@@ -81,6 +84,19 @@ router.post(
             }
           : undefined,
       });
+
+      // Apply existing session if ID was provided
+      if (sessionId && options?.useSession !== false && config.browser.session?.enabled) {
+        try {
+          const session = await sessionManager.getSessionById(sessionId);
+          if (session) {
+            await sessionManager.applySession(context, session);
+            logger.info(`Applied existing session ${sessionId} to context`);
+          }
+        } catch (error) {
+          logger.warn(`Error applying session ${sessionId}:`, error);
+        }
+      }
 
       // Create a page
       const page = await context.newPage();

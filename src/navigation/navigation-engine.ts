@@ -49,6 +49,18 @@ export class NavigationEngine {
     }
   }
 
+  // Cookie domains that should always be persisted
+  private static PERSISTENT_COOKIE_DOMAINS = [
+    '.google.com',
+    '.google.co.uk',
+    '.accounts.google.com',
+  ];
+
+  // Last session save timestamp for debouncing
+  private lastSessionSaveTime = 0;
+  // Session version counter
+  private sessionVersion = 0;
+
   /**
    * Executes a navigation flow defined by a series of steps.
    * @param startUrl The initial URL to navigate to.
@@ -75,6 +87,9 @@ export class NavigationEngine {
         this.browserContext
       ) {
         sessionApplied = await this.applySessionIfExists(startUrl);
+        if (sessionApplied) {
+          this.sessionVersion = 1; // Initial version after applying session
+        }
       }
 
       // --- Initial Navigation ---
@@ -110,6 +125,29 @@ export class NavigationEngine {
       }
 
       // --- Flow Completion ---
+      // Update session with any new cookies if session is enabled
+      if (
+        this.options.useSession !== false &&
+        config.browser.session?.enabled &&
+        this.browserContext
+      ) {
+        const currentUrl = this.page.url();
+        const domain = new URL(currentUrl).hostname;
+
+        // Only save if it's been at least 5 seconds since last save
+        const now = Date.now();
+        if (now - this.lastSessionSaveTime > 5000) {
+          try {
+            await this.saveSessionWithSafeguards(domain);
+            this.lastSessionSaveTime = now;
+            this.sessionVersion++;
+            logger.info(`Updated session v${this.sessionVersion} for domain: ${domain}`);
+          } catch (error) {
+            logger.error(`Failed to save session: ${error}`);
+          }
+        }
+      }
+
       return this.formatResult('completed', startUrl, stepsExecuted);
     } catch (error) {
       // --- Error Handling ---
@@ -230,14 +268,41 @@ export class NavigationEngine {
   }
 
   /**
+   * Saves the current browser session with safeguards.
+   */
+  private async saveSessionWithSafeguards(domain: string): Promise<void> {
+    if (!this.browserContext) return;
+
+    // Filter cookies to only persist important ones
+    const cookies = await this.browserContext.cookies();
+    const filteredCookies = cookies.filter(cookie =>
+      NavigationEngine.PERSISTENT_COOKIE_DOMAINS.some(d => cookie.domain.endsWith(d))
+    );
+
+    if (filteredCookies.length === 0) {
+      logger.debug('No persistent cookies found - skipping session save');
+      return;
+    }
+
+    await this.sessionManager.saveSession(this.browserContext, {
+      domain,
+      version: this.sessionVersion + 1,
+      cookies: filteredCookies,
+    });
+  }
+
+  /**
    * Saves the current browser session after successfully solving a CAPTCHA.
    */
   private async saveSessionAfterCaptchaSolve(): Promise<void> {
     if (!this.browserContext) return;
     try {
       const domain = new URL(this.page.url()).hostname;
-      await this.sessionManager.saveSession(this.browserContext, { domain });
-      logger.info(`Saved session after solving CAPTCHA for domain: ${domain}`);
+      await this.saveSessionWithSafeguards(domain);
+      this.sessionVersion++;
+      logger.info(
+        `Saved session v${this.sessionVersion} after solving CAPTCHA for domain: ${domain}`
+      );
     } catch (error) {
       logger.warn(`Failed to save session after solving CAPTCHA: ${error}`);
     }

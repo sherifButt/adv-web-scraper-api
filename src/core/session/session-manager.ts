@@ -27,6 +27,8 @@ export interface SessionOptions {
   domain: string;
   userAgent?: string;
   ttl?: number; // Time to live in milliseconds
+  version?: number;
+  cookies?: Cookie[];
 }
 
 /**
@@ -165,6 +167,13 @@ export class SessionManager {
 
     logger.info(`Saved session for domain: ${domain}`);
     return sessionData;
+  }
+
+  /**
+   * Get a session by ID (alias for getSession)
+   */
+  public async getSessionById(sessionId: string): Promise<SessionData | null> {
+    return this.getSession(sessionId);
   }
 
   /**
