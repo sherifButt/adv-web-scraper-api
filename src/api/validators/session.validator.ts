@@ -7,10 +7,15 @@ const sessionSchema = Joi.object({
   ttl: Joi.number().min(30000).max(86400000).default(86400000),
   browser: Joi.object({
     userAgent: Joi.string(),
+    headless: Joi.boolean().default(true),
+    device: Joi.string().valid('desktop', 'mobile', 'tablet').default('desktop'),
     viewport: Joi.object({
       width: Joi.number().min(800).max(3840),
       height: Joi.number().min(600).max(2160),
     }),
+    language: Joi.string().pattern(/^[a-z]{2}(-[A-Z]{2})?$/),
+    timezone: Joi.string().valid(...Intl.supportedValuesOf('timeZone')),
+    stealth: Joi.boolean().default(false),
   }).optional(),
 });
 
