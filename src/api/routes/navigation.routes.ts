@@ -189,7 +189,8 @@ router.post(
           const context = await browserPool.createContext(browser, {
             proxy: proxy
               ? {
-                  server: `${proxy.type}://${proxy.host}:${proxy.port}`,
+                  // Use the first protocol, default to http. Use ip instead of host.
+                  server: `${proxy.protocols?.[0] || 'http'}://${proxy.ip}:${proxy.port}`,
                   username: proxy.username,
                   password: proxy.password,
                 }

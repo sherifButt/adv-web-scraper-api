@@ -142,70 +142,92 @@ npm run queue:clean -- --status completed --age 7d
 
 ### Configuration
 ```typescript
-// Proxy configuration in src/core/config/index.ts
+// Proxy configuration in src/config/index.ts
 interface ProxyConfig {
   enabled: boolean;
-  rotationInterval: number; // in minutes
-  healthCheckInterval: number; // in minutes
-  timeout: number; // in milliseconds
-  protocols: {
-    http: boolean;
-    https: boolean;
-    socks4: boolean;
-    socks5: boolean;
-  };
   sources: {
-    filePath?: string; // Path to proxies.txt
-    apiEndpoints?: string[]; // URLs to fetch proxy lists from
-  };
+    type: string; // 'file' or 'api'
+    path?: string; // Path to proxies.json if type is 'file'
+    url?: string; // URL if type is 'api'
+    apiKey?: string | null;
+    refreshInterval?: number; // Optional refresh interval for API sources
+  }[];
+  testUrl: string; // URL used for health checks
+  healthCheckInterval: number; // Interval in minutes for periodic health checks
 }
 
-// Example proxy format in proxies.txt
-// Simple format: ip:port
-// Detailed format: ip,anonymityLevel,asn,country,isp,latency,org,port,protocols,speed,upTime,upTimeSuccessCount,upTimeTryCount,updated_at,responseTime
+// Proxy data is now loaded from proxies.json, which contains an array of objects
+// matching the ProxyInfo interface defined in src/types/index.ts.
+// Example structure within proxies.json:
+// [
+//   {
+//     "ip": "51.15.196.107",
+//     "port": "16379", // Note: Port is loaded as string, converted to number
+//     "protocols": ["socks4"],
+//     "country": "FR",
+//     "city": "Paris",
+//     "latency": 7.401,
+//     "upTime": 11.18,
+//     ... other fields from ProxyInfo
+//   },
+//   ...
+// ]
 ```
 
-### Proxy Manager Implementation
+### Proxy Manager Implementation (`src/core/proxy/proxy-manager.ts`)
 ```typescript
-// src/core/proxy/proxy-manager.ts
-class ProxyManager {
-  private proxies: Proxy[];
-  private currentIndex: number;
-  private healthChecker: HealthChecker;
-  
-  constructor(config: ProxyConfig) {
-    // Load proxies from configured sources
-    this.proxies = this.loadProxies();
-    this.healthChecker = new HealthChecker(config);
-  }
+// Implemented as a Singleton
+export class ProxyManager {
+  private static instance: ProxyManager;
+  private proxies: ProxyInfo[] = [];
+  private healthCheckInterval: NodeJS.Timeout | null = null;
+  private lastProxyIndex = -1;
+  private sessionProxies: Map<string, ProxyInfo> = new Map();
 
-  private loadProxies(): Proxy[] {
-    // Load from file and API endpoints
-    // Supports both simple and detailed formats
-  }
+  // Core Methods:
+  public static getInstance(): ProxyManager;
+  public async loadProxies(): Promise<void>; // Loads from sources defined in config
+  public listProxies(filters?: {...}): ProxyInfo[]; // Lists proxies with filtering
+  public getProxyStats(): {...}; // Returns detailed statistics
+  public async getProxy(options?: ProxyOptions): Promise<ProxyInfo | null>; // Gets next proxy based on criteria/rotation
+  public reportProxyResult(proxy: ProxyInfo, success: boolean, responseTime?: number): void; // Updates internal success/response metrics
+  public async checkProxyHealth(limit?: number): Promise<void>; // Checks health of a subset of proxies
+  public async testProxy(options: ProxyOptions): Promise<{...}>; // Tests a specific proxy
+  public async rotateProxy(options: ProxyOptions): Promise<ProxyInfo | null>; // Gets a new proxy based on criteria
+  public async validateAllProxies(): Promise<Array<{...}>>; // Tests all loaded proxies
+  public async cleanProxyList(minSuccessRate?: number): Promise<{...}>; // Removes proxies below internal success rate threshold
+  public getHealthyProxyCount(): number; // Counts proxies above internal success rate threshold
+  public dispose(): void; // Clears health check interval
 
-  getNextProxy(): Proxy {
-    // Rotate through healthy proxies
-  }
-
-  banProxy(proxy: Proxy): void {
-    // Mark proxy as temporarily banned
-  }
+  // Private helpers for loading from JSON file and API
+  private async loadProxiesFromJsonFile(filePath: string): Promise<ProxyInfo[]>;
+  private async loadProxiesFromApi(url: string, apiKey?: string | null): Promise<ProxyInfo[]>;
+  private async checkSingleProxy(proxy: ProxyInfo): Promise<void>;
 }
 ```
 
-### API Integration
+### API Integration (`src/api/routes/proxy.routes.ts`)
 ```typescript
-// src/api/routes/proxy.routes.ts
-router.get('/proxies', (req, res) => {
-  const proxies = proxyManager.getAllProxies();
-  res.json(proxies);
-});
+// Exposes proxy functionality via REST endpoints
 
-router.post('/proxies/ban', validateProxyBan, (req, res) => {
-  proxyManager.banProxy(req.body.proxy);
-  res.sendStatus(204);
-});
+// GET /api/v1/proxy/list
+// - Lists proxies with extensive filtering options via query parameters
+// - Returns full ProxyInfo objects
+
+// GET /api/v1/proxy/stats
+// - Returns aggregated statistics (total, healthy count, counts by protocol/country/anonymity, avg latency/response time/uptime)
+
+// POST /api/v1/proxy/test
+// - Tests a specific proxy provided in the request body (ip, port)
+// - Returns success status, response time, and error message if failed
+
+// POST /api/v1/proxy/rotate
+// - Gets the next available proxy based on filtering criteria in the request body
+// - Returns details of the selected proxy or 404 if none found
+
+// POST /api/v1/proxy/clean
+// - Removes proxies from the internal list based on their calculated internal success rate
+// - Returns counts of removed and remaining proxies
 ```
 
 ## Best Practices

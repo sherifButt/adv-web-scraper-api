@@ -151,7 +151,7 @@ export const config: Config = {
     sources: [
       {
         type: 'file',
-        path: './proxies.txt',
+        path: './proxies.json', // Updated path to use JSON file
       },
       {
         type: 'api',

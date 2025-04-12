@@ -10,10 +10,12 @@
 ## What Works
 
 ### Proxy System
-- Proxy management with rotation and health checking
-- Support for multiple proxy formats (simple IP:PORT and detailed CSV)
-- API endpoints for proxy management
-- 80 working proxies configured in proxies.txt
+- **Proxy source switched to `proxies.json`**: Utilizes rich metadata.
+- **`ProxyManager` refactored**: Handles JSON format, uses detailed proxy info (protocols, latency, uptime) for filtering and sorting.
+- **Enhanced API endpoints (`/api/v1/proxy/*`)**: Leverages new metadata for filtering, stats, rotation, and testing.
+- Internal success rate and response time tracking implemented.
+- Health checking and proxy rotation logic updated.
+- Configuration points to `proxies.json`.
 
 ### Queue System
 - Redis-based queue infrastructure using BullMQ

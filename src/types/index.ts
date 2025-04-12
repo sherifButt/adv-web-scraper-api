@@ -63,23 +63,56 @@ export interface CaptchaSolveResult {
 // Proxy related types
 export interface ProxyOptions {
   host?: string;
+  ip?: string;
   port?: number;
   country?: string;
+  city?: string;
+  region?: string;
+  asn?: string;
+  org?: string;
+  isp?: string;
   type?: 'http' | 'https' | 'socks4' | 'socks5';
+  protocols?: string[];
+  anonymityLevel?: string;
+  minSpeed?: number;
+  maxLatency?: number;
+  minUpTime?: number;
+  minSuccessRate?: number;
   session?: string;
   rotating?: boolean;
 }
 
 export interface ProxyInfo {
-  host: string;
-  port: number;
-  type: 'http' | 'https' | 'socks4' | 'socks5';
-  username?: string;
-  password?: string;
-  country?: string;
-  responseTime?: number;
-  successRate?: number;
-  lastUsed?: string;
+  _id?: string; // From JSON
+  ip: string; // From JSON (used instead of host)
+  port: number; // From JSON (needs conversion from string)
+  protocols?: ('http' | 'https' | 'socks4' | 'socks5')[]; // From JSON
+  username?: string; // Keep for potential auth
+  password?: string; // Keep for potential auth
+  anonymityLevel?: string; // From JSON
+  asn?: string; // From JSON
+  city?: string; // From JSON
+  country?: string; // From JSON
+  region?: string | null; // From JSON
+  org?: string; // From JSON
+  isp?: string; // From JSON
+  google?: boolean; // From JSON
+  speed?: number; // From JSON
+  latency?: number; // From JSON
+  responseTime?: number; // From JSON
+  upTime?: number; // From JSON
+  upTimeSuccessCount?: number; // From JSON
+  upTimeTryCount?: number; // From JSON
+  workingPercent?: number | null; // From JSON
+  lastChecked?: number; // From JSON (Unix timestamp)
+  created_at?: string; // From JSON (ISO Date string)
+  updated_at?: string; // From JSON (ISO Date string)
+  // Internal/Calculated fields
+  successRate?: number; // Calculated internally
+  lastUsed?: string; // Set internally (ISO Date string)
+  // Deprecated/Removed fields
+  // host?: string; // Replaced by ip
+  // type?: 'http' | 'https' | 'socks4' | 'socks5'; // Replaced by protocols array
 }
 
 // Human emulation related types

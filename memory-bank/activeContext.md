@@ -45,14 +45,25 @@ The project is currently in the **initial implementation phase**. We have succes
 The project has progressed from planning to implementation. Recent activities include:
 
 1. **Proxy System Enhancement**
-   - Added support for multiple proxy formats in proxies.txt
-   - Implemented detailed CSV format with proxy metadata
-   - Updated proxy manager to handle both simple and detailed formats
-   - Added 80 working proxies to proxies.txt
-   - Implemented proxy health checking and rotation
-   - Added API endpoints for proxy management
+   - **Switched proxy source from `proxies.txt` to `proxies.json`**: Allows for richer proxy metadata.
+   - **Updated `ProxyInfo` type**: Aligned type definition (`src/types/index.ts`) with the structure of `proxies.json`.
+   - **Refactored `ProxyManager` (`src/core/proxy/proxy-manager.ts`)**:
+     - Modified `loadProxiesFromJsonFile` to parse the new JSON format.
+     - Updated internal logic to use `ip` instead of `host` and `protocols` array instead of `type`.
+     - Enhanced filtering in `listProxies` and `getProxy` to use new metadata fields.
+     - Improved sorting logic in `getProxy` using latency and uptime from JSON.
+     - Updated `getProxyStats` to provide more detailed statistics based on JSON data.
+     - Refined health checking (`checkProxyHealth`, `checkSingleProxy`).
+     - Updated `testProxy`, `rotateProxy`, `validateAllProxies`, `cleanProxyList` to align with new structure.
+   - **Updated API Endpoints (`src/api/routes/proxy.routes.ts`)**:
+     - Enhanced `/list` endpoint with more filtering options based on JSON fields.
+     - Updated `/stats` endpoint to return richer statistics.
+     - Modified `/rotate` endpoint to accept more detailed criteria and return richer proxy info.
+     - Updated `/clean` endpoint response structure.
+   - **Updated Configuration (`src/config/index.ts`)**: Pointed file source to `proxies.json`.
+   - **Fixed related errors** in `navigation.routes.ts`.
 
-1. **Project Structure Implementation**
+2. **Project Structure Implementation**
    - Set up TypeScript project with ESM modules
    - Configured ESLint and Prettier for code quality
    - Created directory structure following the planned architecture
@@ -147,13 +158,15 @@ Several key decisions have been implemented, while others are being refined:
    - **Refinement Needed**: More randomization in timing patterns
 
 4. **Proxy Management Implementation**
-   - **Decision**: Comprehensive proxy management system
+   - **Decision**: Comprehensive proxy management system using detailed JSON source.
    - **Current Status**:
-     - Proxy rotation and session management working
-     - Health checking implemented
-     - Performance monitoring in place
-     - Automatic fallback mechanisms functioning
-   - **Refinement Needed**: More proxy sources and better error recovery
+     - Proxy loading from `proxies.json` implemented.
+     - `ProxyManager` refactored to utilize rich metadata (protocols, latency, uptime, etc.).
+     - API endpoints (`/list`, `/stats`, `/rotate`, `/test`, `/clean`) updated to leverage new data and functionality.
+     - Internal success rate and response time tracking (EMA) implemented.
+     - Health checking and proxy rotation logic updated.
+     - Session-based proxy assignment working.
+   - **Refinement Needed**: Consider adding more proxy sources (API); further refine error recovery and health checking heuristics.
 
 ## Important Patterns and Preferences
 
