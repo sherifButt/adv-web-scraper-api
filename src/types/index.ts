@@ -62,6 +62,8 @@ export interface CaptchaSolveResult {
 
 // Proxy related types
 export interface ProxyOptions {
+  host?: string;
+  port?: number;
   country?: string;
   type?: 'http' | 'https' | 'socks4' | 'socks5';
   session?: string;

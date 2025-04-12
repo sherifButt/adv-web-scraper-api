@@ -407,4 +407,91 @@ export class ProxyManager {
       this.healthCheckInterval = null;
     }
   }
+
+  /**
+   * List all available proxies
+   */
+  public listProxies(): ProxyInfo[] {
+    return [...this.proxies];
+  }
+
+  /**
+   * Test a specific proxy
+   */
+  public async testProxy(options: ProxyOptions): Promise<{ success: boolean; responseTime?: number }> {
+    const proxy = await this.getProxy(options);
+    if (!proxy) {
+      throw new Error('No proxy available');
+    }
+
+    const startTime = Date.now();
+    try {
+      const response = await axios.get(config.proxy.testUrl, {
+        proxy: {
+          host: proxy.host,
+          port: proxy.port,
+          protocol: proxy.type,
+          auth: proxy.username && proxy.password 
+            ? { username: proxy.username, password: proxy.password }
+            : undefined
+        },
+        timeout: 10000
+      });
+      const responseTime = Date.now() - startTime;
+      this.reportProxyResult(proxy, true, responseTime);
+      return { success: true, responseTime };
+    } catch (error) {
+      this.reportProxyResult(proxy, false);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Rotate to a new proxy
+   */
+  public async rotateProxy(options: ProxyOptions): Promise<ProxyInfo> {
+    const proxy = await this.getProxy(options);
+    if (!proxy) {
+      throw new Error('No proxy available');
+    }
+    return proxy;
+  }
+
+  /**
+   * Validate all proxies
+   */
+  public async validateAllProxies(): Promise<Array<{ proxy: ProxyInfo; success: boolean; responseTime?: number }>> {
+    const results = [];
+    for (const proxy of this.proxies) {
+      const result = await this.testProxy({
+        host: proxy.host,
+        port: proxy.port,
+        type: proxy.type
+      });
+      results.push({
+        proxy,
+        success: result.success,
+        responseTime: result.responseTime
+      });
+    }
+    return results;
+  }
+
+  /**
+   * Clean proxy list by removing invalid proxies
+   */
+  public async cleanProxyList(): Promise<{ removed: number; remaining: number }> {
+    const validationResults = await this.validateAllProxies();
+    const validProxies = validationResults
+      .filter(result => result.success)
+      .map(result => result.proxy);
+
+    const removed = this.proxies.length - validProxies.length;
+    this.proxies = validProxies;
+
+    return {
+      removed,
+      remaining: validProxies.length
+    };
+  }
 }
