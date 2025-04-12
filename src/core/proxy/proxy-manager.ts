@@ -418,7 +418,9 @@ export class ProxyManager {
   /**
    * Test a specific proxy
    */
-  public async testProxy(options: ProxyOptions): Promise<{ success: boolean; responseTime?: number }> {
+  public async testProxy(
+    options: ProxyOptions
+  ): Promise<{ success: boolean; responseTime?: number }> {
     const proxy = await this.getProxy(options);
     if (!proxy) {
       throw new Error('No proxy available');
@@ -431,11 +433,12 @@ export class ProxyManager {
           host: proxy.host,
           port: proxy.port,
           protocol: proxy.type,
-          auth: proxy.username && proxy.password 
-            ? { username: proxy.username, password: proxy.password }
-            : undefined
+          auth:
+            proxy.username && proxy.password
+              ? { username: proxy.username, password: proxy.password }
+              : undefined,
         },
-        timeout: 10000
+        timeout: 10000,
       });
       const responseTime = Date.now() - startTime;
       this.reportProxyResult(proxy, true, responseTime);
@@ -460,18 +463,20 @@ export class ProxyManager {
   /**
    * Validate all proxies
    */
-  public async validateAllProxies(): Promise<Array<{ proxy: ProxyInfo; success: boolean; responseTime?: number }>> {
+  public async validateAllProxies(): Promise<
+    Array<{ proxy: ProxyInfo; success: boolean; responseTime?: number }>
+  > {
     const results = [];
     for (const proxy of this.proxies) {
       const result = await this.testProxy({
         host: proxy.host,
         port: proxy.port,
-        type: proxy.type
+        type: proxy.type,
       });
       results.push({
         proxy,
         success: result.success,
-        responseTime: result.responseTime
+        responseTime: result.responseTime,
       });
     }
     return results;
@@ -491,7 +496,7 @@ export class ProxyManager {
 
     return {
       removed,
-      remaining: validProxies.length
+      remaining: validProxies.length,
     };
   }
 }

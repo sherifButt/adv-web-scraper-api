@@ -9,6 +9,12 @@
 
 ## What Works
 
+### Proxy System
+- Proxy management with rotation and health checking
+- Support for multiple proxy formats (simple IP:PORT and detailed CSV)
+- API endpoints for proxy management
+- 80 working proxies configured in proxies.txt
+
 ### Queue System
 - Redis-based queue infrastructure using BullMQ
 - Job queuing for both scraping and navigation endpoints (`/api/v1/scrape`, `/api/v1/navigate`)

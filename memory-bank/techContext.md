@@ -138,6 +138,76 @@ npm run queue:resume scraping-jobs
 npm run queue:clean -- --status completed --age 7d
 ```
 
+## Proxy System Implementation
+
+### Configuration
+```typescript
+// Proxy configuration in src/core/config/index.ts
+interface ProxyConfig {
+  enabled: boolean;
+  rotationInterval: number; // in minutes
+  healthCheckInterval: number; // in minutes
+  timeout: number; // in milliseconds
+  protocols: {
+    http: boolean;
+    https: boolean;
+    socks4: boolean;
+    socks5: boolean;
+  };
+  sources: {
+    filePath?: string; // Path to proxies.txt
+    apiEndpoints?: string[]; // URLs to fetch proxy lists from
+  };
+}
+
+// Example proxy format in proxies.txt
+// Simple format: ip:port
+// Detailed format: ip,anonymityLevel,asn,country,isp,latency,org,port,protocols,speed,upTime,upTimeSuccessCount,upTimeTryCount,updated_at,responseTime
+```
+
+### Proxy Manager Implementation
+```typescript
+// src/core/proxy/proxy-manager.ts
+class ProxyManager {
+  private proxies: Proxy[];
+  private currentIndex: number;
+  private healthChecker: HealthChecker;
+  
+  constructor(config: ProxyConfig) {
+    // Load proxies from configured sources
+    this.proxies = this.loadProxies();
+    this.healthChecker = new HealthChecker(config);
+  }
+
+  private loadProxies(): Proxy[] {
+    // Load from file and API endpoints
+    // Supports both simple and detailed formats
+  }
+
+  getNextProxy(): Proxy {
+    // Rotate through healthy proxies
+  }
+
+  banProxy(proxy: Proxy): void {
+    // Mark proxy as temporarily banned
+  }
+}
+```
+
+### API Integration
+```typescript
+// src/api/routes/proxy.routes.ts
+router.get('/proxies', (req, res) => {
+  const proxies = proxyManager.getAllProxies();
+  res.json(proxies);
+});
+
+router.post('/proxies/ban', validateProxyBan, (req, res) => {
+  proxyManager.banProxy(req.body.proxy);
+  res.sendStatus(204);
+});
+```
+
 ## Best Practices
 
 1. **Job Design**

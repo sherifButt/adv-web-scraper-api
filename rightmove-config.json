@@ -210,14 +210,14 @@
         }
     ],
     "variables": {
-        "postcode": "CF40 2RS",
-        "type": "house"
+        "postcode": "SA6 5LH",
+        "type": "flat"
     },
     "options": {
         "timeout": 30000,
         "waitForSelector": ".l-searchResult, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
         "javascript": true,
-        "screenshots": true,
+        "screenshots": false,
         "screenshotsPath": "./screenshots",
         "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "debug": true
