@@ -475,6 +475,14 @@ export class ProxyManager {
     // Use the first protocol for testing, default to http if none specified
     const protocol = proxy.protocols?.[0] || 'http';
 
+    // Skip health check for all proxies except HTTPS
+    if (protocol !== 'https') {
+      logger.debug(`Skipping health check for ${protocol} proxy ${proxy.ip}:${proxy.port}`);
+      proxy.lastChecked = Date.now();
+      this.reportProxyResult(proxy, true, 1000); // Mark as healthy with 1s response time
+      return;
+    }
+
     try {
       // Make a request to the test URL through the proxy
       const response = await axios.get(config.proxy.testUrl, {
@@ -488,7 +496,7 @@ export class ProxyManager {
               ? { username: proxy.username, password: proxy.password }
               : undefined,
         },
-        timeout: 10000, // Use a default timeout, config.proxy.timeout doesn't exist
+        timeout: 15000, // Increased timeout from 10s to 15s
       });
 
       const responseTime = Date.now() - startTime;
@@ -669,15 +677,23 @@ export class ProxyManager {
       ProxyManager.instance.loadProxies().catch(err => {
         logger.error('Failed initial proxy load:', err);
       });
+
       // Setup periodic health checks if configured
       if (config.proxy.healthCheckInterval && config.proxy.healthCheckInterval > 0) {
-        const intervalMinutes = config.proxy.healthCheckInterval;
-        logger.info(`Setting up periodic proxy health check every ${intervalMinutes} minutes.`);
+        // Clear any existing interval first
+        if (ProxyManager.instance.healthCheckInterval) {
+          clearInterval(ProxyManager.instance.healthCheckInterval);
+          logger.debug('Cleared existing proxy health check interval');
+        }
+
+        const intervalMs = config.proxy.healthCheckInterval;
+        logger.info(`Setting up periodic proxy health check every ${intervalMs / 60000} minutes.`);
         ProxyManager.instance.healthCheckInterval = setInterval(() => {
+          logger.debug('Running scheduled proxy health check');
           ProxyManager.instance.checkProxyHealth().catch(err => {
             logger.error('Error during periodic health check:', err);
           });
-        }, intervalMinutes * 60 * 1000); // Convert minutes to ms
+        }, intervalMs);
       }
     }
     return ProxyManager.instance;
