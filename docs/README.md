@@ -4,6 +4,7 @@ Welcome to the Advanced Web Scraper API documentation. This documentation provid
 
 ## Table of Contents
 
+- [Domain Documentation](domains/README.md): Organized by functional domains
 - [API Reference](api/README.md): Detailed API reference for all endpoints.
   - [Queue System API](api/queue-system.md): Understanding asynchronous job handling and status checks.
 - [Navigation Module](navigation/README.md): Documentation for multi-step navigation flows.
