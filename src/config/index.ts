@@ -21,6 +21,7 @@ interface RedisConfig {
   host: string;
   port: number;
   password?: string;
+  tlsEnabled?: boolean;
 }
 
 interface BrowserConfig {
@@ -104,6 +105,7 @@ export const config: Config = {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD,
+    tlsEnabled: process.env.REDIS_TLS_ENABLED === 'true',
   },
   browser: {
     pool: {
