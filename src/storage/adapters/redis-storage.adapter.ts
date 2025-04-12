@@ -113,7 +113,7 @@ export class RedisStorageAdapter implements StorageAdapter {
 
       this.client = createClient({
         url,
-        password: this.password,
+        password: this.password || config.redis.password,
         database: this.db,
       });
 
