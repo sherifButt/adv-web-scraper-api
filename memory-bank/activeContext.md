@@ -65,46 +65,38 @@ The project has progressed from planning to implementation. Recent activities in
    - Implemented error handling middleware
    - Added logging infrastructure
    - Developed configuration management system
-   - Connected storage service to API routes for result persistence
+   - Connected storage service to API routes for result persistence.
+   - Implemented job status endpoint (`/api/v1/jobs/:id`) with logic to retrieve results from storage or fallback to `job.returnvalue`.
+   - Added detailed logging to `navigation-worker.ts` and `job.routes.ts` to debug result storage/retrieval issues.
+   - Modified `navigation-worker.ts` to explicitly return results.
+   - Adjusted `QueueService` to handle worker functions returning values.
 
 ## Next Steps
 
 The immediate next steps for the project are:
 
-1. **Data Extraction Engine** (Completed)
-   - ✅ Implement advanced selector support (CSS, XPath, regex)
-   - ✅ Create data extraction engine with flexible strategies
-   - ✅ Develop schema-based validation for extracted data
-   - ✅ Build transformation pipeline for data cleaning
-   - ✅ Implement storage adapters for different destinations
+1.  **Verify Job Result Retrieval**:
+    *   Analyze logs generated after recent changes to confirm if results are being generated, stored, and retrieved correctly.
+    *   Address any remaining issues identified in the logs (e.g., storage failures, incorrect data format).
 
-2. **Navigation Engine Enhancements** (Completed Refactor)
-   - ✅ Add screenshot capability to navigation steps
-   - ✅ **Refactored Core Logic:** Replaced large `switch` statement with a handler-based system (Strategy/Factory pattern). Each step type (`goto`, `click`, `input`, `extract`, `condition`, `paginate`, `scroll`, `mousemove`, `hover`, `executeScript`) now has its own handler class in `src/navigation/handlers/`.
-   - ✅ Introduced `BaseStepHandler` for common functionality (`resolveValue`, `handleWaitFor`).
-   - ✅ Implemented `StepHandlerFactory` to manage handler instantiation and retrieval.
-   - ✅ Handlers needing to execute sub-steps (e.g., `ConditionStepHandler`, `PaginateStepHandler`) now receive the factory instance.
-   - **Future:** Implement more advanced navigation patterns, add more complex conditional logic options, improve error recovery.
+2.  **Worker Implementation (Scraping)**:
+    *   Implement the worker process for handling scraping jobs queued via `/api/v1/scrape`.
+    *   Ensure scraping results are stored and retrieved similarly to navigation jobs.
 
-2. **API Completion**
-   - Add request validation with JSON schema
-   - Implement response formatting and pagination
-   - Add rate limiting and request throttling
-   - Create webhook notifications for async operations
-   - Enhance error reporting and monitoring
+3.  **API Completion**:
+    *   Add request validation (e.g., using Zod).
+    *   Implement consistent response formatting and pagination.
+    *   Add rate limiting.
 
-3. **Testing and Validation**
-   - Implement unit tests for core components
-   - Create integration tests for API endpoints
-   - Develop end-to-end tests for complete flows
-   - Measure performance and detection avoidance success
-   - Test against websites with various anti-bot measures
+4.  **Testing and Validation**:
+    *   Implement unit tests for `QueueService`, `StorageService`, and worker functions.
+    *   Create integration tests for job submission (`/navigate`, `/scrape`) and status retrieval (`/jobs/:id`).
+    *   Develop end-to-end tests for representative scraping scenarios.
 
-4. **Documentation**
-   - Complete API documentation with examples
-   - Create usage guides for common scenarios
-   - Develop integration tutorials
-   - Document best practices for avoiding detection
+5.  **Documentation**:
+    *   Update `docs/api/queue-system.md` with final details on job status response and result retrieval.
+    *   Update `techContext.md` with worker implementation details.
+    *   Ensure `docs/README.md` is up-to-date.
 
 ## Active Decisions and Considerations
 
@@ -244,36 +236,27 @@ As implementation progresses, several questions need to be addressed:
    - ✅ What validation mechanisms are most appropriate for extracted data?
      - *Answer: Schema-based validation with data type conversion and transformation functions*
    - ✅ What storage adapters should be implemented first?
-     - *Answer: Memory, File, MongoDB, Redis, and API endpoint adapters provide a comprehensive solution*
-   - How should we handle pagination for large datasets?
+     - *Answer: Memory, File, MongoDB, Redis, and API endpoint adapters provide a comprehensive solution.*
+   - How should we handle pagination for large datasets in storage listing? (Future consideration)
 
 4. **Testing Strategy**
-   - What is the most effective approach for testing browser automation?
-   - How can we simulate various CAPTCHA scenarios for testing?
-   - What metrics should we use to evaluate human emulation effectiveness?
+   - What is the most effective approach for testing browser automation? (Needs definition)
+   - How can we simulate various CAPTCHA scenarios for testing? (Needs definition)
+   - What metrics should we use to evaluate human emulation effectiveness? (Needs definition)
+
+5. **Job Result Handling**
+   - **Decision**: Retrieve results first from `StorageService`, fallback to `job.returnvalue`.
+   - **Status**: Implemented in `/api/v1/jobs/:id`. Logging added to verify flow. Worker now explicitly returns results.
+   - **Refinement Needed**: Confirm reliability based on log analysis. Decide on error handling if both methods fail.
 
 ## Current Blockers
 
 Current implementation challenges include:
 
-1. **TypeScript Errors**
-   - Some TypeScript errors remain in the codebase
-   - Type definitions for complex objects need refinement
-   - Better typing for Playwright interactions needed
-   - Type compatibility between navigation and extraction results
-
-2. **CAPTCHA Solving Completion**
-   - External service integration needs to be completed
-   - Audio CAPTCHA solving requires additional implementation
-   - Token harvesting needs a more sophisticated approach
-
-3. **Testing Infrastructure**
-   - Test framework is set up but no tests have been written
-   - Need to implement unit tests for core components
-   - Integration tests for API endpoints needed
-
-4. **ESLint Configuration**
-   - Current ESLint rules are generating many formatting warnings
-   - Need to adjust rules to better match the project's coding style
+1.  **Job Result Reliability**: Need to confirm via logs that results are consistently generated, stored, and retrieved. The `result: null` issue reported by the user needs root cause analysis based on new logs.
+2.  **Testing Infrastructure**: Lack of tests makes verifying changes difficult and regression-prone. Unit and integration tests are needed urgently.
+3.  **Scraping Worker**: The worker for handling `/api/v1/scrape` jobs is not yet implemented.
+4.  **CAPTCHA Solving Completion**: External service integration and advanced techniques are pending.
+5.  **ESLint/TypeScript Issues**: Minor formatting and type issues still need cleanup.
 
 *Note: This document will be regularly updated as implementation progresses and new insights emerge.*

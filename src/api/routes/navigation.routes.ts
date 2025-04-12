@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncHandler } from '../middleware/error.middleware.js';
 import { BrowserPool } from '../../core/browser/browser-pool.js';
 import { ProxyManager } from '../../core/proxy/proxy-manager.js';
+import { QueueService } from '../../core/queue/queue-service.js';
 import { NavigationEngine } from '../../navigation/navigation-engine.js';
 import { SessionManager } from '../../core/session/session-manager.js';
 import { StorageService } from '../../storage/index.js';
@@ -12,6 +13,7 @@ import { config } from '../../config/index.js';
 const router = Router();
 const browserPool = BrowserPool.getInstance();
 const proxyManager = ProxyManager.getInstance();
+const queueService = new QueueService();
 const sessionManager = SessionManager.getInstance();
 const storageService = StorageService.getInstance();
 
@@ -58,83 +60,22 @@ router.post(
         });
       }
 
-      logger.info(`Starting navigation flow for URL: ${startUrl}`);
+      logger.info(`Queueing navigation job for URL: ${startUrl}`);
 
-      // Get a browser from the pool
-      const browser = await browserPool.getBrowser({
-        headless: options?.javascript !== false, // Use headless unless javascript is explicitly disabled
+      // Queue the navigation job
+      const job = await queueService.addJob('navigation-jobs', 'execute-flow', {
+        startUrl,
+        steps,
+        variables: variables || {},
+        options,
       });
 
-      // Get a proxy if requested
-      let proxy = null;
-      if (options?.proxy) {
-        proxy = await proxyManager.getProxy(typeof options.proxy === 'object' ? options.proxy : {});
-      }
-
-      // Get session ID from header if provided
-      const sessionId = req.headers['x-session-id'] as string | undefined;
-
-      // Create a browser context with the proxy if available
-      const context = await browserPool.createContext(browser, {
-        proxy: proxy
-          ? {
-              server: `${proxy.type}://${proxy.host}:${proxy.port}`,
-              username: proxy.username,
-              password: proxy.password,
-            }
-          : undefined,
-      });
-
-      // Apply existing session if ID was provided
-      if (sessionId && options?.useSession !== false && config.browser.session?.enabled) {
-        try {
-          const session = await sessionManager.getSessionById(sessionId);
-          if (session) {
-            await sessionManager.applySession(context, session);
-            logger.info(`Applied existing session ${sessionId} to context`);
-          }
-        } catch (error) {
-          logger.warn(`Error applying session ${sessionId}:`, error);
-        }
-      }
-
-      // Create a page
-      const page = await context.newPage();
-
-      // Create a navigation engine
-      const navigationEngine = new NavigationEngine(page, {
-        timeout: options?.timeout,
-        solveCaptcha: options?.solveCaptcha,
-        humanEmulation: options?.humanEmulation,
-        maxSteps: options?.maxSteps,
-        maxTime: options?.maxTime,
-        screenshots: options?.screenshots,
-        screenshotsPath: options?.screenshotsPath,
-        useSession: options?.useSession !== false && config.browser.session?.enabled,
-        alwaysCheckCaptcha: options?.alwaysCheckCaptcha,
-      });
-
-      // Execute the navigation flow
-      const result = await navigationEngine.executeFlow(startUrl, steps, variables || {});
-
-      // Store the result
-      await storageService.store(result as any);
-
-      // Release the browser back to the pool
-      browserPool.releaseBrowser(browser);
-
-      // Return the result with full screenshot URLs if they exist
-      const responseData = {
-        ...result,
-        screenshots: result.screenshots?.map(
-          screenshot => `http://${config.server.host}/${screenshot}`
-        ),
-      };
-
-      return res.status(200).json({
+      // Return job information
+      return res.status(202).json({
         success: true,
-        message: 'Navigation flow executed successfully',
-        data: responseData,
+        message: 'Navigation job queued successfully',
+        jobId: job.id,
+        statusUrl: `/api/jobs/${job.id}`,
         timestamp: new Date().toISOString(),
       });
     } catch (error: any) {

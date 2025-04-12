@@ -5,10 +5,12 @@ import { asyncHandler } from '../middleware/error.middleware.js';
 import { ExtractionEngine } from '../../extraction/index.js';
 import { StorageService } from '../../storage/index.js';
 import { logger } from '../../utils/logger.js';
+import { QueueService } from '../../core/queue/queue-service.js';
 
 const router = Router();
 const extractionEngine = new ExtractionEngine();
 const storageService = StorageService.getInstance();
+const queueService = new QueueService();
 
 // Initialize storage service
 (async () => {
@@ -49,23 +51,21 @@ router.post(
         });
       }
 
-      logger.info(`Starting extraction for URL: ${url}`);
+      logger.info(`Queueing extraction job for URL: ${url}`);
 
-      // Execute the extraction
-      const result = await extractionEngine.extract({
+      // Queue the extraction job
+      const job = await queueService.addJob('scraping-jobs', 'extract-data', {
         url,
         fields,
         options,
       });
 
-      // Store the result using the storage service
-      await storageService.store(result);
-
-      // Return the result
-      return res.status(200).json({
+      // Return job information
+      return res.status(202).json({
         success: true,
-        message: 'Extraction completed successfully',
-        data: result,
+        message: 'Extraction job queued successfully',
+        jobId: job.id,
+        statusUrl: `/api/jobs/${job.id}`,
         timestamp: new Date().toISOString(),
       });
     } catch (error: any) {

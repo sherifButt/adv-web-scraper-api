@@ -4,6 +4,7 @@ import { captchaRoutes } from './captcha.routes.js';
 import { proxyRoutes } from './proxy.routes.js';
 import { navigationRoutes } from './navigation.routes.js';
 import { sessionRoutes } from './session.routes.js';
+import { jobRoutes } from './job.routes.js';
 
 // Create router
 const router = Router();
@@ -19,5 +20,6 @@ router.use('/captcha', captchaRoutes);
 router.use('/proxy', proxyRoutes);
 router.use('/navigate', navigationRoutes);
 router.use('/sessions', sessionRoutes);
+router.use('/jobs', jobRoutes);
 
 export const apiRoutes = router;

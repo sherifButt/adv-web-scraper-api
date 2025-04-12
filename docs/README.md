@@ -4,13 +4,21 @@ Welcome to the Advanced Web Scraper API documentation. This documentation provid
 
 ## Table of Contents
 
-- [Storage Module](storage/README.md): Documentation for the storage module, including storage adapters, factory, and service.
-- [API Reference](api-reference.md): Detailed API reference for all endpoints (coming soon).
-- [Examples](examples.md): Examples of common use cases (coming soon).
+- [API Reference](api/README.md): Detailed API reference for all endpoints.
+  - [Queue System API](api/queue-system.md): Understanding asynchronous job handling and status checks.
+- [Navigation Module](navigation/README.md): Documentation for multi-step navigation flows.
+  - [Navigation Step Types](navigation/navigation-types.md): Details on available step types.
+  - [Navigation Examples](navigation/navigation_examples.md): Practical examples of navigation configurations.
+- [Extraction Module](extraction/README.md): Documentation for data extraction strategies.
+  - [Regex Extraction](extraction/regex-extraction.md): Using regular expressions for extraction.
+- [Storage Module](storage/README.md): Documentation for the storage module, including adapters.
+- [Session Management](sessions/README.md): Managing persistent scraping sessions.
+  - [Browser Configuration](sessions/browser-configuration.md): Configuring browser settings for sessions.
+  - [Storage Adapters Comparison](sessions/storage-adapters.md): Comparing session storage options.
+- [Deployment Guides](deployment.md): General deployment instructions using Docker.
+  - [Coolify Deployment](coolify-deployment.md): Specific guide for deploying with Coolify.
 - [Configuration](configuration.md): Configuration options and environment variables (coming soon).
-- [Deployment](deployment.md): Deployment guides and best practices.
-- [Session Management](sessions/session-management.md): Managing persistent scraping sessions.
-- [Storage Adapters](sessions/storage-adapters.md): Comparing session storage options.
+- [Examples](examples.md): Examples of common use cases (coming soon).
 
 ## Architecture
 
