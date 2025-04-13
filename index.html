@@ -4,17 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Web Scraper API</title>
-    <link rel="stylesheet" href="css/pico.min.css">
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    >
+    <link 
+    rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    >
 </head>
-<body>
+<body class="container">
     <header>
+        <nav>
+            <ul>
+                <li><strong>Web Scraper API</strong></li>
+            </ul>
+            <ul>
+                <li><a href="#features"><i class="fas fa-star"></i> Features</a></li>
+                <li><a href="#examples"><i class="fas fa-code"></i> Examples</a></li>
+                <li><a href="#api"><i class="fas fa-plug"></i> API</a></li>
+                <li><a href="#quickstart"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="#media"><i class="fas fa-image"></i> Media</a></li>
+                <li><a href="https://github.com/sherifButt/adv-web-scraper-api"><i class="fab fa-github"></i></a></li>
+            </ul>
+        </nav>
         <h1>Advanced Web Scraper API</h1>
         <p>A powerful API for web scraping and data extraction</p>
+        <figure>
+                <img src="/media/videos/adv-web-scraping-api.gif" alt="Example scraped webpage" style="border-radius: 15px;">
+                <figcaption>Sample webpage being scraped</figcaption>
+            </figure>
+            <a href="/docs" class="button"><button><i class="fab fa-github"></i>Documentation</a></button>
     </header>
 
     <main>
-        <section>
-            <h2>Key Features</h2>
+        <section id="features">
+            <h2><i class="fas fa-star"></i> Key Features</h2>
             <ul>
                 <li>Automated navigation through websites</li>
                 <li>Multiple selector strategies (CSS, XPath, Regex)</li>
@@ -25,12 +50,9 @@
             </ul>
         </section>
 
-        <section>
-            <h2>Example Scraped Data</h2>
-            <figure>
-                <img src="/media/images/example-scrape.jpg" alt="Example scraped webpage">
-                <figcaption>Sample webpage being scraped</figcaption>
-            </figure>
+        <section id="examples">
+            <h2><i class="fas fa-code"></i> Example Scraped Data</h2>
+           
             
             <details>
                 <summary>View JSON Output</summary>
@@ -57,177 +79,6 @@
             "address": "Canton House, Cowbridge Rd E",
             "phone": "029 2178 0001",
             "website": "http://www.kwarchitects.com/"
-            },
-            {
-            "name": "Franks & Toms Architects Ltd",
-            "rating": "5.0",
-            "reviews": 46,
-            "services": "Architect",
-            "address": "Office, 8 St Andrew's Cres",
-            "phone": "07734 810709",
-            "website": "http://www.franksandtomsarchitects.com/"
-            },
-            {
-            "name": "Prichard Barnes Architects",
-            "rating": "5.0",
-            "reviews": 19,
-            "services": "Architect",
-            "address": "18 St Andrew's Cres",
-            "phone": "07920 057880",
-            "website": "http://www.prichardbarnes.co.uk/"
-            },
-            {
-            "name": "ARK Architectural Services Ltd",
-            "rating": "5.0",
-            "reviews": 1,
-            "services": "Architectural Designer",
-            "address": "07595 307335",
-            "phone": "07595 307335",
-            "website": "http://www.arkarchitectural.com/"
-            },
-            {
-            "name": "Deer Architects",
-            "rating": "5.0",
-            "reviews": 34,
-            "services": "Architect",
-            "address": "13 Southminster Rd",
-            "phone": "07743 121987",
-            "website": "https://www.deerarchitects.co.uk/"
-            },
-            {
-            "name": "TD Architect",
-            "rating": "5.0",
-            "reviews": 1,
-            "services": "Architect",
-            "address": "19 Conybeare Rd",
-            "phone": "07971 277493",
-            "website": "http://www.tdarchitect.co.uk/"
-            },
-            {
-            "name": "Gaunt Francis Architects",
-            "rating": "5.0",
-            "reviews": 5,
-            "services": "Architect",
-            "address": "",
-            "phone": "029 2023 3993",
-            "website": "http://www.gauntfrancis.co.uk/"
-            },
-            {
-            "name": "DPS Architecture Ltd.",
-            "rating": "5.0",
-            "reviews": 1,
-            "services": "Architect",
-            "address": "Sophia House, 28 Cathedral Rd",
-            "phone": "029 2233 1089",
-            "website": "http://www.dpsarchitecture.co.uk/"
-            },
-            {
-            "name": "Rio Architects Ltd",
-            "rating": "4.9",
-            "reviews": 8,
-            "services": "Architect",
-            "address": "",
-            "phone": "029 2025 0066",
-            "website": "http://www.rioarchitects.co.uk/"
-            },
-            {
-            "name": "HLM Architects",
-            "rating": "5.0",
-            "reviews": 1,
-            "services": "Architect",
-            "address": "",
-            "phone": "029 2039 6070",
-            "website": "https://hlmarchitects.com/contact/cardiff-studio/"
-            },
-            {
-            "name": "Taliesin Architecture Cardiff",
-            "rating": "5.0",
-            "reviews": 2,
-            "services": "Architect",
-            "address": "Andrew's Rd",
-            "phone": "029 2241 2953",
-            "website": "http://www.taliesinarchitecture.com/"
-            },
-            {
-            "name": "PENTAN PARTNERSHIP Architects",
-            "rating": "5.0",
-            "reviews": 3,
-            "services": "Architect",
-            "address": "",
-            "phone": null,
-            "website": "http://www.pentan.co.uk/"
-            },
-            {
-            "name": "1010 Architects",
-            "rating": "4.9",
-            "reviews": 15,
-            "services": "Architect",
-            "address": "Studio 2, The Coach House, Stanwell Rd",
-            "phone": "029 2071 0100",
-            "website": "http://www.1010architects.com/"
-            },
-            {
-            "name": "Jamatek | Design Studio",
-            "rating": "5.0",
-            "reviews": 8,
-            "services": "Interior designer",
-            "address": "113 - 116, Portland House",
-            "phone": "029 2002 8385",
-            "website": "https://www.jamatek.co.uk/"
-            },
-            {
-            "name": "Darkin Architects",
-            "rating": "5.0",
-            "reviews": 4,
-            "services": "Architect",
-            "address": "143 Clifton St",
-            "phone": "029 2274 4005",
-            "website": "http://www.darkinarchitects.com/"
-            },
-            {
-            "name": "Benjamin Hale Architects",
-            "rating": "5.0",
-            "reviews": 5,
-            "services": "Architecture firm",
-            "address": "",
-            "phone": "020 7183 8408",
-            "website": "https://www.benjaminhale.co.uk/"
-            },
-            {
-            "name": "Stride Treglown Cardiff",
-            "rating": "5.0",
-            "reviews": 4,
-            "services": "Architect",
-            "address": "",
-            "phone": "029 2043 5660",
-            "website": "http://stridetreglown.com/contact/cardiff/"
-            },
-            {
-            "name": "Oriel Architects",
-            "rating": null,
-            "reviews": null,
-            "services": "Architect",
-            "address": "Ty Cefn-Old Bldg, 14-16 Rectory Rd",
-            "phone": "029 2038 8663",
-            "website": "https://www.orielarchitects.co.uk/"
-            },
-            {
-            "name": "Arkiplan",
-            "rating": "5.0",
-            "reviews": 112,
-            "services": "Architectural Designer",
-            "address": "House 13, Freeland Park, Lytchett, Wareham Road",
-            "phone": "0845 852 0852",
-            "website": "https://www.arkiplan.co.uk/"
-            },
-            {
-            "name": "Black Brick Studio",
-            "rating": "5.0",
-            "reviews": 12,
-            "services": "Architecture firm",
-            "address": "117 Bute St",
-            "phone": "029 2252 0485",
-            "website": "https://www.blackbrick-studio.com/"
             }
         ]
         }
@@ -239,8 +90,8 @@
             </details>
         </section>
 
-        <section>
-            <h2>API Endpoints</h2>
+        <section id="api">
+            <h2><i class="fas fa-plug"></i> API Endpoints</h2>
             <ul>
                 <li><a href="/api/v1">Base API Path</a></li>
                 <li><a href="/api/v1/scrape">Scraping Endpoint</a></li>
@@ -250,8 +101,8 @@
             </ul>
         </section>
 
-        <section>
-            <h2>Quick Start</h2>
+        <section id="quickstart">
+            <h2><i class="fas fa-rocket"></i> Quick Start</h2>
             <ol>
                 <li>Check the <a href="/docs">documentation</a></li>
                 <li>Configure your scraping jobs</li>
@@ -259,8 +110,8 @@
             </ol>
         </section>
 
-        <section>
-            <h2>Media Upload</h2>
+        <section id="media">
+            <h2><i class="fas fa-image"></i> Media Upload</h2>
             <p>Upload screenshots and media to:</p>
             <ul>
                 <li><a href="/media/images">/media/images</a></li>
