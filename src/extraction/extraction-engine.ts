@@ -74,8 +74,11 @@ export class ExtractionEngine {
       // Create a browser context with proxy if available
       const contextOptions: any = {};
       if (proxyInfo) {
+        if (!proxyInfo.ip || !proxyInfo.port || !proxyInfo.protocols?.length) {
+          throw new Error('Proxy configuration is incomplete - missing ip, port or protocols');
+        }
         contextOptions.proxy = {
-          server: `${proxyInfo.type}://${proxyInfo.host}:${proxyInfo.port}`,
+          server: `${proxyInfo.protocols[0]}://${proxyInfo.ip}:${proxyInfo.port}`,
         };
         if (proxyInfo.username && proxyInfo.password) {
           contextOptions.proxy.username = proxyInfo.username;

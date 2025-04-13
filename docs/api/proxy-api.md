@@ -1,220 +1,152 @@
 # Proxy API Documentation
 
-The Proxy API provides endpoints for managing and interacting with the proxy system. This includes listing available proxies, testing proxies, and rotating proxies.
+The Proxy API provides endpoints for managing and interacting with the proxy pool used by the web scraper.
+
+## Base URL
+All endpoints are prefixed with `/api/v1/proxy`
 
 ## Endpoints
 
-### List Available Proxies
-`GET /api/v1/proxy/list`
+### GET /list
+Get a list of all available proxies with optional filtering.
 
-Returns a list of all configured proxies from the proxies.txt file.
+**Query Parameters:**
+- `type` - Filter by protocol (http, https, socks4, socks5)
+- `country` - Filter by country code
+- `city` - Filter by city  
+- `region` - Filter by region
+- `asn` - Filter by ASN
+- `anonymityLevel` - Filter by anonymity level
+- `minSpeed` - Minimum speed requirement
+- `maxLatency` - Maximum allowed latency
+- `minUpTime` - Minimum uptime percentage
+- `minSuccessRate` - Minimum internal success rate
 
-#### Request
-```http
-GET /api/v1/proxy/list
-```
-
-#### Response
+**Example Response:**
 ```json
 {
   "success": true,
-  "count": 10,
+  "count": 42,
   "proxies": [
-    "123.45.67.89:8080",
-    "111.222.333.444:3128",
-    "proxy.example.com:8080",
-    "user:pass@proxy1.example.com:8080",
-    "192.168.1.100:8888",
-    "45.67.89.123:3128",
-    "proxy2.example.com:80",
-    "admin:admin123@proxy3.example.com:8080",
-    "10.0.0.1:8080",
-    "proxy4.example.com:443"
-  ]
-}
-```
-
-### Get Proxy Status
-`GET /api/v1/proxy`
-
-Returns general proxy system status and statistics.
-
-#### Request
-```http
-GET /api/v1/proxy
-```
-
-#### Response
-```json
-{
-  "success": true,
-  "message": "Proxy status placeholder",
-  "data": {
-    "enabled": true,
-    "totalProxies": 25,
-    "activeProxies": 18,
-    "countries": ["US", "UK", "DE", "FR", "JP"],
-    "types": ["http", "https", "socks5"],
-    "lastUpdated": "2025-12-04T19:46:53.000Z"
-  }
-}
-```
-
-### Test Proxy
-`POST /api/v1/proxy/test`
-
-Tests a specific proxy connection.
-
-#### Request
-```http
-POST /api/v1/proxy/test
-Content-Type: application/json
-
-{
-  "host": "proxy.example.com",
-  "port": 8080,
-  "type": "http",
-  "username": "user",
-  "password": "pass"
-}
-```
-
-#### Response
-```json
-{
-  "success": true,
-  "message": "Proxy test placeholder",
-  "data": {
-    "host": "proxy.example.com",
-    "port": 8080,
-    "type": "http",
-    "working": true,
-    "responseTime": 250,
-    "ip": "203.0.113.1",
-    "country": "US",
-    "timestamp": "2025-12-04T19:46:53.000Z"
-  }
-}
-```
-
-### Rotate Proxy
-`POST /api/v1/proxy/rotate`
-
-Rotates to a new proxy based on criteria.
-
-#### Request
-```http
-POST /api/v1/proxy/rotate
-Content-Type: application/json
-
-{
-  "country": "US",
-  "type": "http",
-  "session": "session123"
-}
-```
-
-#### Response
-```json
-{
-  "success": true,
-  "message": "Proxy rotation placeholder",
-  "data": {
-    "host": "203.0.113.2",
-    "port": 8080,
-    "type": "http",
-    "country": "US",
-    "session": "session123",
-    "timestamp": "2025-12-04T19:46:53.000Z"
-  }
-}
-```
-
-## Error Responses
-
-### Proxy File Not Found
-```json
-{
-  "success": false,
-  "message": "Failed to read proxies file",
-  "error": "ENOENT: no such file or directory, open 'proxies.txt'"
-}
-```
-
-### Invalid Proxy Format
-```json
-{
-  "success": false,
-  "message": "Invalid proxy format",
-  "error": "Proxy must be in format host:port or user:pass@host:port"
-}
-```
-
-### Validate All Proxies
-`POST /api/v1/proxy/validate`
-
-Tests and validates all proxies in the list.
-
-#### Request
-```http
-POST /api/v1/proxy/validate
-```
-
-#### Response
-```json
-{
-  "success": true,
-  "message": "Proxy validation completed",
-  "results": [
     {
-      "proxy": "123.45.67.89:8080",
-      "valid": true,
-      "responseTime": 250,
-      "lastChecked": "2025-12-04T19:54:10.000Z"
-    },
-    {
-      "proxy": "111.222.333.444:3128",
-      "valid": false,
-      "responseTime": null,
-      "lastChecked": "2025-12-04T19:54:10.000Z"
+      "ip": "192.168.1.1",
+      "port": 8080,
+      "protocols": ["http", "https"],
+      "country": "US",
+      "city": "New York",
+      "latency": 120,
+      "upTime": 99.5,
+      "successRate": 0.85
     }
   ]
 }
 ```
 
-### Clean Proxy List
-`POST /api/v1/proxy/clean`
+### GET /stats
+Get statistics about available proxies.
 
-Removes invalid proxies from the list.
-
-#### Request
-```http
-POST /api/v1/proxy/clean
-```
-
-#### Response
+**Response:**
 ```json
 {
   "success": true,
-  "message": "Proxy list cleaned",
-  "removed": 5,
-  "remaining": 15
+  "message": "Proxy statistics retrieved successfully",
+  "data": {
+    "total": 100,
+    "healthy": 85,
+    "byProtocol": {
+      "http": 60,
+      "https": 40
+    },
+    "byCountry": {
+      "US": 50,
+      "UK": 30
+    },
+    "avgLatency": 150,
+    "avgInternalResponseTime": 200,
+    "avgUpTime": 95.5
+  }
 }
 ```
 
-## Best Practices
+### POST /test
+Test a specific proxy.
 
-1. **Proxy Management**
-   - Keep proxies.txt updated with working proxies
-   - Use authentication when available
-   - Group proxies by type/country in the file with comments
+**Request Body:**
+```json
+{
+  "ip": "192.168.1.1",
+  "port": 8080,
+  "type": "http"
+}
+```
 
-2. **Usage Patterns**
-   - Test proxies before adding them to the pool
-   - Rotate proxies regularly to avoid detection
-   - Monitor proxy health and response times
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Proxy test completed",
+  "data": {
+    "success": true,
+    "responseTime": 250
+  }
+}
+```
 
-3. **Security**
-   - Never commit proxies.txt with credentials to version control
-   - Use environment variables for sensitive credentials
-   - Restrict access to the proxy API endpoints
+### POST /rotate
+Get a new proxy with optional targeting.
+
+**Request Body:**
+```json
+{
+  "type": "https",
+  "country": "US",
+  "minSuccessRate": 0.8
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Proxy rotated successfully",
+  "data": {
+    "ip": "192.168.1.2",
+    "port": 3128,
+    "protocols": ["https"],
+    "country": "US",
+    "latency": 100,
+    "responseTime": 150,
+    "upTime": 99.8
+  }
+}
+```
+
+### POST /clean
+Clean the proxy list by removing invalid proxies.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Proxy list cleaned based on internal success rate",
+  "removedCount": 15,
+  "remainingCount": 85
+}
+```
+
+## Error Responses
+
+All endpoints return standardized error responses:
+
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "error": "Detailed error message"
+}
+```
+
+Common status codes:
+- 400 - Bad request (validation errors)
+- 404 - Not found (no proxies available)
+- 500 - Internal server error
