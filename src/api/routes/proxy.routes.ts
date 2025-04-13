@@ -118,7 +118,12 @@ router.post(
         });
       }
 
-      const result = await proxyManager.testProxy(req.body);
+      let result;
+      if (Array.isArray(req.body)) {
+        result = await proxyManager.testProxies(req.body);
+      } else {
+        result = await proxyManager.testProxy(req.body);
+      }
       res.status(200).json({
         success: true,
         message: 'Proxy test completed',

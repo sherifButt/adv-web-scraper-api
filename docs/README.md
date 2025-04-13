@@ -13,11 +13,12 @@ Welcome to the Advanced Web Scraper API documentation. This documentation provid
 - [Extraction Module](extraction/README.md): Documentation for data extraction strategies.
   - [Regex Extraction](extraction/regex-extraction.md): Using regular expressions for extraction.
 - [Storage Module](storage/README.md): Documentation for the storage module, including adapters.
-- [Session Management](sessions/README.md): Managing persistent scraping sessions.
-  - [Browser Configuration](sessions/browser-configuration.md): Configuring browser settings for sessions.
-  - [Storage Adapters Comparison](sessions/storage-adapters.md): Comparing session storage options.
-- [Deployment Guides](deployment.md): General deployment instructions using Docker.
-  - [Coolify Deployment](coolify-deployment.md): Specific guide for deploying with Coolify.
+ - [Session Management](sessions/README.md): Managing persistent scraping sessions.
+   - [Browser Configuration](sessions/browser-configuration.md): Configuring browser settings for sessions.
+   - [Proxy Configuration](sessions/proxy-configuration.md): Configuring and using proxies.
+   - [Storage Adapters Comparison](sessions/storage-adapters.md): Comparing session storage options.
+ - [Deployment Guides](deployment.md): General deployment instructions using Docker.
+   - [Coolify Deployment](coolify-deployment.md): Specific guide for deploying with Coolify.
 - [Configuration](configuration.md): Configuration options and environment variables (coming soon).
 - [Examples](examples.md): Examples of common use cases (coming soon).
 

@@ -1,17 +1,59 @@
 import { Job } from 'bullmq';
 import { logger } from '../../utils/logger.js';
-import { BrowserPool } from '../browser/browser-pool.js';
+import { BrowserPool, BrowserOptions } from '../browser/browser-pool.js';
 import { NavigationEngine } from '../../navigation/navigation-engine.js';
 import { StorageService } from '../../storage/index.js';
+import { ProxyManager } from '../proxy/proxy-manager.js';
+import { config } from '../../config/index.js';
+import { ProxyInfo } from '../../types/index.js'; // Assuming ProxyInfo is in types
 
 export async function processNavigationJob(job: Job) {
   const { startUrl, steps, variables, options } = job.data;
   logger.info(`Starting navigation job ${job.id} for URL: ${startUrl}`);
 
-  const browser = await BrowserPool.getInstance().getBrowser({
+  const browserOptions: BrowserOptions = {
+    // Changed let to const
     headless: options?.headless !== false,
-  });
-  const page = await browser.newPage();
+  };
+  // Fetch and configure proxy if enabled
+  if (config.proxy.enabled) {
+    try {
+      const proxyManager = ProxyManager.getInstance();
+      // TODO: Add filtering options if needed based on job.data.options
+      const proxyInfo: ProxyInfo | null = await proxyManager.getProxy();
+
+      if (proxyInfo && proxyInfo.protocols && proxyInfo.protocols.length > 0) {
+        // Added checks
+        // Format for Playwright
+        // Assuming the first protocol is the one to use
+        const protocol = proxyInfo.protocols[0]; // Use the first protocol
+        browserOptions.proxy = {
+          server: `${protocol}://${proxyInfo.ip}:${proxyInfo.port}`,
+          // Add username/password if your ProxyInfo includes them and Playwright supports them for the protocol
+          // username: proxyInfo.username,
+          // password: proxyInfo.password,
+        };
+        logger.info(`Using proxy: ${browserOptions.proxy.server} for job ${job.id}`);
+      } else {
+        logger.warn(
+          `Proxy enabled, but no valid proxy (or protocols) found for job ${job.id}. Proceeding without proxy.` // Reformatted + updated message
+        );
+      }
+    } catch (proxyError) {
+      logger.error(
+        // Reformatted
+        `Error getting proxy for job ${job.id}: ${
+          proxyError instanceof Error ? proxyError.message : String(proxyError)
+        }. Proceeding without proxy.`
+      );
+    }
+  } else {
+    logger.info(`Proxy is disabled. Proceeding without proxy for job ${job.id}.`);
+  }
+
+  const browser = await BrowserPool.getInstance().getBrowser(browserOptions);
+  // Note: Creating context might also need proxy options if not inherited from browser launch
+  const page = await browser.newPage(); // Check if newPage inherits proxy, or if it needs to be passed to newContext
 
   try {
     const engine = new NavigationEngine(page, options);

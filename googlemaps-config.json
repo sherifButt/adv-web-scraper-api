@@ -1,7 +1,6 @@
 {
   "startUrl": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://maps.google.com/maps/%3Fentry%3Dwc&ved=2ahUKEwjex7WsrMqMAxXIWEEAHTaUAicQFnoECA4QAQ&usg=AOvVaw1G_vzTaDddqXWb9c6P7TKB",
   "steps": [
-   
     {
       "type": "condition",
       "condition": "[aria-haspopup='menu']",
@@ -31,7 +30,6 @@
       "distance": 500,
       "description": "Initial page scroll"
     },
-
     {
       "type": "condition",
       "condition": "button[aria-label='Accept all']",
@@ -75,8 +73,6 @@
       "deltaY": 6000,
       "description": "(1/5) Scroll results feed"
     },
-   
-   
     {
       "type": "wait",
       "value": 3000,

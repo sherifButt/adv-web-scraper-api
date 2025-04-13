@@ -89,6 +89,7 @@ The project has progressed from planning to implementation. Recent activities in
    - Added detailed logging to `navigation-worker.ts` and `job.routes.ts` to debug result storage/retrieval issues.
    - Modified `navigation-worker.ts` to explicitly return results.
    - Adjusted `QueueService` to handle worker functions returning values.
+   - **Fixed Proxy Integration in Worker**: Updated `navigation-worker.ts` to correctly fetch a proxy from `ProxyManager` (if enabled) and pass it to `BrowserPool` when requesting a browser instance. This ensures navigation jobs use the configured proxies.
 
 ## Next Steps
 

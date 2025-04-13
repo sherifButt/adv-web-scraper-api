@@ -177,8 +177,9 @@ export class ProxyManager {
       if (options.minSuccessRate && (proxy.successRate || 0) < options.minSuccessRate) {
         return false;
       }
-      // Only use proxies with a reasonable internal success rate (e.g., > 50%)
-      if (proxy.successRate !== undefined && proxy.successRate < 0.5) {
+      // Only use proxies with a good internal success rate (e.g., >= 70%)
+      if (proxy.successRate !== undefined && proxy.successRate < 0.7) {
+        // Changed threshold from 0.5 to 0.7
         // Keep internal check
         return false;
       }
@@ -260,7 +261,7 @@ export class ProxyManager {
     const currentProxy = this.proxies[index];
 
     // Update internal success rate (using exponential moving average)
-    const alpha = 0.1; // Smoothing factor for EMA
+    const alpha = 0.3; // Increased smoothing factor for faster reaction to failures
     const currentSuccessRate = currentProxy.successRate ?? (success ? 1 : 0); // Initialize if undefined
     currentProxy.successRate = currentSuccessRate * (1 - alpha) + (success ? 1 : 0) * alpha;
 
@@ -473,24 +474,20 @@ export class ProxyManager {
   private async checkSingleProxy(proxy: ProxyInfo): Promise<void> {
     const startTime = Date.now();
     // Use the first protocol for testing, default to http if none specified
-    const protocol = proxy.protocols?.[0] || 'http';
+    const protocol = proxy.protocols?.[0] || 'http'; // Default to http if none specified
 
-    // Skip health check for all proxies except HTTPS
-    if (protocol !== 'https') {
-      logger.debug(`Skipping health check for ${protocol} proxy ${proxy.ip}:${proxy.port}`);
-      proxy.lastChecked = Date.now();
-      this.reportProxyResult(proxy, true, 1000); // Mark as healthy with 1s response time
-      return;
-    }
+    // Removed the block that skipped health checks for non-HTTPS proxies
 
     try {
+      logger.debug(`Checking health for ${protocol} proxy ${proxy.ip}:${proxy.port}`); // Log the check attempt
       // Make a request to the test URL through the proxy
       const response = await axios.get(config.proxy.testUrl, {
         // Axios proxy config expects host, not ip
         proxy: {
           host: proxy.ip, // Use ip here for the connection
           port: proxy.port,
-          protocol: protocol,
+          // Axios automatically handles http/https based on the target URL (config.proxy.testUrl)
+          // protocol: protocol, // Usually not needed for http/https with Axios proxy config
           auth:
             proxy.username && proxy.password
               ? { username: proxy.username, password: proxy.password }
@@ -580,6 +577,49 @@ export class ProxyManager {
       this.reportProxyResult(proxyToTest, false);
       return { success: false, error: error.message };
     }
+  }
+
+  /**
+   * Test multiple proxies in parallel
+   */
+  public async testProxies(proxies: ProxyOptions[]): Promise<
+    Array<{
+      proxy: ProxyOptions;
+      success: boolean;
+      responseTime?: number;
+      error?: string;
+    }>
+  > {
+    const results = await Promise.allSettled(
+      proxies.map(async proxy => {
+        try {
+          const result = await this.testProxy(proxy);
+          return {
+            proxy,
+            success: result.success,
+            responseTime: result.responseTime,
+            error: result.error,
+          };
+        } catch (error: any) {
+          return {
+            proxy,
+            success: false,
+            error: error.message,
+          };
+        }
+      })
+    );
+
+    return results.map(result => {
+      if (result.status === 'fulfilled') {
+        return result.value;
+      }
+      return {
+        proxy: {} as ProxyOptions,
+        success: false,
+        error: 'Unexpected error during proxy testing',
+      };
+    });
   }
 
   /**

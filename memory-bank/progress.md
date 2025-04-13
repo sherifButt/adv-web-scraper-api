@@ -27,6 +27,7 @@
 
 ### Worker Processes (Partial)
 - Navigation worker (`navigation-worker.ts`) processes jobs from the `navigation-jobs` queue.
+- **Navigation worker now correctly fetches and applies proxies** from `ProxyManager` when enabled.
 - Worker attempts to store results using `StorageService`.
 - Worker returns results upon completion, allowing fallback retrieval via `job.returnvalue`.
 - Added detailed logging for result generation, storage attempts, and retrieval attempts.

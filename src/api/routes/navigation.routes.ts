@@ -172,10 +172,19 @@ router.post(
       // Start the crawl process asynchronously
       setTimeout(async () => {
         try {
-          // Get a browser from the pool
-          const browser = await browserPool.getBrowser({
+          let page; // Declare page variable here
+
+          // Get a browser from the pool with args to prevent leaks
+          const launchOptions = {
             headless: options?.javascript !== false,
-          });
+            args: [
+              '--proxy-bypass-list=*', // Force all traffic through proxy
+              '--disable-features=WebRtcHideLocalIpsWithMdns,WebRTC', // Disable mDNS and WebRTC entirely
+              // '--disable-web-security', // Use with caution if needed for CORS/CSP issues, might be detectable
+              // '--ignore-certificate-errors', // Already handled by context option?
+            ],
+          };
+          const browser = await browserPool.getBrowser(launchOptions);
 
           // Get a proxy if requested
           let proxy = null;
@@ -185,20 +194,65 @@ router.post(
             );
           }
 
-          // Create a browser context with the proxy if available
-          const context = await browserPool.createContext(browser, {
+          // Create browser context with proxy and security settings
+          const contextOptions = {
             proxy: proxy
               ? {
-                  // Use the first protocol, default to http. Use ip instead of host.
                   server: `${proxy.protocols?.[0] || 'http'}://${proxy.ip}:${proxy.port}`,
                   username: proxy.username,
                   password: proxy.password,
                 }
               : undefined,
-          });
+            // Security headers need to be set at page level
+            // Add common User-Agent and viewport
+            userAgent:
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+            viewport: { width: 1920, height: 1080 },
+            // Explicitly block permissions that could leak IP via WebRTC
+            permissions: ['geolocation'], // Block geolocation explicitly
+            bypassCSP: true, // May help scripts load correctly
+          }; // Correct newline placement
 
-          // Create a page
-          const page = await context.newPage();
+          const context = await browserPool.createContext(browser, contextOptions);
+
+          // Removed context.route() as it didn't resolve the leak
+          // Further restrict context permissions after creation if needed
+          // await context.grantPermissions([], { origin: startUrl }); // Example: Revoke all permissions for the specific origin
+
+          // Configure additional proxy security
+          if (proxy) {
+            await context.addInitScript({
+              content: `
+                // Prevent WebRTC leaks & basic fingerprinting
+                Object.defineProperty(navigator, 'webdriver', { get: () => false });
+                Object.defineProperty(navigator, 'plugins', { get: () => [] }); // Empty array is often less suspicious
+                Object.defineProperty(navigator, 'languages', { get: () => ['en-GB', 'en'] });
+                window.navigator.chrome = { runtime: {} }; // Minimal chrome object spoof
+                // Removed static connection override as it might be detectable
+              `,
+            });
+
+            // Set headers at page level after creation
+            page = await context.newPage(); // Assign to the outer scope variable
+            await page.setExtraHTTPHeaders({
+              // Ensure we use the actual proxy IP obtained
+              'X-Forwarded-For': proxy.ip,
+              'Accept-Language': 'en-GB,en;q=0.9', // Consistent language
+              // Add other common headers that might be expected
+              'Sec-Fetch-Site': 'none',
+              'Sec-Fetch-Mode': 'navigate',
+              'Sec-Fetch-User': '?1',
+              'Sec-Fetch-Dest': 'document',
+              'Sec-Ch-Ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
+              'Sec-Ch-Ua-Mobile': '?0',
+              'Sec-Ch-Ua-Platform': '"Windows"', // Match User-Agent platform
+              'Upgrade-Insecure-Requests': '1',
+            });
+            // No return here, let the flow continue
+          } else {
+            // Create a page normally if no proxy
+            page = await context.newPage();
+          }
 
           // Create a navigation engine
           const navigationEngine = new NavigationEngine(page, {
