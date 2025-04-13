@@ -1,5 +1,5 @@
 {
-    "startUrl": "http://httpbin.org/ip",
+    "startUrl": "https://www.gassaferegister.co.uk",
     "steps": [
       {
         "type": "wait",
@@ -131,9 +131,7 @@
       "browserOptions": {
         "stealth": true,
         "mockWebGL": true,
-        "mockDeviceMemory": 8,
-        "mockChromeLocale": "en-GB",
-        "mockTimezone": "Europe/London"
+        "mockDeviceMemory": 8
       },
       "ignoreHTTPSErrors": true
     }

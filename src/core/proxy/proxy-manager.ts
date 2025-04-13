@@ -337,7 +337,7 @@ export class ProxyManager {
       }
 
       // Validate and map the data to ProxyInfo, converting port to number
-      return jsonData
+      const loadedProxies = jsonData
         .map((item: any): ProxyInfo | null => {
           if (!item || typeof item.ip !== 'string' || typeof item.port !== 'string') {
             logger.warn(`Skipping invalid proxy item in ${filePath}: ${JSON.stringify(item)}`);
@@ -362,11 +362,16 @@ export class ProxyManager {
               ? item.protocols.filter((p: any) => ['http', 'https', 'socks4', 'socks5'].includes(p))
               : undefined,
           };
-          // Remove host if it exists from JSON to avoid confusion with ip
-          // delete (proxy as any).host;
           return proxy;
         })
         .filter((proxy): proxy is ProxyInfo => proxy !== null);
+
+      // Skip initial health check and return all loaded proxies
+      // Health checks will be performed periodically by the health check interval
+      logger.info(
+        `Loaded ${loadedProxies.length} proxies from ${filePath} (initial health check skipped)`
+      );
+      return loadedProxies;
     } catch (error: any) {
       if (error.code === 'ENOENT') {
         logger.warn(`Proxy file not found: ${filePath}`);
@@ -481,19 +486,18 @@ export class ProxyManager {
     try {
       logger.debug(`Checking health for ${protocol} proxy ${proxy.ip}:${proxy.port}`); // Log the check attempt
       // Make a request to the test URL through the proxy
-      const response = await axios.get(config.proxy.testUrl, {
-        // Axios proxy config expects host, not ip
+      // Use a simple test URL that should work with most proxies
+      const testUrl = 'http://httpbin.org/get';
+      const response = await axios.get(testUrl, {
         proxy: {
-          host: proxy.ip, // Use ip here for the connection
+          host: proxy.ip,
           port: proxy.port,
-          // Axios automatically handles http/https based on the target URL (config.proxy.testUrl)
-          // protocol: protocol, // Usually not needed for http/https with Axios proxy config
           auth:
             proxy.username && proxy.password
               ? { username: proxy.username, password: proxy.password }
               : undefined,
         },
-        timeout: 15000, // Increased timeout from 10s to 15s
+        timeout: 30000, // Increased timeout to 30 seconds
       });
 
       const responseTime = Date.now() - startTime;
@@ -505,9 +509,18 @@ export class ProxyManager {
       proxy.lastChecked = Date.now(); // Update last checked time even on failure
       // Mark proxy as failed internally
       this.reportProxyResult(proxy, false);
-      logger.warn(
-        `Proxy health check failed for ${proxy.ip}:${proxy.port} (${protocol}): ${error.message}`
-      );
+
+      // Enhanced error logging
+      const errorDetails = {
+        proxy: `${proxy.ip}:${proxy.port}`,
+        protocol,
+        errorCode: error.code,
+        errorMessage: error.message,
+        responseStatus: error.response?.status,
+        responseData: error.response?.data,
+        stack: error.stack,
+      };
+      logger.warn(`Proxy health check failed:`, errorDetails);
     }
   }
 
@@ -556,9 +569,11 @@ export class ProxyManager {
     const protocol = proxyToTest.protocols?.[0] || 'http'; // Use first protocol
 
     try {
-      const response = await axios.get(config.proxy.testUrl, {
+      // Use a simple test URL that should work with most proxies
+      const testUrl = 'http://httpbin.org/get';
+      const response = await axios.get(testUrl, {
         proxy: {
-          host: proxyToTest.ip, // Use ip for connection
+          host: proxyToTest.ip,
           port: proxyToTest.port,
           protocol: protocol,
           auth:
@@ -566,7 +581,7 @@ export class ProxyManager {
               ? { username: proxyToTest.username, password: proxyToTest.password }
               : undefined,
         },
-        timeout: 10000, // Use a default timeout
+        timeout: 30000, // Increased timeout to 30 seconds
       });
       const responseTime = Date.now() - startTime;
       // Report result to update internal stats
