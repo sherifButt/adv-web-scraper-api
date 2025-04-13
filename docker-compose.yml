@@ -47,7 +47,6 @@ services:
       - traefik.http.services.app.loadbalancer.server.port=3000
     networks:
       - scraper-network
-      - traefik-public
 
   mongodb:
     image: mongo:6
