@@ -14,8 +14,11 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 
-// Serve static files from screenshots directory
+// Serve static files from root and media directories
+app.use(express.static('.'));
 app.use('/screenshots', express.static('screenshots'));
+app.use('/media/images', express.static('media/images'));
+app.use('/media/videos', express.static('media/videos'));
 
 // Parse JSON bodies
 app.use(express.json());
