@@ -32,11 +32,22 @@ services:
       - ./logs:/usr/src/app/logs
       - ./screenshots:/usr/src/app/screenshots
       - ./browser-data:/usr/src/app/browser-data
-    depends_on:
-      - mongodb
-      - redis
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.gzip.compress=true
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.routers.http-catchall.entrypoints=http
+      - traefik.http.routers.http-catchall.middlewares=redirect-to-https
+      - traefik.http.routers.http-catchall.rule=Host(`scraper.apps.loyalleads.co.uk`)
+      - traefik.http.routers.app.entrypoints=https
+      - traefik.http.routers.app.middlewares=gzip
+      - traefik.http.routers.app.rule=Host(`scraper.apps.loyalleads.co.uk`)
+      - traefik.http.routers.app.tls.certresolver=letsencrypt
+      - traefik.http.routers.app.tls=true
+      - traefik.http.services.app.loadbalancer.server.port=3000
     networks:
       - scraper-network
+      - traefik-public
 
   mongodb:
     image: mongo:6
@@ -46,8 +57,6 @@ services:
       - MONGO_INITDB_DATABASE=web-scraper
     volumes:
       - mongodb-data:/data/db
-    ports:
-      - "27017:27017"
     networks:
       - scraper-network
 
@@ -57,14 +66,14 @@ services:
     restart: unless-stopped
     volumes:
       - redis-data:/data
-    ports:
-      - "6379:6379"
     networks:
       - scraper-network
 
 networks:
   scraper-network:
     driver: bridge
+  traefik-public:
+    external: true
 
 volumes:
   mongodb-data:
