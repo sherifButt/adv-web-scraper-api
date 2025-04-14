@@ -4,56 +4,115 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Advanced Web Scraper API</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
 
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
     />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
   </head>
   <body class="container">
     <header>
       <strong>Web Scraper API</strong>
       <nav class="row">
-        <a href="#features"> Features</a>
-        | <a href="#examples"> Examples</a> | <a href="#api"> API</a> |
-        <a href="#quickstart">Quick Start</a> | <a href="#media">Media</a> |
+        <a href="#features"><i class="ph ph-star"></i> Features</a>
+        &nbsp; &nbsp; <a href="#examples"><i class="ph ph-code"></i> Examples</a> &nbsp; &nbsp;
+        <button disabled><i class="ph ph-plug"></i> API </button> &nbsp; &nbsp;
+        <a href="#quickstart"><i class="ph ph-rocket"></i> Quick Start</a> &nbsp; &nbsp;
+        <a href="#media"><i class="ph ph-play-circle"></i> Media</a> &nbsp; &nbsp;
         <a href="https://github.com/sherifButt/adv-web-scraper-api"
-          ><i class="fab fa-github"></i
-        ></a>
+          ><i class="ph ph-github-logo"></i> GitHub</a
+        >
       </nav>
-      <h1>Advanced Web Scraper API</h1>
-      <p>A powerful API for web scraping and data extraction</p>
-      <figure>
-        <img
-          src="/media/videos/adv-web-scraping-api.gif"
-          alt="Example scraped webpage"
-          style="border-radius: 15px"
-        />
-        <figcaption>above is a google maps example webpage being scraped</figcaption>
-      </figure>
-      <div>
-        <a href="/docs" class="button"
-          ><button><i class="fab fa-github"></i> Documentation</button></a
-        >
-        <a href="/docs" class="button"
-          ><button><i class="fab fa-github"></i> Documentation</button></a
-        >
-      </div>
+      <section id="hero" style="text-align: center">
+        <h1>Advanced Web Scraper API</h1>
+        <p>A powerful API for web scraping and data extraction</p>
+        <figure>
+          <img
+            src="/media/videos/adv-web-scraping-api.gif"
+            alt="Example scraped webpage"
+            style="border-radius: 15px"
+          />
+          <figcaption>above is a google maps example webpage being scraped</figcaption>
+        </figure>
+        <div>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="button"
+            ><button><i class="ph ph-github-logo"></i> Documentation</button></a
+          >
+          <button disabled title="API portal coming soon"><i class="ph ph-plug"></i> API</button>
+          <blockquote cite="">
+            "The API documentation is not yet available, but it will be soon."
+            <footer><cite>Sherif Butt, "Author of Advanced Web Scraper API"</cite></footer>
+          </blockquote>
+        </div>
+      </section>
     </header>
 
     <main>
-      <section id="features">
-        <h2> Key Features</h2>
-        <ul>
-          <li>Automated navigation through websites</li>
-          <li>Multiple selector strategies (CSS, XPath, Regex)</li>
-          <li>Proxy rotation and management</li>
-          <li>Session persistence</li>
-          <li>Captcha solving integration</li>
-          <li>Human-like behavior emulation</li>
-        </ul>
-      </section>
+      <div id="features">
+        <h2>Key Features</h2>
+        <table>
+          <tr>
+            <td>
+              <h2><i class="ph ph-browsers"></i></h2>
+              <h3>Scraping</h3>
+              <p>Extract data from websites using various selectors</p>
+            </td>
+            <td>
+              <h2><i class="ph ph-robot"></i></h2>
+              <h3>Navigation</h3>
+              <p>Automatically navigate through websites</p>
+            </td>
+            <td>
+              <h2><i class="ph ph-plug"></i></h2>
+              <h3>API Endpoints</h3>
+              <p>Access data through RESTful API endpoints</p>
+            </td>
+          </tr>
+        </table>
+
+        <table>
+          <tr>
+            <td>
+              <h2><i class="ph ph-lock"></i></h2>
+              <h3>Captcha Solving</h3>
+              <p>Automatically solve CAPTCHAs</p>
+            </td>
+            <td>
+              <h2><i class="ph ph-person"></i></h2>
+              <h3>Human Emulation</h3>
+              <p>Simulate human-like behavior</p>
+            </td>
+            <td>
+              <h2><i class="ph ph-database"></i></h2>
+              <h3>Storage</h3>
+              <p>Store extracted data in various formats</p>
+            </td>
+          </tr>
+        </table>
+
+        <table>
+          <tr>
+            <td>
+              <h2><i class="ph ph-hard-drives"></i></h2>
+              <h3>Session Management</h3>
+              <p>Manage browser sessions for persistent data</p>
+            </td>
+            <td>
+              <h2><i class="ph ph-flag"></i></h2>
+              <h3>Rate Limiting</h3>
+              <p>Handle rate limits and avoid bans</p>
+            </td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
 
       <section id="examples">
         <h2>Example Scraped Data</h2>
@@ -95,7 +154,7 @@
       </section>
 
       <section id="api">
-        <h2> API Endpoints</h2>
+        <h2>API Endpoints</h2>
         <ul>
           <li><a href="/api/v1">Base API Path</a></li>
           <li><a href="/api/v1/scrape">Scraping Endpoint</a></li>
@@ -106,7 +165,7 @@
       </section>
 
       <section id="quickstart">
-        <h2> Quick Start</h2>
+        <h2>Quick Start</h2>
         <ol>
           <li>Check the <a href="/docs">documentation</a></li>
           <li>Configure your scraping jobs</li>
@@ -115,7 +174,7 @@
       </section>
 
       <section id="media">
-        <h2> Media Upload</h2>
+        <h2>Media Upload</h2>
         <p>Upload screenshots and media to:</p>
         <ul>
           <li><a href="/media/images">/media/images</a></li>
