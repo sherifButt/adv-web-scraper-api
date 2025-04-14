@@ -1,5 +1,5 @@
 {
-  "startUrl": "https://trends.google.com/trending?geo=GB&hours=48&sort=title&status=active",
+  "startUrl": "https://trends.google.com/trending?geo=GB&hours=24&status=active&sort=search-volume",
   "steps": [
     {
       "type": "condition",
