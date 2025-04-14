@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep } from '../types/navigation.types.js';
+import { NavigationStep, StepResult } from '../types/navigation.types.js'; // Import StepResult
 import { logger } from '../../utils/logger.js';
 import { IStepHandler } from '../types/step-handler.interface.js';
 import { BehaviorEmulator } from '../../core/human/behavior-emulator.js';
@@ -17,7 +17,8 @@ export class InputStepHandler implements IStepHandler {
     return step.type === 'input';
   }
 
-  public async execute(step: NavigationStep, context: Record<string, any>): Promise<void> {
+  public async execute(step: NavigationStep, context: Record<string, any>): Promise<StepResult> {
+    // Change return type
     const selector = this.resolveValue(step.selector, context);
     const value = this.resolveValue(step.value, context);
     logger.info(`Entering text into: ${selector}`);
@@ -36,6 +37,8 @@ export class InputStepHandler implements IStepHandler {
       await this.page.fill(selector, value);
     }
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
+
+    return {}; // Return empty StepResult
   }
 
   private async handleWaitFor(waitFor: string | number | any, timeout?: number): Promise<void> {

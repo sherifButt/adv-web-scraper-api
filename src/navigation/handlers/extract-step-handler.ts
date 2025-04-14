@@ -10,8 +10,9 @@ import {
   SelectorType, // Add SelectorType
 } from '../../types/extraction.types.js';
 import { BaseStepHandler } from './base-step-handler.js';
-import { ExtractionEngine } from '../../extraction/extraction-engine.js'; // Keep for potential future use
-import { RegexSelectorStrategy } from '../../extraction/selectors/regex-selector.strategy.js'; // Import Regex strategy
+import { ExtractionEngine } from '../../extraction/extraction-engine.js';
+import { RegexSelectorStrategy } from '../../extraction/selectors/regex-selector.strategy.js';
+import { StepResult } from '../types/navigation.types.js'; // Import StepResult
 
 export class ExtractStepHandler extends BaseStepHandler {
   private regexStrategy = new RegexSelectorStrategy(); // Instantiate regex strategy
@@ -19,7 +20,8 @@ export class ExtractStepHandler extends BaseStepHandler {
     return step.type === 'extract';
   }
 
-  public async execute(step: NavigationStep, context: Record<string, any>): Promise<void> {
+  public async execute(step: NavigationStep, context: Record<string, any>): Promise<StepResult> {
+    // Change return type
     const selector = this.resolveValue(step.selector, context);
     const name = step.name || 'extractedData';
     logger.info(`Extracting data from: ${selector}`);
@@ -105,6 +107,8 @@ export class ExtractStepHandler extends BaseStepHandler {
     } else {
       context[name] = await this.extractText(selector);
     }
+
+    return {}; // Return empty StepResult
   }
 
   // Refactored to handle mixed CSS/Regex nested fields correctly

@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep } from '../types/navigation.types.js';
+import { NavigationStep, StepResult } from '../types/navigation.types.js'; // Import StepResult
 import { logger } from '../../utils/logger.js';
 import { IStepHandler } from '../types/step-handler.interface.js';
 
@@ -14,7 +14,8 @@ export class SelectStepHandler implements IStepHandler {
     return step.type === 'select';
   }
 
-  public async execute(step: NavigationStep, context: Record<string, any>): Promise<void> {
+  public async execute(step: NavigationStep, context: Record<string, any>): Promise<StepResult> {
+    // Change return type
     const selector = this.resolveValue(step.selector, context);
     const value = this.resolveValue(step.value, context);
     logger.info(`Selecting option in: ${selector}`);
@@ -24,6 +25,8 @@ export class SelectStepHandler implements IStepHandler {
     });
     await this.page.selectOption(selector, value);
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
+
+    return {}; // Return empty StepResult
   }
 
   private async handleWaitFor(waitFor: string | number | any, timeout?: number): Promise<void> {

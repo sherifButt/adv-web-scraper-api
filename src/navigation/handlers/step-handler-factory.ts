@@ -12,6 +12,7 @@ import { MouseStepHandler } from './mouse-step-handler.js';
 import { HoverStepHandler } from './hover-step-handler.js';
 import { ScriptStepHandler } from './script-step-handler.js';
 import { PaginateStepHandler } from './paginate-step-handler.js';
+import { ForEachElementStepHandler } from './for-each-element-step-handler.js'; // Import the new handler
 import { BehaviorEmulator } from '../../core/human/behavior-emulator.js';
 import { NavigationContext } from '../types/navigation.types.js'; // Import NavigationContext
 
@@ -33,6 +34,7 @@ export class StepHandlerFactory {
       new HoverStepHandler(page),
       new ScriptStepHandler(page),
       new PaginateStepHandler(page, this), // Pass factory instance
+      new ForEachElementStepHandler(), // Add the new handler instance (doesn't need page directly)
     ];
   }
 

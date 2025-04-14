@@ -37,11 +37,13 @@ export class GotoStepHandler implements IStepHandler {
     step: NavigationStep, // Use base type first
     context: NavigationContext, // Use correct context type
     page: Page // Match interface order
-  ): Promise<StepResult> { // Return StepResult for engine
+  ): Promise<StepResult> {
+    // Return StepResult for engine
     // Type assertion inside the method
     const gotoStep = step as GotoStep;
 
-    if (typeof gotoStep.step !== 'number' || gotoStep.step <= 0) { // Step index should be 1-based
+    if (typeof gotoStep.step !== 'number' || gotoStep.step <= 0) {
+      // Step index should be 1-based
       logger.error(`Invalid target step index: ${gotoStep.step}`);
       throw new Error(
         `Invalid target step index specified in gotoStep: ${gotoStep.step}. Must be 1 or greater.`

@@ -1,4 +1,4 @@
-import { NavigationStep, NavigationContext } from './navigation.types.js'; // Add .js extension
+import { NavigationStep, NavigationContext, StepResult } from './navigation.types.js'; // Add StepResult import
 import { Page } from 'playwright';
 
 /**
@@ -16,6 +16,7 @@ export interface IStepHandler {
    * @param step The step to execute
    * @param context The current navigation context
    * @param page The Playwright page instance
+   * @returns A StepResult, potentially indicating a jump
    */
-  execute(step: NavigationStep, context: NavigationContext, page: Page): Promise<void>;
+  execute(step: NavigationStep, context: NavigationContext, page: Page): Promise<StepResult>;
 }

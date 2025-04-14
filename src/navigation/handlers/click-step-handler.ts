@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep } from '../types/navigation.types.js';
+import { NavigationStep, StepResult } from '../types/navigation.types.js'; // Import StepResult
 import { logger } from '../../utils/logger.js';
 import { IStepHandler } from '../types/step-handler.interface.js';
 import { BehaviorEmulator } from '../../core/human/behavior-emulator.js';
@@ -17,7 +17,7 @@ export class ClickStepHandler implements IStepHandler {
     return step.type === 'click';
   }
 
-  public async execute(step: NavigationStep, context: Record<string, any>): Promise<void> {
+  public async execute(step: NavigationStep, context: Record<string, any>): Promise<StepResult> { // Change return type
     const selector = this.resolveValue(step.selector, context);
     logger.info(`Clicking element: ${selector}`);
     await this.page.waitForSelector(selector, {
@@ -37,6 +37,8 @@ export class ClickStepHandler implements IStepHandler {
     }
 
     if (step.waitFor) await this.handleWaitFor(step.waitFor, step.timeout);
+
+    return {}; // Return empty StepResult
   }
 
   private async handleWaitFor(waitFor: string | number | any, timeout?: number): Promise<void> {

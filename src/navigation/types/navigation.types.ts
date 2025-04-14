@@ -1,4 +1,4 @@
-import { Page, BrowserContext } from 'playwright';
+import { Page, BrowserContext, ElementHandle } from 'playwright'; // Import ElementHandle here
 import { CssSelectorConfig } from '../../types/extraction.types.js';
 import { BehaviorEmulator } from '../../core/human/behavior-emulator.js';
 import { CaptchaSolver } from '../../core/captcha/captcha-solver.js';
@@ -9,6 +9,11 @@ import { SessionManager } from '../../core/session/session-manager.js';
  */
 export interface NavigationContext {
   [key: string]: any;
+  // Optional properties for forEachElement loop context
+  loopIndex?: number;
+  currentItemHandle?: ElementHandle;
+  resolvedTargetElement?: ElementHandle | null;
+  resolvedTargetElements?: ElementHandle[] | null;
 }
 
 /**
@@ -77,6 +82,7 @@ export interface NavigationStep {
   script?: string | (() => string);
   result?: boolean;
   step?: number; // Added for GotoStep
+  description?: string; // Optional description for logging/debugging
 }
 
 /**
@@ -85,6 +91,17 @@ export interface NavigationStep {
 export interface GotoStep extends NavigationStep {
   type: 'gotoStep';
   step: number; // Target step index (1-based)
+}
+
+/**
+ * Specific type for the 'forEachElement' action
+ */
+export interface ForEachElementStep extends NavigationStep {
+  type: 'forEachElement';
+  selector: string; // Selector for the elements to iterate over
+  elementSteps: NavigationStep[]; // Steps to execute for each element
+  maxIterations?: number; // Optional limit on the number of elements processed
+  description?: string; // Optional description for the loop step
 }
 
 /**

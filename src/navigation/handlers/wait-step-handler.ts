@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep } from '../types/navigation.types.js';
+import { NavigationStep, StepResult } from '../types/navigation.types.js'; // Import StepResult
 import { logger } from '../../utils/logger.js';
 import { IStepHandler } from '../types/step-handler.interface.js';
 
@@ -14,7 +14,8 @@ export class WaitStepHandler implements IStepHandler {
     return step.type === 'wait';
   }
 
-  public async execute(step: NavigationStep, context: Record<string, any>): Promise<void> {
+  public async execute(step: NavigationStep, context: Record<string, any>): Promise<StepResult> {
+    // Change return type
     if (typeof step.value === 'number') {
       logger.info(`Waiting for ${step.value}ms`);
       await this.page.waitForTimeout(step.value);
@@ -33,6 +34,8 @@ export class WaitStepHandler implements IStepHandler {
         timeout: step.timeout || 30000,
       });
     }
+
+    return {}; // Return empty StepResult
   }
 
   private async handleWaitFor(waitFor: string | number | any, timeout?: number): Promise<void> {

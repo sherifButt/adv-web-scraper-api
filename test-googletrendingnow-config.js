@@ -56,9 +56,11 @@ async function testGasSafeRegisterConfig() {
           console.log('Any proxy selected:', proxyInfo);
         }
         // --- End of proxy selection logic ---
-        if (proxyInfo && proxyInfo.protocols && proxyInfo.protocols.length > 0) { // Removed blank line
+        if (proxyInfo && proxyInfo.protocols && proxyInfo.protocols.length > 0) {
+          // Removed blank line
           const protocol = proxyInfo.protocols[0]; // Use the first protocol listed for the selected proxy
-          launchOptions.proxy = { // Assign directly to const object property
+          launchOptions.proxy = {
+            // Assign directly to const object property
             server: `${protocol}://${proxyInfo.ip}:${proxyInfo.port}`,
             // username: proxyInfo.username, // Add if needed
             // password: proxyInfo.password, // Add if needed

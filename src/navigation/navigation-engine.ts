@@ -126,7 +126,8 @@ export class NavigationEngine {
         stepsExecuted++;
 
         // Handle gotoStep jump
-        if (stepResult?.gotoStepIndex !== undefined && stepResult.gotoStepIndex >= -1) { // Allow -1 to restart
+        if (stepResult?.gotoStepIndex !== undefined && stepResult.gotoStepIndex >= -1) {
+          // Allow -1 to restart
           logger.info(`Jumping to step index ${stepResult.gotoStepIndex + 1}`);
           i = stepResult.gotoStepIndex; // Set loop counter to the step BEFORE the target
           continue; // Skip post-step actions for the gotoStep itself
@@ -183,7 +184,6 @@ export class NavigationEngine {
       // Execute the step using the handler - potentially returns StepResult
       // We need to cast the result type here as the interface expects void
       stepResult = (await handler.execute(step, this.context, this.page)) as StepResult | void;
-
     } catch (error) {
       logger.error(`Error executing step type ${step.type}:`, error);
       // Re-throw the error to be caught by the main executeFlow catch block

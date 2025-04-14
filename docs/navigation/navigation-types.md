@@ -5,6 +5,7 @@ This document describes all available navigation step types that can be used in 
 ## Basic Navigation
 
 ### `goto`
+
 Navigates to a URL.
 
 ```typescript
@@ -16,6 +17,7 @@ Navigates to a URL.
 ```
 
 ### `wait`
+
 Waits for a condition.
 
 ```typescript
@@ -32,6 +34,7 @@ Waits for a condition.
 ## Mouse Interactions
 
 ### `click`
+
 Clicks an element with mouse or keyboard.
 
 ```typescript
@@ -44,10 +47,12 @@ Clicks an element with mouse or keyboard.
 ```
 
 **Trigger Types:**
+
 1. **mouse** (default): Standard mouse click
 2. **keyboard**: Simulates spacebar key press on element (useful for accessibility testing)
 
 **Example Keyboard Click:**
+
 ```typescript
 {
   type: 'click',
@@ -58,6 +63,7 @@ Clicks an element with mouse or keyboard.
 ```
 
 ### `mousemove`
+
 Moves mouse to element or coordinates with optional actions.
 
 ```typescript
@@ -81,6 +87,7 @@ Moves mouse to element or coordinates with optional actions.
 ```
 
 **Advanced Mouse Movement Features:**
+
 1. **Path Points**: Define intermediate points for complex movement paths
 2. **Actions**:
    - `move`: Just move the cursor (default)
@@ -92,34 +99,34 @@ Moves mouse to element or coordinates with optional actions.
 5. **Element Targeting**: Works with both selectors and raw coordinates
 
 **Example Complex Mouse Flow:**
+
 ```typescript
 [
   {
     type: 'mousemove',
-    x: 100, y: 100,
+    x: 100,
+    y: 100,
     duration: 800,
-    pathPoints: [
-      { x: 50, y: 50 },
-      { selector: '#menu-trigger' }
-    ]
+    pathPoints: [{ x: 50, y: 50 }, { selector: '#menu-trigger' }],
   },
   {
     type: 'mousemove',
     selector: '#menu-item',
     action: 'click',
-    duration: 1200
+    duration: 1200,
   },
   {
     type: 'mousemove',
     selector: '#slider',
     action: 'drag',
     dragTo: { x: 500, y: 300 },
-    duration: 2000
-  }
-]
+    duration: 2000,
+  },
+];
 ```
 
 ### `hover`
+
 Hovers over an element.
 
 ```typescript
@@ -134,6 +141,7 @@ Hovers over an element.
 ## Input Operations
 
 ### `input`
+
 Enters text into an input field.
 
 ```typescript
@@ -147,6 +155,7 @@ Enters text into an input field.
 ```
 
 ### `select`
+
 Selects an option from a dropdown.
 
 ```typescript
@@ -160,6 +169,7 @@ Selects an option from a dropdown.
 ## Data Extraction
 
 ### `extract`
+
 Extracts data from elements.
 
 ```typescript
@@ -177,6 +187,7 @@ Extracts data from elements.
 ## Flow Control
 
 ### `condition`
+
 Conditional step execution.
 
 ```typescript
@@ -189,6 +200,7 @@ Conditional step execution.
 ```
 
 ### `gotoStep`
+
 Jumps execution to a specific step index (1-based). Useful for creating loops, especially in combination with `condition`.
 
 ```typescript
@@ -199,6 +211,7 @@ Jumps execution to a specific step index (1-based). Useful for creating loops, e
 ```
 
 ### `paginate`
+
 Handles pagination.
 
 ```typescript
@@ -213,6 +226,7 @@ Handles pagination.
 ## Advanced
 
 ### `scroll`
+
 Scrolls the page or to a specific element with advanced options.
 
 ```typescript
@@ -221,20 +235,21 @@ Scrolls the page or to a specific element with advanced options.
   // Either use directional scrolling:
   direction: 'down', // 'up'/'left'/'right'
   distance: 500,     // pixels
-  
+
   // OR scroll to an element:
   selector: '#element',
   scrollIntoView: true, // use native scrollIntoView (default: false)
   scrollMargin: 50,     // additional margin in pixels
   behavior: 'smooth',   // 'smooth' or 'auto'
   timeout: 5000,       // maximum wait time in ms
-  
+
   // Common options:
   waitFor: '#next-section' // optional selector to wait for
 }
 ```
 
 **Scroll Features:**
+
 1. **Directional Scrolling**: Scroll by fixed amount in any direction
 2. **Element Scrolling**: Scroll to bring element into view with configurable margin
 3. **Scroll Behavior**: Control smoothness with 'smooth' or instant with 'auto'
@@ -243,12 +258,14 @@ Scrolls the page or to a specific element with advanced options.
 6. **Wait Conditions**: Optionally wait for elements after scrolling
 
 **Implementation Details:**
+
 - Uses Playwright's scroll functionality with human-like emulation
 - Supports both absolute pixel scrolling and element-based scrolling
 - Automatically handles edge cases like scroll containers
 - Includes intelligent waiting for scroll completion
 
 **Examples:**
+
 ```typescript
 // Directional scrolling with smooth behavior
 {
@@ -283,7 +300,104 @@ Scrolls the page or to a specific element with advanced options.
 }
 ```
 
+### `forEachElement`
+
+Loops through elements matching a selector and executes steps for each one.
+
+```typescript
+{
+  type: 'forEachElement',
+  selector: 'tr.items', // CSS selector for elements to loop through
+  description: 'Optional description',
+  maxIterations: 50, // Optional limit on number of elements to process
+  elementSteps: [ // Steps to execute for each matched element
+    {
+      type: 'click',
+      selector: '.details-btn', // Relative to current element
+      description: 'Click details button'
+    },
+    {
+      type: 'wait',
+      value: '.details-panel',
+      timeout: 5000
+    },
+    {
+      type: 'extract',
+      name: 'panelData',
+      selector: '.details-panel',
+      fields: {
+        // Extraction fields
+      }
+    },
+    {
+      type: 'mergeContext', // Special step to merge data back
+      source: 'panelData',
+      target: 'results[{{index}}]', // {{index}} is available in elementSteps
+      mergeStrategy: {
+        // Define how to merge fields
+      }
+    }
+  ]
+}
+```
+
+**Key Features:**
+- Processes each matched element sequentially
+- Provides `{{index}}` variable (0-based) in elementSteps
+- Supports all standard step types within elementSteps
+- Includes special `mergeContext` step for combining data
+- Optional maxIterations to limit processing
+
+**Example with Data Merging:**
+
+```typescript
+{
+  type: 'forEachElement',
+  selector: 'tr.products',
+  elementSteps: [
+    {
+      type: 'click',
+      selector: 'button.more-info'
+    },
+    {
+      type: 'wait',
+      value: '.product-details',
+      timeout: 5000
+    },
+    {
+      type: 'extract',
+      name: 'productDetails',
+      selector: '.product-details',
+      fields: {
+        name: { selector: '.name', type: 'css' },
+        price: { selector: '.price', type: 'css' }
+      }
+    },
+    {
+      type: 'mergeContext',
+      source: 'productDetails',
+      target: 'products[{{index}}]',
+      mergeStrategy: {
+        name: 'overwrite',
+        price: 'overwrite'
+      }
+    }
+  ]
+}
+```
+
+**Real-world Example:**
+For a complete implementation showing how to use `forEachElement` and `mergeContext` to scrape Google Trends data, see:  
+[Google Trends Navigation Example](./googletrendingnow_example.md)
+
+This example demonstrates:
+- Clicking through multiple items to reveal details
+- Extracting nested data structures
+- Merging data back into the main context
+- Handling dynamic content loading
+
 ### `executeScript`
+
 Executes custom JavaScript.
 
 ```typescript
@@ -304,21 +418,24 @@ The mouse movement system provides:
 5. Random delays to simulate human behavior
 
 Example complex mouse flow:
+
 ```typescript
 [
   {
     type: 'mousemove',
-    x: 100, y: 100,
-    duration: 800
+    x: 100,
+    y: 100,
+    duration: 800,
   },
   {
-    type: 'mousemove', 
+    type: 'mousemove',
     selector: '#menu',
-    duration: 1200
+    duration: 1200,
   },
   {
     type: 'hover',
     selector: '#submenu',
-    duration: 2000
-  }
-]
+    duration: 2000,
+  },
+];
+```
