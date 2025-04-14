@@ -188,6 +188,16 @@ Conditional step execution.
 }
 ```
 
+### `gotoStep`
+Jumps execution to a specific step index (1-based). Useful for creating loops, especially in combination with `condition`.
+
+```typescript
+{
+  type: 'gotoStep',
+  step: 5 // Jump back to step 5
+}
+```
+
 ### `paginate`
 Handles pagination.
 

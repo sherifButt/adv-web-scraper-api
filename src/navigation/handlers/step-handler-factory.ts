@@ -21,7 +21,7 @@ export class StepHandlerFactory {
   constructor(page: Page) {
     const behaviorEmulator = new BehaviorEmulator(page);
     this.handlers = [
-      new GotoStepHandler(page),
+      new GotoStepHandler(), // Instantiate GotoStepHandler (doesn't need page)
       new ClickStepHandler(page),
       new InputStepHandler(page),
       new SelectStepHandler(page),

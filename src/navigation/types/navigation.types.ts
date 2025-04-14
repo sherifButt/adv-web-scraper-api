@@ -76,4 +76,21 @@ export interface NavigationStep {
   extractSteps?: NavigationStep[];
   script?: string | (() => string);
   result?: boolean;
+  step?: number; // Added for GotoStep
+}
+
+/**
+ * Specific type for the 'gotoStep' action
+ */
+export interface GotoStep extends NavigationStep {
+  type: 'gotoStep';
+  step: number; // Target step index (1-based)
+}
+
+/**
+ * Result object returned by step handlers, potentially indicating a jump.
+ */
+export interface StepResult {
+  gotoStepIndex?: number; // 0-based index to jump to
+  // Add other potential result properties here if needed
 }

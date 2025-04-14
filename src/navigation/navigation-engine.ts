@@ -6,7 +6,12 @@ import { BehaviorEmulator } from '../core/human/behavior-emulator.js';
 import { CaptchaSolver } from '../core/captcha/captcha-solver.js';
 import { SessionManager } from '../core/session/session-manager.js';
 import { StepHandlerFactory } from './handlers/step-handler-factory.js';
-import { NavigationStep, NavigationOptions, NavigationResult } from '../types/index.js'; // Combined imports
+import {
+  NavigationStep,
+  NavigationOptions,
+  NavigationResult,
+  StepResult, // Import StepResult
+} from '../types/index.js'; // Combined imports
 import { NavigationContext } from './types/navigation.types.js'; // Import from specific file
 import { config } from '../config/index.js';
 import * as fs from 'fs';
@@ -116,10 +121,18 @@ export class NavigationEngine {
         }
 
         logger.info(`Executing step ${i + 1}: ${step.type}`);
-        await this.executeStep(step, i); // Pass index for screenshot naming
+        // Execute step and get potential result (including jump index)
+        const stepResult = await this.executeStep(step, i);
         stepsExecuted++;
 
-        // Post-step actions
+        // Handle gotoStep jump
+        if (stepResult?.gotoStepIndex !== undefined && stepResult.gotoStepIndex >= -1) { // Allow -1 to restart
+          logger.info(`Jumping to step index ${stepResult.gotoStepIndex + 1}`);
+          i = stepResult.gotoStepIndex; // Set loop counter to the step BEFORE the target
+          continue; // Skip post-step actions for the gotoStep itself
+        }
+
+        // Post-step actions (only if not jumping)
         await this.checkAndSolveCaptcha();
         await this.behaviorEmulator.think(); // Simulate thinking time
       }
@@ -158,15 +171,19 @@ export class NavigationEngine {
 
   /**
    * Executes a single navigation step using the appropriate handler.
+   * Returns StepResult which might contain a gotoStepIndex.
    */
-  private async executeStep(step: NavigationStep, stepIndex: number): Promise<void> {
+  private async executeStep(step: NavigationStep, stepIndex: number): Promise<StepResult | void> {
     await this.takeScreenshot(`before_${step.type}`, stepIndex);
+    let stepResult: StepResult | void;
 
     try {
       // Get the appropriate handler from the factory based on step type
       const handler = this.handlerFactory.getHandler(step.type);
-      // Execute the step using the handler
-      await handler.execute(step, this.context, this.page);
+      // Execute the step using the handler - potentially returns StepResult
+      // We need to cast the result type here as the interface expects void
+      stepResult = (await handler.execute(step, this.context, this.page)) as StepResult | void;
+
     } catch (error) {
       logger.error(`Error executing step type ${step.type}:`, error);
       // Re-throw the error to be caught by the main executeFlow catch block
@@ -174,6 +191,7 @@ export class NavigationEngine {
     }
 
     await this.takeScreenshot(`after_${step.type}`, stepIndex);
+    return stepResult; // Return the result (could be void or StepResult)
   }
 
   /**

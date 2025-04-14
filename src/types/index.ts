@@ -196,3 +196,7 @@ export interface ApiResponse<T> {
 
 // Export extraction types
 export * from './extraction.types.js';
+
+// Export navigation types
+export * from '../navigation/types/navigation.types.js';
+export * from '../navigation/types/step-handler.interface.js';

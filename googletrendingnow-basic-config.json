@@ -1,5 +1,5 @@
 {
-  "startUrl": "https://trends.google.com/trending?geo=EG&category=20&hours=24&sort=title",
+  "startUrl": "https://trends.google.com/trending?geo=EG",
   "steps": [
     {
       "type": "condition",
@@ -101,12 +101,6 @@
       }
     },
     {
-      "type": "script",
-      "name": "extractRowDetails",
-      "description": "Click each row and extract details from the panel",
-      "script": "async (page, context) => { \n  const rowsSelector = 'tr.enOdEe-wZVHld-xMbwt';\n  const panelSelector = '.EMz5P';\n  const newsLinkSelector = '.jDtQ5 .xZCHj';\n  const relatedQuerySelector = '.HLcRPe button';\n  const closeButtonSelector = '.EMz5P button[aria-label=\"Close\"]';\n\n  if (!context.trendsData || !context.trendsData.trends) {\n    console.log('No trends data found in context to enhance.');\n    return;\n  }\n\n  const trends = context.trendsData.trends;\n  const rowElements = await page.$$(rowsSelector);\n\n  const numRowsToProcess = Math.min(trends.length, rowElements.length);\n  console.log(`Processing details for ${numRowsToProcess} rows...`);\n\n  for (let i = 0; i < numRowsToProcess; i++) {\n    const rowElement = rowElements[i];\n    const trendData = trends[i]; \n    console.log(`Clicking row ${i + 1} for trend: ${trendData.title}`);\n\n    try {\n      await rowElement.click({ timeout: 10000 });\n      await page.waitForSelector(panelSelector, { state: 'visible', timeout: 15000 });\n      console.log(`Panel visible for: ${trendData.title}`);\n\n      const newsItems = await page.$$eval(newsLinkSelector, (links) => \n        links.map(link => ({\n          title: link.querySelector('.QbLC8c')?.textContent?.trim() || null,\n          sourceInfo: link.querySelector('.pojp0c')?.textContent?.trim() || null,\n          url: link.href\n        }))\n      );\n      trendData.news = newsItems;\n      console.log(`Extracted ${newsItems.length} news items.`);\n\n      const panelRelatedQueries = await page.$$eval(relatedQuerySelector, (buttons) => \n        buttons.map(btn => btn.getAttribute('data-term'))\n      );\n      \n      const existingQueries = new Set(trendData.relatedQueries || []);\n      panelRelatedQueries.forEach(q => { if (q) existingQueries.add(q); });\n      trendData.relatedQueries = Array.from(existingQueries);\n      console.log(`Updated related queries count: ${trendData.relatedQueries.length}`);\n\n      try {\n         const closeButton = await page.$(closeButtonSelector);\n         if (closeButton) {\n            await closeButton.click({ timeout: 5000 });\n            await page.waitForSelector(panelSelector, { state: 'hidden', timeout: 5000 });\n            console.log('Closed panel.');\n         } else {\n            console.log('Close button not found, panel might auto-close.');\n         }\n      } catch (closeError) {\n        console.warn('Could not explicitly close panel, continuing...', closeError.message);\n      }\n      \n      await page.waitForTimeout(500); \n\n    } catch (error) {\n      console.warn(`Error processing details for row ${i + 1} (${trendData.title}): ${error.message}`);\n       try {\n         const closeButton = await page.$(closeButtonSelector);\n         if (closeButton && await closeButton.isVisible()) {\n            await closeButton.click({ timeout: 5000 });\n         }\n      } catch (recoveryCloseError) {\n         console.warn('Recovery close attempt failed.');\n      }\n    }\n  }\n  console.log('Finished processing row details for this page.');\n}"
-    },
-    {
       "type": "condition",
       "condition": "button[aria-label='Go to next page']:not([disabled])",
       "description": "Check if next page exists",
@@ -123,7 +117,7 @@
         },
         {
           "type": "gotoStep",
-          "step": 6, 
+          "step": 5,
           "description": "Repeat extraction for next page"
         }
       ]
