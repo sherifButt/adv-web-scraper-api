@@ -18,35 +18,9 @@
         "upTime": 90,
         "upTimeSuccessCount": 18,
         "upTimeTryCount": 20,
-        "updated_at": "2025-04-13T07:59:35.657Z",
-        "city": "Komotini",
-        "isp": "Mechmet CHATIP MEMET trading as SpeedNet",
         "responseTime": 5070
     },
-    {
-        "_id": "677027386b79c1e0b57755a0",
-        "ip": "81.169.213.169",
-        "anonymityLevel": "elite",
-        "asn": "AS209242",
-        "city": "",
-        "country": "DE",
-        "created_at": "2024-12-28T16:28:40.663Z",
-        "google": false,
-        "isp": "Cloudflare London, LLC",
-        "lastChecked": 1744541369,
-        "latency": 3.48,
-        "org": "LIR Services",
-        "port": "8888",
-        "protocols": [
-            "http"
-        ],
-        "speed": 1,
-        "upTime": 99.87029831387808,
-        "upTimeSuccessCount": 770,
-        "upTimeTryCount": 771,
-        "updated_at": "2025-04-13T10:49:29.002Z",
-        "responseTime": 4682
-    },
+  
     {
         "_id": "677027386b79c1e0b57755a0",
         "ip": "45.12.31.207",

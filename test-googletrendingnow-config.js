@@ -9,10 +9,10 @@ import { config as globalConfig } from './src/config/index.js'; // Added & alias
 async function testGasSafeRegisterConfig() {
   // Renamed function for clarity
   try {
-    console.log('Starting test of gassaferegister-config.json');
+    console.log('Starting test of googletrendingnow-config.json');
 
     // Read the configuration file
-    const configPath = './gassaferegister-config.json';
+    const configPath = './googletrendingnow-config.json';
     const configContent = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configContent);
 

@@ -1,0 +1,138 @@
+{
+  "startUrl": "https://trends.google.com/trending?geo=EG",
+  "steps": [
+    {
+      "type": "condition",
+      "condition": "button[aria-label='Accept all']",
+      "description": "Check if consent dialog appears",
+      "thenSteps": [
+        {
+          "type": "click",
+          "selector": "button[aria-label='Accept all']",
+          "description": "Accept cookies"
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "value": 1000,
+      "description": "Wait for page to load"
+    },
+    {
+      "type": "wait",
+      "value": 3000,
+      "description": "Wait for table to load"
+    },
+    {
+      "type": "condition",
+      "condition": "div[jsname='DRv89'] div[role='combobox'][jsname='oYxtQd']:not([aria-disabled='true'])",
+      "description": "Check if rows dropdown is enabled",
+      "thenSteps": [
+        {
+          "type": "click",
+          "selector": "div[jsname='DRv89'] div[role='combobox'][jsname='oYxtQd']",
+          "description": "Open rows per page dropdown",
+          "timeout": 60000
+        },
+        {
+          "type": "wait",
+          "value": 1000,
+          "description": "Wait for dropdown to open"
+        },
+        {
+          "type": "click", 
+          "selector": ".W7g1Rb-rymPhb-ibnC6b[data-value='50']",
+          "description": "Set to 50 rows per page",
+          "timeout": 60000
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "value": 2000,
+      "description": "Wait for page to reload"
+    },
+    {
+      "type": "extract",
+      "name": "trendsData",
+      "selector": "table.enOdEe-wZVHld-zg7Cn",
+      "description": "Extract trends table data",
+      "fields": {
+        "trends": {
+          "selector": "tr.enOdEe-wZVHld-xMbwt",
+          "type": "css",
+          "multiple": true,
+          "continueOnError": true,
+          "fields": {
+            "title": {
+              "selector": ".mZ3RIc",
+              "type": "css",
+              "continueOnError": true
+            },
+            "searchVolume": {
+              "selector": ".lqv0Cb",
+              "type": "css",
+              "continueOnError": true
+            },
+            "growth": {
+              "selector": ".TXt85b",
+              "type": "css",
+              "continueOnError": true
+            },
+            "status": {
+              "selector": ".QxIiwc.TUfb9d div",
+              "type": "css",
+              "continueOnError": true
+            },
+            "started": {
+              "selector": ".vdw3Ld",
+              "type": "css",
+              "continueOnError": true
+            },
+            "relatedQueries": {
+              "selector": ".k36WW div button",
+              "type": "css",
+              "multiple": true,
+              "continueOnError": true,
+              "attribute": "data-term"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "condition",
+      "condition": "button[aria-label='Go to next page']:not([disabled])",
+      "description": "Check if next page exists",
+      "thenSteps": [
+        {
+          "type": "click",
+          "selector": "button[aria-label='Go to next page']",
+          "description": "Go to next page"
+        },
+        {
+          "type": "wait",
+          "value": 3000,
+          "description": "Wait for next page to load"
+        },
+        {
+          "type": "gotoStep",
+          "step": 5,
+          "description": "Repeat extraction for next page"
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "country": "EG"
+  },
+  "options": {
+    "timeout": 60000,
+    "waitForSelector": ".DEQ5Hc",
+    "javascript": true,
+    "screenshots": false,
+    "screenshotsPath": "./screenshots",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "debug": true
+  }
+}

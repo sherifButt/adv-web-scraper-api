@@ -17,7 +17,9 @@ async function testGooglemapsConfig() {
     // Launch a browser
     const browser = await chromium.launch({ headless: false });
     const context = await browser.newContext({
-      userAgent: config.options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      userAgent:
+        config.options.userAgent ||
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
     });
     const page = await context.newPage();
 
@@ -59,7 +61,7 @@ testGooglemapsConfig()
     console.log('Test completed successfully');
     process.exit(0);
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('Test failed:', error);
     process.exit(1);
   });
