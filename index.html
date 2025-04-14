@@ -16,44 +16,62 @@
       href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
     />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Fira+Code:wght@300..700&family=Handjet:wght@100..900&family=Markazi+Text:wght@400..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
   </head>
+  <style>
+    h2{
+      text-align: center;
+      margin-top: 60px;
+
+    }
+    
+  </style>
+
   <body class="container">
-    <header>
-      <strong>Web Scraper API</strong>
-      <nav class="row">
-        <a href="#features"><i class="ph ph-star"></i> Features</a>
-        &nbsp; &nbsp; <a href="#examples"><i class="ph ph-code"></i> Examples</a> &nbsp; &nbsp;
-        <button disabled><i class="ph ph-plug"></i> API </button> &nbsp; &nbsp;
-        <a href="#quickstart"><i class="ph ph-rocket"></i> Quick Start</a> &nbsp; &nbsp;
-        <a href="#media"><i class="ph ph-play-circle"></i> Media</a> &nbsp; &nbsp;
+    <header  style="flex-direction: row; justify-content: space-between; align-items: center; display: flex;">
+      <strong title="Advanced Web Scraper API"><i class="ph ph-robot"></i> AWSA</strong>
+      <nav >
+        <a href="#features"
+          ><button title="Features"><i class="ph ph-star"></i> Features</button></a
+        >
+
+        <button disabled><i class="ph ph-plug"></i> API</button>
+        <a href="#quickstart"
+          ><button title="Quick Start"><i class="ph ph-rocket"></i> Quick Start</button></a
+        >
+
         <a href="https://github.com/sherifButt/adv-web-scraper-api"
-          ><i class="ph ph-github-logo"></i> Git</a
+          ><button title="GitHub"><i class="ph ph-github-logo"></i> Git</button></a
         >
       </nav>
-      <section id="hero" style="text-align: center">
-        <h1>Advanced Web Scraper API</h1>
-        <p>A powerful API for web scraping and data extraction</p>
-        <figure>
-          <img
-            src="/media/videos/adv-web-scraping-api.gif"
-            alt="Example scraped webpage"
-            style="border-radius: 15px"
-          />
-          <figcaption>above is a google maps example webpage being scraped</figcaption>
-        </figure>
-        <div>
-          <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="button"
-            ><button><i class="ph ph-github-logo"></i> Documentation</button></a
-          >
-          <button disabled title="API portal coming soon"><i class="ph ph-plug"></i> API</button>
-          <blockquote cite="">
-            "The API documentation is not yet available, but it will be soon."
-            <footer><cite>Sherif Butt, "Author of Advanced Web Scraper API"</cite></footer>
-          </blockquote>
-        </div>
-      </section>
     </header>
-
+    
+    <section id="hero" style="text-align: center; margin-top: 60px;">
+      <h1>Advanced Web Scraper API</h1>
+      <p>A powerful API for web scraping and data extraction</p>
+      <figure>
+        <img
+          src="/media/videos/adv-web-scraping-api.gif"
+          alt="Example scraped webpage"
+          style="border-radius: 15px; height: 60%;"
+          height="300"
+        />
+        
+      </figure>
+      <div>
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="button"
+          ><button><i class="ph ph-github-logo"></i> Documentation</button></a
+        >
+        <button disabled title="API portal coming soon"><i class="ph ph-plug"></i> API</button>
+        <blockquote cite="">
+          "The API documentation is not yet available, but it will be soon."
+          <footer><cite>Sherif Butt, "Author of Advanced Web Scraper API"</cite></footer>
+        </blockquote>
+      </div>
+    </section>
     <main>
       <div id="features">
         <h2>Key Features</h2>
