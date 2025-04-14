@@ -1,62 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Advanced Web Scraper API</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+
     <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-    >
-    <link 
-    rel="stylesheet" 
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    >
-</head>
-<body class="container">
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="container">
     <header>
-        <nav>
-            <ul>
-                <li><strong>Web Scraper API</strong></li>
-            </ul>
-            <ul>
-                <li><a href="#features"><i class="fas fa-star"></i> Features</a></li>
-                <li><a href="#examples"><i class="fas fa-code"></i> Examples</a></li>
-                <li><a href="#api"><i class="fas fa-plug"></i> API</a></li>
-                <li><a href="#quickstart"><i class="fas fa-rocket"></i> Quick Start</a></li>
-                <li><a href="#media"><i class="fas fa-image"></i> Media</a></li>
-                <li><a href="https://github.com/sherifButt/adv-web-scraper-api"><i class="fab fa-github"></i></a></li>
-            </ul>
-        </nav>
-        <h1>Advanced Web Scraper API</h1>
-        <p>A powerful API for web scraping and data extraction</p>
-        <figure>
-                <img src="/media/videos/adv-web-scraping-api.gif" alt="Example scraped webpage" style="border-radius: 15px;">
-                <figcaption>Sample webpage being scraped</figcaption>
-            </figure>
-            <a href="/docs" class="button"><button><i class="fab fa-github"></i>Documentation</a></button>
+      <strong>Web Scraper API</strong>
+      <nav class="row">
+        <a href="#features"> Features</a>
+        | <a href="#examples"> Examples</a> | <a href="#api"> API</a> |
+        <a href="#quickstart">Quick Start</a> | <a href="#media">Media</a> |
+        <a href="https://github.com/sherifButt/adv-web-scraper-api"
+          ><i class="fab fa-github"></i
+        ></a>
+      </nav>
+      <h1>Advanced Web Scraper API</h1>
+      <p>A powerful API for web scraping and data extraction</p>
+      <figure>
+        <img
+          src="/media/videos/adv-web-scraping-api.gif"
+          alt="Example scraped webpage"
+          style="border-radius: 15px"
+        />
+        <figcaption>above is a google maps example webpage being scraped</figcaption>
+      </figure>
+      <div>
+        <a href="/docs" class="button"
+          ><button><i class="fab fa-github"></i> Documentation</button></a
+        >
+        <a href="/docs" class="button"
+          ><button><i class="fab fa-github"></i> Documentation</button></a
+        >
+      </div>
     </header>
 
     <main>
-        <section id="features">
-            <h2><i class="fas fa-star"></i> Key Features</h2>
-            <ul>
-                <li>Automated navigation through websites</li>
-                <li>Multiple selector strategies (CSS, XPath, Regex)</li>
-                <li>Proxy rotation and management</li>
-                <li>Session persistence</li>
-                <li>Captcha solving integration</li>
-                <li>Human-like behavior emulation</li>
-            </ul>
-        </section>
+      <section id="features">
+        <h2> Key Features</h2>
+        <ul>
+          <li>Automated navigation through websites</li>
+          <li>Multiple selector strategies (CSS, XPath, Regex)</li>
+          <li>Proxy rotation and management</li>
+          <li>Session persistence</li>
+          <li>Captcha solving integration</li>
+          <li>Human-like behavior emulation</li>
+        </ul>
+      </section>
 
-        <section id="examples">
-            <h2><i class="fas fa-code"></i> Example Scraped Data</h2>
-           
-            
-            <details>
-                <summary>View JSON Output</summary>
-                <pre><code>
+      <section id="examples">
+        <h2>Example Scraped Data</h2>
+
+        <details>
+          <summary>View JSON Output</summary>
+          <pre><code>
 { 
     {
     "success": true,
@@ -87,42 +91,46 @@
     "timestamp": "2025-04-13T19:12:14.318Z"
 }
 </code></pre>
-            </details>
-        </section>
+        </details>
+      </section>
 
-        <section id="api">
-            <h2><i class="fas fa-plug"></i> API Endpoints</h2>
-            <ul>
-                <li><a href="/api/v1">Base API Path</a></li>
-                <li><a href="/api/v1/scrape">Scraping Endpoint</a></li>
-                <li><a href="/api/v1/navigation">Navigation Endpoint</a></li>
-                <li><a href="/api/v1/proxy">Proxy Management</a></li>
-                <li><a href="/health">Health Check</a></li>
-            </ul>
-        </section>
+      <section id="api">
+        <h2> API Endpoints</h2>
+        <ul>
+          <li><a href="/api/v1">Base API Path</a></li>
+          <li><a href="/api/v1/scrape">Scraping Endpoint</a></li>
+          <li><a href="/api/v1/navigation">Navigation Endpoint</a></li>
+          <li><a href="/api/v1/proxy">Proxy Management</a></li>
+          <li><a href="/health">Health Check</a></li>
+        </ul>
+      </section>
 
-        <section id="quickstart">
-            <h2><i class="fas fa-rocket"></i> Quick Start</h2>
-            <ol>
-                <li>Check the <a href="/docs">documentation</a></li>
-                <li>Configure your scraping jobs</li>
-                <li>Make API requests to the endpoints</li>
-            </ol>
-        </section>
+      <section id="quickstart">
+        <h2> Quick Start</h2>
+        <ol>
+          <li>Check the <a href="/docs">documentation</a></li>
+          <li>Configure your scraping jobs</li>
+          <li>Make API requests to the endpoints</li>
+        </ol>
+      </section>
 
-        <section id="media">
-            <h2><i class="fas fa-image"></i> Media Upload</h2>
-            <p>Upload screenshots and media to:</p>
-            <ul>
-                <li><a href="/media/images">/media/images</a></li>
-                <li><a href="/media/videos">/media/videos</a></li>
-            </ul>
-        </section>
+      <section id="media">
+        <h2> Media Upload</h2>
+        <p>Upload screenshots and media to:</p>
+        <ul>
+          <li><a href="/media/images">/media/images</a></li>
+          <li><a href="/media/videos">/media/videos</a></li>
+        </ul>
+      </section>
     </main>
 
     <footer>
-        <p>&copy; 2024 Advanced Web Scraper API</p>
-        <p>For support, check the project's <a href="https://github.com/sherifButt/adv-web-scraper-api/blob/main/README.md">README</a> or <a href="https://sherifbutt.github.io/adv-web-scraper-api/">documentation</a></p>
+      <p>&copy; 2024 Advanced Web Scraper API</p>
+      <p>
+        For support, check the project's
+        <a href="https://github.com/sherifButt/adv-web-scraper-api/blob/main/README.md">README</a>
+        or <a href="https://sherifbutt.github.io/adv-web-scraper-api/">documentation</a>
+      </p>
     </footer>
-</body>
+  </body>
 </html>
