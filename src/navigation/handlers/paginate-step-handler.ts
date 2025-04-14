@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep, NavigationContext } from '../types/navigation.types.js';
+import { NavigationStep, NavigationContext, StepResult } from '../types/navigation.types.js';
 import { logger } from '../../utils/logger.js';
 import { BaseStepHandler } from './base-step-handler.js';
 import { StepHandlerFactory } from './step-handler-factory.js'; // Import factory
@@ -23,7 +23,7 @@ export class PaginateStepHandler extends BaseStepHandler {
     step: NavigationStep,
     context: NavigationContext,
     page: Page
-  ): Promise<void> {
+  ): Promise<StepResult> {
     const selector = this.resolveValue(step.selector, context);
     const maxPages = step.maxPages || 1; // Default to 1 page if not specified
     const timeout = step.timeout || 30000;
@@ -78,6 +78,7 @@ export class PaginateStepHandler extends BaseStepHandler {
       // Optional: Add a small delay/think time
       await this.behaviorEmulator.think();
     }
+    return {};
   }
 
   private async executeExtractSteps(

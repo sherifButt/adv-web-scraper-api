@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep, NavigationContext } from '../types/navigation.types.js';
+import { NavigationStep, NavigationContext, StepResult } from '../types/navigation.types.js';
 import { logger } from '../../utils/logger.js';
 import { BaseStepHandler } from './base-step-handler.js';
 
@@ -12,7 +12,7 @@ export class ScriptStepHandler extends BaseStepHandler {
     step: NavigationStep,
     context: NavigationContext,
     page: Page
-  ): Promise<void> {
+  ): Promise<StepResult> {
     const script = this.resolveValue(step.script, context);
     const timeout = step.timeout || 30000;
 
@@ -32,5 +32,6 @@ export class ScriptStepHandler extends BaseStepHandler {
     }
 
     if (step.waitFor) await this.handleWaitFor(step.waitFor, timeout);
+    return {};
   }
 }

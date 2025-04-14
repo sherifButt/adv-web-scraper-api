@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep, NavigationContext } from '../types/navigation.types.js';
+import { NavigationStep, NavigationContext, StepResult } from '../types/navigation.types.js';
 import { logger } from '../../utils/logger.js';
 import { BaseStepHandler } from './base-step-handler.js';
 import { MouseStepHandler } from './mouse-step-handler.js'; // Hover uses mouse move logic
@@ -21,7 +21,7 @@ export class HoverStepHandler extends BaseStepHandler {
     step: NavigationStep,
     context: NavigationContext,
     page: Page
-  ): Promise<void> {
+  ): Promise<StepResult> {
     const selector = this.resolveValue(step.selector, context);
     // Default hover duration is 1000ms, split for move and pause
     const duration =
@@ -54,5 +54,6 @@ export class HoverStepHandler extends BaseStepHandler {
 
     // Handle original step's waitFor after the hover action is complete
     if (step.waitFor) await this.handleWaitFor(step.waitFor, timeout);
+    return {};
   }
 }

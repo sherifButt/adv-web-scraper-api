@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep } from '../types/navigation.types.js';
+import { NavigationStep, NavigationContext, StepResult } from '../types/navigation.types.js';
 import { logger } from '../../utils/logger.js';
 import { BaseStepHandler } from './base-step-handler.js';
 import { StepHandlerFactory } from './step-handler-factory.js'; // Import factory for recursive calls
@@ -16,7 +16,11 @@ export class ConditionStepHandler extends BaseStepHandler {
     return step.type === 'condition';
   }
 
-  public async execute(step: NavigationStep, context: Record<string, any>): Promise<void> {
+  public async execute(
+    step: NavigationStep,
+    context: NavigationContext,
+    page: Page
+  ): Promise<StepResult> {
     const condition = step.condition;
     if (!condition) throw new Error('Condition step requires a condition');
 
@@ -58,5 +62,6 @@ export class ConditionStepHandler extends BaseStepHandler {
         }
       }
     }
+    return {};
   }
 }

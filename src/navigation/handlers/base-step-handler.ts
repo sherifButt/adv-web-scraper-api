@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep } from '../types/navigation.types.js';
+import { NavigationStep, StepResult } from '../types/navigation.types.js';
 import { logger } from '../../utils/logger.js';
 import { IStepHandler } from '../types/step-handler.interface.js';
 import { NavigationContext } from '../types/navigation.types.js';
@@ -12,7 +12,11 @@ export abstract class BaseStepHandler implements IStepHandler {
   }
 
   abstract canHandle(step: NavigationStep): boolean;
-  abstract execute(step: NavigationStep, context: NavigationContext, page: Page): Promise<void>;
+  abstract execute(
+    step: NavigationStep,
+    context: NavigationContext,
+    page: Page
+  ): Promise<StepResult>;
 
   protected async handleWaitFor(waitFor: string | number | any, timeout?: number): Promise<void> {
     const actualTimeout = timeout || 30000;

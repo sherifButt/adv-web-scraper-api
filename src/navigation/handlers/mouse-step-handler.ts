@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep, NavigationContext } from '../types/navigation.types.js'; // Removed Point import
+import { NavigationStep, NavigationContext, StepResult } from '../types/navigation.types.js'; // Removed Point import
 import { logger } from '../../utils/logger.js';
 import { BaseStepHandler } from './base-step-handler.js';
 import { BehaviorEmulator } from '../../core/human/behavior-emulator.js';
@@ -28,7 +28,7 @@ export class MouseStepHandler extends BaseStepHandler {
     step: NavigationStep,
     context: NavigationContext,
     page: Page
-  ): Promise<void> {
+  ): Promise<StepResult> {
     const selector = this.resolveValue(step.selector, context);
     const x = typeof step.x === 'number' ? this.resolveValue(step.x, context) : undefined;
     const y = typeof step.y === 'number' ? this.resolveValue(step.y, context) : undefined;
@@ -104,6 +104,7 @@ export class MouseStepHandler extends BaseStepHandler {
     await this.performMouseAction(step, action, duration, page, context);
 
     if (step.waitFor) await this.handleWaitFor(step.waitFor, timeout);
+    return {};
   }
 
   private async performMouseAction(

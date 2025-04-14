@@ -12,7 +12,7 @@ import {
 import { BaseStepHandler } from './base-step-handler.js';
 import { ExtractionEngine } from '../../extraction/extraction-engine.js';
 import { RegexSelectorStrategy } from '../../extraction/selectors/regex-selector.strategy.js';
-import { StepResult } from '../types/navigation.types.js'; // Import StepResult
+import { NavigationContext, StepResult } from '../types/navigation.types.js'; // Import StepResult
 
 export class ExtractStepHandler extends BaseStepHandler {
   private regexStrategy = new RegexSelectorStrategy(); // Instantiate regex strategy
@@ -20,7 +20,11 @@ export class ExtractStepHandler extends BaseStepHandler {
     return step.type === 'extract';
   }
 
-  public async execute(step: NavigationStep, context: Record<string, any>): Promise<StepResult> {
+  public async execute(
+    step: NavigationStep,
+    context: NavigationContext,
+    page: Page
+  ): Promise<StepResult> {
     // Change return type
     const selector = this.resolveValue(step.selector, context);
     const name = step.name || 'extractedData';

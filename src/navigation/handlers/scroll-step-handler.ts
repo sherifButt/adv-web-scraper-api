@@ -1,5 +1,5 @@
 import { Page } from 'playwright';
-import { NavigationStep, NavigationContext } from '../types/navigation.types.js';
+import { NavigationStep, NavigationContext, StepResult } from '../types/navigation.types.js';
 import { logger } from '../../utils/logger.js';
 import { BaseStepHandler } from './base-step-handler.js';
 import { BehaviorEmulator } from '../../core/human/behavior-emulator.js'; // Needed for custom scroll
@@ -23,7 +23,7 @@ export class ScrollStepHandler extends BaseStepHandler {
     step: NavigationStep,
     context: NavigationContext,
     page: Page
-  ): Promise<void> {
+  ): Promise<StepResult> {
     const timeout = step.timeout || 30000; // Default timeout
 
     if (step.selector) {
@@ -101,5 +101,6 @@ export class ScrollStepHandler extends BaseStepHandler {
     // Wait after scroll action
     await page.waitForTimeout(step.timeout || 500); // Use step timeout or default
     if (step.waitFor) await this.handleWaitFor(step.waitFor, timeout);
+    return {};
   }
 }
