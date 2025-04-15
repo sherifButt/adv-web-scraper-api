@@ -1,4 +1,4 @@
-import { Page } from 'playwright';
+import { Page, ElementHandle } from 'playwright'; // Import ElementHandle
 import { NavigationStep, NavigationContext, StepResult } from '../types/navigation.types.js';
 import { logger } from '../../utils/logger.js';
 import { BaseStepHandler } from './base-step-handler.js';
@@ -27,18 +27,29 @@ export class ConditionStepHandler extends BaseStepHandler {
     let result = false;
     if (typeof condition === 'string') {
       try {
-        const selector = this.resolveValue(condition, context);
-        const element = await this.page.$(selector);
-        result = !!element;
+        const selector = this.resolveValue(condition, context) as string;
+        const currentItemHandle = context.currentItemHandle as ElementHandle | undefined;
+        const scope = currentItemHandle || this.page; // Use element handle if available
+        logger.debug(
+          `Evaluating condition selector "${selector}" within ${
+            currentItemHandle ? 'current element handle' : 'page'
+          }.`
+        );
+        // Use $ instead of waitForSelector for a simple existence check
+        const element = await scope.$(selector);
+        result = !!element; // True if element exists in the scope, false otherwise
       } catch (error) {
-        result = false;
+        logger.warn(`Error evaluating condition selector "${condition}": ${error}`);
+        result = false; // Treat errors as false condition
       }
     } else if (typeof condition === 'function') {
       try {
         const conditionFn = condition as (context: any, page: Page) => Promise<boolean>;
+        // Pass the specific context to the function
         result = await conditionFn(context, this.page);
       } catch (error) {
-        result = false;
+        logger.warn(`Error executing condition function: ${error}`);
+        result = false; // Treat errors as false condition
       }
     }
 

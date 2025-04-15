@@ -39,16 +39,38 @@ export abstract class BaseStepHandler implements IStepHandler {
     }
   }
 
-  protected resolveValue(value: any, context: Record<string, any>): any {
+  // Use NavigationContext for type safety
+  protected resolveValue(value: any, context: NavigationContext): any {
     if (value === undefined || value === null) return value;
-    if (typeof value === 'function') return value(context);
+    if (typeof value === 'function') return value(context); // Functions can access full context
+
     if (typeof value === 'string' && value.includes('{{')) {
-      return value.replace(/\{\{([^}]+)\}\}/g, (_, key) => {
+      // First, specifically replace {{currentIndex}} if present
+      let resolvedValue = value;
+      if (context.currentIndex !== undefined) {
+        resolvedValue = resolvedValue
+          .replace(/\{\{currentIndex\}\}/g, String(context.currentIndex))
+          .replace(/\{\{index\}\}/g, String(context.currentIndex)); // Also handle {{index}} for compatibility
+      }
+
+      // Then, handle nested property access like {{prop.subprop}}
+      // This regex handles paths possibly containing resolved array indices now
+      return resolvedValue.replace(/\{\{([^}]+)\}\}/g, (_, key) => {
         const keys = key.trim().split('.');
-        let result: any = context; // Use 'any' for dynamic property access
+        let result: any = context;
         for (const k of keys) {
-          if (result === undefined || result === null || typeof result !== 'object') return '';
-          result = result[k];
+          if (result === undefined || result === null) return ''; // Stop if path becomes invalid
+
+          // Check if k is a number (potentially an array index)
+          const index = parseInt(k, 10);
+          if (!isNaN(index) && Array.isArray(result)) {
+            result = result[index]; // Access array element
+          } else if (typeof result === 'object' && result !== null) {
+            // Check result is object and not null
+            result = result[k]; // Access object property
+          } else {
+            return ''; // Cannot access property/index on non-object/array or null
+          }
         }
         return result !== undefined && result !== null ? String(result) : '';
       });

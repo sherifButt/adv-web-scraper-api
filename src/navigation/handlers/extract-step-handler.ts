@@ -10,13 +10,16 @@ import {
   SelectorType, // Add SelectorType
 } from '../../types/extraction.types.js';
 import { BaseStepHandler } from './base-step-handler.js';
-import { ExtractionEngine } from '../../extraction/extraction-engine.js';
+// ExtractionEngine might not be needed if we scope to element handles
+// import { ExtractionEngine } from '../../extraction/extraction-engine.js';
 import { RegexSelectorStrategy } from '../../extraction/selectors/regex-selector.strategy.js';
-import { NavigationContext, StepResult } from '../types/navigation.types.js'; // Import StepResult
+import { NavigationContext, StepResult } from '../types/navigation.types.js';
 
 export class ExtractStepHandler extends BaseStepHandler {
-  private regexStrategy = new RegexSelectorStrategy(); // Instantiate regex strategy
+  private regexStrategy = new RegexSelectorStrategy();
+
   public canHandle(step: NavigationStep): boolean {
+    // Added newline based on eslint error
     return step.type === 'extract';
   }
 
@@ -25,243 +28,271 @@ export class ExtractStepHandler extends BaseStepHandler {
     context: NavigationContext,
     page: Page
   ): Promise<StepResult> {
-    // Change return type
-    const selector = this.resolveValue(step.selector, context);
+    const selector = this.resolveValue(step.selector, context) as string;
     const name = step.name || 'extractedData';
-    logger.info(`Extracting data from: ${selector}`);
+    const currentItemHandle = context.currentItemHandle as ElementHandle | undefined;
+    // Determine scope: Use page scope if usePageScope is true, otherwise default to element or page
+    const scope = step.usePageScope ? page : currentItemHandle || page;
 
+    logger.info(
+      `Extracting data from: ${selector || 'current element'}. Scope: ${
+        step.usePageScope ? 'Page' : currentItemHandle ? 'Element' : 'Page'
+      }`
+    ); // Removed trailing comma and adjusted newline based on eslint error
+
+    // --- Main Extraction Logic ---
+    // The primary extraction happens based on the top-level step definition
+    // It populates context[name]
     if (step.fields) {
-      const result: Record<string, any> = {};
-      for (const [fieldName, fieldDef] of Object.entries(step.fields)) {
-        try {
-          if (typeof fieldDef === 'object' && 'selector' in fieldDef && 'type' in fieldDef) {
-            const fieldSelector = `${selector} ${fieldDef.selector}`;
-            if (fieldDef.type === 'css') {
-              const cssConfig = fieldDef as CssSelectorConfig;
-              try {
-                if (cssConfig.multiple) {
-                  if ('fields' in fieldDef) {
-                    result[fieldName] = await this.extractMultipleFields(
-                      fieldSelector,
-                      fieldDef.fields
-                    );
-                  } else {
-                    result[fieldName] = await this.extractMultipleValues(fieldSelector, cssConfig);
-                  }
-                } else {
-                  if ('selectors' in fieldDef && Array.isArray(fieldDef.selectors)) {
-                    result[fieldName] = await this.tryMultipleSelectors(selector, fieldDef);
-                  } else {
-                    result[fieldName] = await this.extractSingleValue(fieldSelector, cssConfig);
-                  }
-                }
-              } catch (error) {
-                logger.warn(`Failed to extract CSS field ${fieldName}:`, error);
-                result[fieldName] = null;
-              }
-            } else if (fieldDef.type === 'regex') {
-              try {
-                const extractionEngine = new ExtractionEngine();
-                const regexResult = await extractionEngine.extract({
-                  url: this.page.url(),
-                  fields: {
-                    [fieldName]: fieldDef,
-                  },
-                  options: {
-                    browser: {
-                      headless: true,
-                    },
-                  },
-                });
-                let extractedValue = regexResult?.data?.[fieldName] || null;
-                // Handle both direct regex matches and string values
-                if (extractedValue !== null) {
-                  if (typeof extractedValue === 'object' && extractedValue.value !== undefined) {
-                    // Handle structured regex result
-                    extractedValue = extractedValue.value;
-                  }
-                  // Convert numbers in parentheses to numeric values
-                  if (typeof extractedValue === 'string' && extractedValue.match(/^\(\d+\)$/)) {
-                    extractedValue = Number(extractedValue.replace(/[()]/g, ''));
-                  }
-                }
-                result[fieldName] = extractedValue;
-              } catch (error) {
-                logger.warn(`Failed to extract regex field ${fieldName}:`, error);
-                result[fieldName] = null;
-              }
-            } else {
-              logger.warn(`Unsupported selector type ${fieldDef.type}`);
-              result[fieldName] = null;
-            }
-          } else {
-            logger.warn('Nested extraction not fully supported');
-            result[fieldName] = null;
-          }
-        } catch (error) {
-          logger.warn(`Failed to extract field ${fieldName}:`, error);
-          result[fieldName] = null;
+      // Case 1: Extracting an object with multiple fields
+      const baseElement = selector
+        ? await scope.$(selector)
+        : // If no selector, and scope is an element handle, use the handle itself as base
+        scope !== page
+        ? (scope as ElementHandle)
+        : null; // Cannot extract fields from page without a base selector
+
+      if (!baseElement && selector) {
+        // Only warn if a selector was provided but not found
+        logger.warn(`Base element not found for field extraction: ${selector}`);
+        context[name] = {};
+      } else if (!baseElement && !selector && scope === page) {
+        // Error if trying to extract fields from page without a selector
+        logger.error(`Cannot extract fields from page scope without a 'selector'.`);
+        context[name] = {};
+      } else if (baseElement) {
+        // Proceed with extraction from the found/provided base element
+        context[name] = await this.extractFieldsFromElement(baseElement, step.fields, page); // Pass page
+        // Dispose only if we created the handle here (i.e., scope was page and selector was used)
+        if (scope === page && selector) {
+          await baseElement.dispose();
         }
-      }
-      context[name] = result;
-    } else if (step.list) {
-      context[name] = await this.extractList(selector);
-    } else if (step.source === 'html') {
-      context[name] = await this.extractHtml(selector);
+      } else {
+        // Should not happen if logic above is correct, but default to empty
+        context[name] = {};
+      } // Removed extra indentation based on eslint error
+    } else if (step.list && selector) {
+      // Case 2: Extracting a list (simple or complex) - requires a selector
+      // Note: step.list is a boolean flag, not the list definition itself.
+      // The structure for list extraction is defined within step.fields usually.
+      // This branch might need reconsideration based on how list extraction is defined.
+      // Assuming step.list implies extracting an array based on step.selector directly.
+      // This conflicts with the nested 'news' example. Let's comment out for now
+      // and rely on extractFieldsFromElement handling 'multiple'.
+      // context[name] = await this.extractList(selector, scope, step as CssSelectorConfig, page); // Pass page
+      logger.warn(
+        `Direct 'list: true' extraction at top level is ambiguous. Define lists within 'fields' using 'multiple: true'.`
+      );
+      context[name] = [];
+    } else if (step.source === 'html' && selector) {
+      // Case 3: Extracting inner HTML - requires a selector
+      context[name] = await this.extractHtml(selector, scope);
+    } else if (selector) {
+      // Case 4: Extracting single text/attribute - requires a selector
+      context[name] = await this.extractText(selector, scope, step as CssSelectorConfig);
     } else {
-      context[name] = await this.extractText(selector);
+      // Case 5: No selector and not field extraction from element handle - Invalid state?
+      logger.warn(`Invalid extraction step configuration: No selector or fields provided.`);
+      context[name] = null;
     }
 
-    return {}; // Return empty StepResult
+    // Log the extracted data if it's the main trendsData step
+    if (name === 'trendsData') {
+      logger.debug(
+        `Completed extraction for step "${name}":`,
+        JSON.stringify(context[name], null, 2)
+      );
+    }
+
+    return {};
   }
 
-  // Refactored to handle mixed CSS/Regex nested fields correctly
-  private async extractMultipleFields(
-    selector: string,
-    fields: Record<string, SelectorConfig>
-  ): Promise<any[]> {
-    const elements = await this.page.$$(selector);
-    if (!elements || elements.length === 0) {
-      logger.warn(`No elements found for multiple fields selector: ${selector}`);
-      return [];
-    }
+  // Extracts fields from a single provided element handle
+  private async extractFieldsFromElement(
+    element: ElementHandle,
+    // Field definitions can include nested structures
+    fields: Record<string, SelectorConfig | any>, // Use 'any' for flexibility with nested fields
+    page: Page // Pass page object for potential recursive calls needing page scope
+  ): Promise<Record<string, any>> {
+    // Added newline based on eslint error
+    const item: Record<string, any> = {};
+    // Get outerHTML once if needed for regex
+    let elementHtml: string | null = null;
+    // Get a simple representation of the parent element for logging
+    const parentSelectorInfo = await element.evaluate(
+      el =>
+        el.tagName +
+        (el.id ? '#' + el.id : '') +
+        (el.className && typeof el.className === 'string'
+          ? '.' + el.className.trim().replace(/\s+/g, '.')
+          : '')
+    );
+    logger.debug(
+      `[extractFieldsFromElement] Extracting fields from element: ${parentSelectorInfo}`
+    );
 
-    const results: any[] = [];
-    const seenIds = new Set<string>();
-
-    for (const element of elements) {
-      // Get unique identifier for property (either data-property-id or href)
-      const propertyId = await element.evaluate(
-        el =>
-          el.getAttribute('data-property-id') ||
-          el.querySelector('a[href*="/properties/"]')?.getAttribute('href')?.split('/')[2]
-      );
-
-      // Skip duplicates
-      if (propertyId && seenIds.has(propertyId)) {
-        await element.dispose();
+    for (const [subFieldName, subFieldDef] of Object.entries(fields)) {
+      // Ensure subFieldDef is treated as an object
+      if (typeof subFieldDef !== 'object' || subFieldDef === null) {
+        logger.warn(
+          `[extractFieldsFromElement] Invalid field definition for "${subFieldName}". Skipping.`
+        );
         continue;
       }
-      if (propertyId) seenIds.add(propertyId);
-      const item: Record<string, any> = {};
-      const elementHtml = await element.evaluate(el => el.outerHTML); // Get outerHTML for regex
 
-      for (const [subFieldName, subFieldDef] of Object.entries(fields)) {
-        try {
-          if (subFieldDef.type === SelectorType.CSS) {
-            const cssConfig = subFieldDef as CssSelectorConfig;
-            if (cssConfig.multiple) {
-              // Extract multiple sub-values using CSS within the element
-              const attr = 'attribute' in cssConfig ? cssConfig.attribute : null;
-              // Pass attr into the function scope
-              item[subFieldName] = await element.$$eval(
-                cssConfig.selector,
-                (
-                  subElements,
-                  localAttr // Use localAttr inside the function
-                ) =>
-                  subElements.map(subEl =>
-                    localAttr
-                      ? subEl.getAttribute(localAttr) || ''
-                      : subEl.textContent?.trim() || ''
-                  ),
-                attr // Pass attr here to be received as localAttr
-              );
-            } else {
-              // Extract single sub-value using CSS within the element
-              const attr = 'attribute' in cssConfig ? cssConfig.attribute : null;
-              // Pass attr into the function scope
-              item[subFieldName] = await element
-                .$eval(
-                  cssConfig.selector,
-                  (
-                    subEl,
-                    localAttr // Use localAttr inside the function
-                  ) =>
-                    localAttr
-                      ? subEl.getAttribute(localAttr) || ''
-                      : subEl.textContent?.trim() || '',
-                  attr // Pass attr here to be received as localAttr
-                )
-                .catch(() => null); // Handle cases where sub-selector doesn't match
-            }
-          } else if (subFieldDef.type === SelectorType.REGEX) {
-            // Extract sub-value using Regex strategy on the element's HTML
-            item[subFieldName] = await this.regexStrategy.extract(null, subFieldDef, {
-              htmlContent: elementHtml,
-            });
-          } else {
-            logger.warn(
-              `Unsupported selector type "${subFieldDef.type}" in extractMultipleFields for field "${subFieldName}"`
+      try {
+        // Check for list extraction with nested fields first
+        if (subFieldDef.type === SelectorType.CSS && subFieldDef.multiple && subFieldDef.fields) {
+          // Handle list of complex objects
+          item[subFieldName] = await this.extractListWithFields(
+            subFieldDef.selector,
+            element, // Scope is the current element
+            subFieldDef.fields,
+            page // Pass page down
+          );
+          logger.debug(
+            `[extractFieldsFromElement] Extracted list with fields for "${subFieldName}" using selector "${subFieldDef.selector}"`
+          );
+        } else if (subFieldDef.type === SelectorType.CSS) {
+          // Handle single CSS extraction (text, attribute, or simple list)
+          const cssConfig = subFieldDef as CssSelectorConfig;
+          if (cssConfig.multiple) {
+            // Simple list (text/attribute)
+            item[subFieldName] = await this.extractSimpleList(
+              cssConfig.selector,
+              element,
+              cssConfig
             );
-            item[subFieldName] = null;
+            logger.debug(
+              `[extractFieldsFromElement] Extracted simple list for "${subFieldName}" using selector "${cssConfig.selector}"`
+            );
+          } else {
+            // Single value (text/attribute)
+            item[subFieldName] = await this.extractText(cssConfig.selector, element, cssConfig);
+            logger.debug(
+              `[extractFieldsFromElement] Extracted text/attribute for "${subFieldName}" using selector "${cssConfig.selector}"`
+            );
           }
-        } catch (error) {
+        } else if (subFieldDef.type === SelectorType.REGEX) {
+          // Handle Regex extraction
+          if (elementHtml === null) {
+            elementHtml = await element.evaluate(el => (el as Element).outerHTML);
+          }
+          item[subFieldName] = await this.regexStrategy.extract(null, subFieldDef, {
+            htmlContent: elementHtml,
+          });
+          logger.debug(`[extractFieldsFromElement] Extracted regex for "${subFieldName}"`);
+        } else {
           logger.warn(
-            `Failed to extract sub-field "${subFieldName}" from element with selector "${selector}":`,
-            error
+            `Unsupported selector type "${subFieldDef.type}" for field "${subFieldName}"`
           );
           item[subFieldName] = null;
         }
+      } catch (error: any) {
+        logger.warn(`Failed to extract sub-field "${subFieldName}" from element: ${error.message}`); // Fixed formatting based on eslint error
+        if (subFieldDef.continueOnError) {
+          item[subFieldName] =
+            subFieldDef.defaultValue !== undefined ? subFieldDef.defaultValue : null;
+        } else {
+          // If continueOnError is not true, re-throw or handle as critical failure
+          throw new Error(
+            `Critical extraction failure for field "${subFieldName}": ${error.message}`
+          );
+        }
       }
-      results.push(item);
-
-      // Dispose element handle to free up memory
-      await element.dispose();
     }
+    return item;
+  }
+
+  // Helper for extracting a list of complex objects with nested fields
+  private async extractListWithFields(
+    selector: string,
+    scope: ElementHandle, // Should always be an element for nested lists
+    nestedFields: Record<string, SelectorConfig | any>,
+    page: Page
+  ): Promise<Array<Record<string, any>>> {
+    // Added newline based on eslint error
+    const elements = await scope.$$(selector);
+    if (!elements || elements.length === 0) {
+      logger.debug(`No elements found for nested list selector "${selector}" within parent scope.`);
+      return [];
+    }
+
+    const results: Array<Record<string, any>> = [];
+    logger.debug(
+      `Extracting nested fields for ${elements.length} elements with selector "${selector}"`
+    );
+    for (const el of elements) {
+      // Recursively call extractFieldsFromElement for each element in the list
+      // Pass the nestedFields definition and the page object
+      const nestedData = await this.extractFieldsFromElement(el, nestedFields, page);
+      results.push(nestedData);
+      // Do not dispose 'el' here, it belongs to the 'scope' ElementHandle
+    }
+    // Handles are managed by the caller that provided the 'scope' ElementHandle
     return results;
   }
 
-  private async extractMultipleValues(selector: string, config: CssSelectorConfig): Promise<any[]> {
-    const attr = 'attribute' in config ? config.attribute : null;
-    return this.page.$$eval(
-      selector,
-      (elements, attr) =>
-        elements.map(el => (attr ? el.getAttribute(attr) || '' : el.textContent?.trim() || '')),
-      attr
-    );
-  }
-
-  private async tryMultipleSelectors(baseSelector: string, fieldDef: any): Promise<any> {
-    for (const selectorOption of fieldDef.selectors) {
-      const fullSelector = `${baseSelector} ${selectorOption}`;
-      try {
-        if ('attribute' in fieldDef) {
-          return await this.page.$eval(
-            fullSelector,
-            (el, attr) => el.getAttribute(attr),
-            fieldDef.attribute || ''
-          );
-        } else {
-          return await this.page.$eval(fullSelector, el => el.textContent?.trim() || '');
-        }
-      } catch (error) {
-        logger.debug(`Selector ${fullSelector} failed, trying next option`);
+  // Helper for extracting a simple list (text or attribute)
+  private async extractSimpleList(
+    selector: string,
+    scope: Page | ElementHandle,
+    config: CssSelectorConfig
+  ): Promise<string[]> {
+    // Added newline based on eslint error
+    const attr = config.attribute;
+    try {
+      // Use $$eval for efficient extraction of simple lists
+      return await scope.$$eval(
+        selector,
+        (elements, attr) =>
+          elements.map(el => (attr ? el.getAttribute(attr) || '' : el.textContent?.trim() || '')), // Fixed formatting based on eslint error
+        attr // Pass attr to page context
+      );
+    } catch (error: any) {
+      logger.warn(`Failed to extract simple list with selector "${selector}": ${error.message}`);
+      if (config.continueOnError) {
+        return config.defaultValue !== undefined ? config.defaultValue : [];
+      } else {
+        throw new Error(
+          `Critical extraction failure for list selector "${selector}": ${error.message}`
+        );
       }
     }
-    return null;
   }
 
-  private async extractSingleValue(selector: string, config: CssSelectorConfig): Promise<any> {
-    if ('attribute' in config) {
-      return await this.page
-        .$eval(selector, (el, attr) => el.getAttribute(attr), config.attribute || '')
-        .catch(() => null);
+  // Extracts inner HTML from a single element found within a scope
+  private async extractHtml(selector: string, scope: Page | ElementHandle): Promise<string | null> {
+    // Fixed formatting based on eslint error
+    try {
+      return await scope.$eval(selector, el => el.innerHTML);
+    } catch (error: any) {
+      logger.warn(`Failed to extract HTML with selector "${selector}": ${error.message}`);
+      // Consider optional/continueOnError here if added to NavigationStep base type
+      return null; // Return null on error for now
     }
-    return await this.page.$eval(selector, el => el.textContent?.trim() || '').catch(() => null);
   }
 
-  private async extractList(selector: string): Promise<string[]> {
-    return this.page
-      .$$eval(selector, elements => elements.map(el => el.textContent?.trim() || ''))
-      .catch(() => []);
-  }
-
-  private async extractHtml(selector: string): Promise<string | null> {
-    return this.page.$eval(selector, el => el.innerHTML).catch(() => null);
-  }
-
-  private async extractText(selector: string): Promise<string | null> {
-    return this.page.$eval(selector, el => el.textContent?.trim() || '').catch(() => null);
+  // Extracts text or attribute from a single element found within a scope
+  private async extractText(
+    selector: string,
+    scope: Page | ElementHandle,
+    config: CssSelectorConfig // Config might have optional/continueOnError
+  ): Promise<string | null> {
+    const attr = config.attribute;
+    try {
+      return await scope.$eval(
+        selector,
+        (el, attr) => (attr ? el.getAttribute(attr) || '' : el.textContent?.trim() || ''),
+        attr // Pass attr to page context
+      );
+    } catch (error: any) {
+      logger.warn(`Failed to extract text/attribute with selector "${selector}": ${error.message}`);
+      if (config.continueOnError) {
+        return config.defaultValue !== undefined ? config.defaultValue : null;
+      } else {
+        throw new Error(`Critical extraction failure for selector "${selector}": ${error.message}`); // Fixed formatting based on eslint error
+      }
+    }
   }
 }

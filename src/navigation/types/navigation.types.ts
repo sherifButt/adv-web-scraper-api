@@ -83,6 +83,8 @@ export interface NavigationStep {
   result?: boolean;
   step?: number; // Added for GotoStep
   description?: string; // Optional description for logging/debugging
+  optional?: boolean; // Allow step to fail without stopping the flow
+  usePageScope?: boolean; // Added: Force extraction scope to page, ignoring currentItemHandle
 }
 
 /**
@@ -102,6 +104,17 @@ export interface ForEachElementStep extends NavigationStep {
   elementSteps: NavigationStep[]; // Steps to execute for each element
   maxIterations?: number; // Optional limit on the number of elements processed
   description?: string; // Optional description for the loop step
+}
+
+/**
+ * Specific type for the 'mergeContext' action
+ */
+export interface MergeContextStep extends NavigationStep {
+  type: 'mergeContext';
+  source: string; // Key in context to get data from (e.g., 'panelData')
+  target: string; // Key in context to merge into (e.g., 'trendsData.trends[{{index}}]')
+  mergeStrategy?: { [key: string]: 'overwrite' | 'union' | 'append' | 'ignore' }; // Optional per-field strategy
+  defaultMergeStrategy?: 'overwrite' | 'union' | 'append' | 'ignore'; // Default strategy if not specified per field
 }
 
 /**

@@ -1,5 +1,5 @@
 {
-  "startUrl": "https://trends.google.com/trending?geo=GB&hours=24&status=active&sort=search-volume",
+  "startUrl": "https://trends.google.com/trending?geo=US&hl=en-US&sort=search-volume&hours=24&category=10&status=active",
   "steps": [
     {
       "type": "condition",
@@ -40,7 +40,7 @@
           "description": "Wait for dropdown to open"
         },
         {
-          "type": "click", 
+          "type": "click",
           "selector": ".W7g1Rb-rymPhb-ibnC6b[data-value='50']",
           "description": "Set to 50 rows per page",
           "timeout": 60000
@@ -113,24 +113,63 @@
         },
         {
           "type": "wait",
-          "value": ".EMz5P .k44Spe",
-          "timeout": 15000,
-          "description": "Wait for panel content"
+  
+          "value": 1000,
+          "description": "Wait for panel content to load"
+        },
+        {
+            "type": "condition",
+            "condition": "span.GDLTpd[jsname='GG0bEb']",
+            "description": "Check if more items button exists",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": "span.GDLTpd[jsname='GG0bEb']",
+                    "description": "Click to show more related queries"
+                },
+            {
+              "type": "wait",
+              "timeout": 3000,
+              "description": "Wait for additional queries to load"
+            }
+          ]
+        },
+        {
+          "type": "wait",
+          "value": 1000,
+          "description": "Wait for panel content to load"
         },
         {
           "type": "extract",
           "name": "panelData",
           "selector": ".EMz5P",
           "description": "Extract panel details",
+          "usePageScope": true,
           "fields": {
             "news": {
-              "selector": ".jDtQ5 .xZCHj",
+              "selector": ".jDtQ5",
               "type": "css",
               "multiple": true,
+              "usePageScope": true,
               "fields": {
-                "title": { "selector": ".QbLC8c", "type": "css" },
-                "sourceInfo": { "selector": ".pojp0c", "type": "css" },
-                "url": { "attribute": "href" }
+                "title": {
+                  "selector": ".QbLC8c",
+                  "type": "css"
+                },
+                "sourceInfo": {
+                  "selector": ".pojp0c",
+                  "type": "css"
+                },
+                "url": {
+                  "selector": "div a",
+                  "type": "css",
+                  "attribute": "href"
+                },
+                "image": {
+                  "selector": ".QtVIpe",
+                  "type": "css",
+                  "attribute": "src"
+                }
               }
             },
             "relatedQueries": {
@@ -150,12 +189,7 @@
             "relatedQueries": "union"
           }
         },
-        {
-          "type": "click",
-          "selector": ".EMz5P button[aria-label='Close']",
-          "description": "Close panel",
-          "optional": true
-        },
+      
         {
           "type": "wait",
           "value": 500
@@ -179,7 +213,7 @@
         },
         {
           "type": "gotoStep",
-          "step": 6, 
+          "step": 6,
           "description": "Repeat extraction for next page"
         }
       ]
