@@ -140,6 +140,17 @@
           "description": "Wait for panel content to load"
         },
         {
+          "type": "wait",
+          "waitForSelector": ".EMz5P .jDtQ5",
+          "timeout": 10000,
+          "description": "Wait for at least one news item to appear in the panel"
+        },
+        {
+          "type": "wait",
+          "value": 1500,
+          "description": "Additional wait for potentially more news items to load"
+        },
+        {
           "type": "extract",
           "name": "panelData",
           "selector": ".EMz5P",
@@ -147,10 +158,9 @@
           "usePageScope": true,
           "fields": {
             "news": {
-              "selector": ".jDtQ5",
+              "selector": ".jDtQ5 > div[jsaction]",
               "type": "css",
               "multiple": true,
-              "usePageScope": true,
               "fields": {
                 "title": {
                   "selector": ".QbLC8c",
@@ -161,7 +171,7 @@
                   "type": "css"
                 },
                 "url": {
-                  "selector": "div a",
+                  "selector": "a.xZCHj",
                   "type": "css",
                   "attribute": "href"
                 },
