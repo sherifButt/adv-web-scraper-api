@@ -119,14 +119,16 @@ export class ExtractStepHandler extends BaseStepHandler {
     // Get outerHTML once if needed for regex
     let elementHtml: string | null = null;
     // Get a simple representation of the parent element for logging
-    const parentSelectorInfo = await element.evaluate(
-      el =>
-        el.tagName +
-        (el.id ? '#' + el.id : '') +
-        (el.className && typeof el.className === 'string'
-          ? '.' + el.className.trim().replace(/\s+/g, '.')
+    const parentSelectorInfo = await element.evaluate(el => {
+      const htmlEl = el as HTMLElement;
+      return (
+        (htmlEl.tagName || '') +
+        (htmlEl.id ? '#' + htmlEl.id : '') +
+        (htmlEl.className && typeof htmlEl.className === 'string'
+          ? '.' + htmlEl.className.trim().replace(/\s+/g, '.')
           : '')
-    );
+      );
+    });
     logger.debug(
       `[extractFieldsFromElement] Extracting fields from element: ${parentSelectorInfo}`
     );

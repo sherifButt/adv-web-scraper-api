@@ -113,23 +113,29 @@
         },
         {
           "type": "wait",
-  
           "value": 1000,
-          "description": "Wait for panel content to load"
+          "description": "Wait for panel content to load initially"
+        },
+        {
+          "type": "wait",
+          "waitForSelector": ".mZ3RIc span.GDLTpd[role='button']",
+          "timeout": 500,
+          "description": "Wait specifically for the '+ more' button to appear",
+          "continueOnError": true
         },
         {
             "type": "condition",
-            "condition": "span.GDLTpd[jsname='GG0bEb']",
+            "condition": ".mZ3RIc span.GDLTpd[role='button']",
             "description": "Check if more items button exists",
             "thenSteps": [
                 {
                     "type": "click",
-                    "selector": "span.GDLTpd[jsname='GG0bEb']",
+                    "selector": ".mZ3RIc span.GDLTpd[role='button']",
                     "description": "Click to show more related queries"
                 },
             {
               "type": "wait",
-              "timeout": 3000,
+              "timeout": 500,
               "description": "Wait for additional queries to load"
             }
           ]
@@ -199,7 +205,6 @@
             "relatedQueries": "union"
           }
         },
-      
         {
           "type": "wait",
           "value": 500
