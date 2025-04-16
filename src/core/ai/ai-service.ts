@@ -162,7 +162,8 @@ IMPORTANT RULES:
     errorLog: string | null // Accept string or null
   ): string {
     // Handle null errorLog
-    const errorLogContent = errorLog ?? 'No specific error log was provided, but the previous configuration failed.';
+    const errorLogContent =
+      errorLog ?? 'No specific error log was provided, but the previous configuration failed.';
     return `The following scraping configuration failed during testing. Please fix it based on the error provided.
 
 Original URL: ${url}

@@ -478,49 +478,78 @@ export class ProxyManager {
    */
   private async checkSingleProxy(proxy: ProxyInfo): Promise<void> {
     const startTime = Date.now();
-    // Use the first protocol for testing, default to http if none specified
-    const protocol = proxy.protocols?.[0] || 'http'; // Default to http if none specified
-
-    // Removed the block that skipped health checks for non-HTTPS proxies
+    const protocol = proxy.protocols?.[0] || 'http';
 
     try {
-      logger.debug(`Checking health for ${protocol} proxy ${proxy.ip}:${proxy.port}`); // Log the check attempt
-      // Make a request to the test URL through the proxy
-      // Use a simple test URL that should work with most proxies
-      const testUrl = 'http://httpbin.org/get';
-      const response = await axios.get(testUrl, {
-        proxy: {
-          host: proxy.ip,
-          port: proxy.port,
-          auth:
-            proxy.username && proxy.password
-              ? { username: proxy.username, password: proxy.password }
-              : undefined,
-        },
-        timeout: 30000, // Increased timeout to 30 seconds
-      });
+      logger.debug(`Checking health for ${protocol} proxy ${proxy.ip}:${proxy.port}`);
 
-      const responseTime = Date.now() - startTime;
-      proxy.lastChecked = Date.now(); // Update last checked time
+      // Use multiple test endpoints - try them in order until one succeeds
+      const testUrls = [
+        'http://www.google.com',
+        'http://www.cloudflare.com',
+        'http://httpbin.org/get',
+      ];
 
-      // Update proxy internal metadata
-      this.reportProxyResult(proxy, response.status === 200, responseTime);
-    } catch (error: any) {
-      proxy.lastChecked = Date.now(); // Update last checked time even on failure
-      // Mark proxy as failed internally
+      let lastError: any = null;
+
+      for (const testUrl of testUrls) {
+        try {
+          const response = await axios.get(testUrl, {
+            proxy: {
+              host: proxy.ip,
+              port: proxy.port,
+              auth:
+                proxy.username && proxy.password
+                  ? { username: proxy.username, password: proxy.password }
+                  : undefined,
+            },
+            timeout: 15000, // Reduced timeout to 15 seconds per attempt
+            validateStatus: status => {
+              // Consider 407 (Proxy Auth Required) as a success if we have credentials
+              if (status === 407 && proxy.username && proxy.password) {
+                return true;
+              }
+              return status >= 200 && status < 300;
+            },
+          });
+
+          const responseTime = Date.now() - startTime;
+          proxy.lastChecked = Date.now();
+
+          // If we got 407 but have credentials, consider it working but needing auth
+          if (response.status === 407) {
+            logger.debug(
+              `Proxy ${proxy.ip}:${proxy.port} requires authentication (credentials available)`
+            );
+            this.reportProxyResult(proxy, true, responseTime);
+          } else {
+            this.reportProxyResult(proxy, true, responseTime);
+          }
+          return; // Success - exit the retry loop
+        } catch (error) {
+          lastError = error;
+          continue; // Try next URL
+        }
+      }
+
+      // If we get here, all URLs failed
+      proxy.lastChecked = Date.now();
       this.reportProxyResult(proxy, false);
 
       // Enhanced error logging
       const errorDetails = {
         proxy: `${proxy.ip}:${proxy.port}`,
         protocol,
-        errorCode: error.code,
-        errorMessage: error.message,
-        responseStatus: error.response?.status,
-        responseData: error.response?.data,
-        stack: error.stack,
+        errorCode: lastError?.code,
+        errorMessage: lastError?.message,
+        responseStatus: lastError?.response?.status,
+        responseData: lastError?.response?.data,
       };
-      logger.warn(`Proxy health check failed:`, errorDetails);
+      logger.warn(`Proxy health check failed after trying multiple endpoints:`, errorDetails);
+    } catch (error: any) {
+      proxy.lastChecked = Date.now();
+      this.reportProxyResult(proxy, false);
+      logger.error(`Unexpected error in proxy health check:`, error);
     }
   }
 

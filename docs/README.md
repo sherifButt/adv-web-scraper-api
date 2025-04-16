@@ -32,41 +32,34 @@ The Advanced Web Scraper API follows a modular monolith architecture with clear 
 
 ```mermaid
 graph TD
-    Client[Client Applications] --> API[API Layer]
-    API --> Scraper[Scraper Module]
-    API --> Navigation[Navigation Module]
-    API --> Captcha[CAPTCHA Module]
-    API --> Proxy[Proxy Module]
-    API --> AI[AI Module]
-
-    Scraper --> Browser[Browser Automation]
-    Scraper --> Extraction[Data Extraction]
-    Scraper --> Storage[Data Storage]
-    
-    Navigation --> Browser
-    Navigation --> Extraction
-    
-    Captcha --> Browser
-    
-    Browser --> Human[Human Emulation]
-    Browser --> Proxy
-    AI --> LLM[(External LLM API)]
-
-    subgraph Data Storage
-        MemoryStorage[Memory Storage]
-        FileStorage[File Storage]
-        MongoDB[(MongoDB)]
-        Redis[(Redis)]
-        ApiStorage[API Storage]
-    end
-    
-    Storage --> MemoryStorage
-    Storage --> FileStorage
-    Storage --> MongoDB
-    Storage --> Redis
-    Storage --> ApiStorage
-
-    AI --> Storage # Store generated configs
+ Client[Client Applications] --> API[API Layer]
+ API --> Scraper[Scraper Module]
+ API --> Navigation[Navigation Module]
+ API --> Captcha[CAPTCHA Module]
+ API --> Proxy[Proxy Module]
+ API --> AI[AI Module]
+ Scraper --> Browser[Browser Automation]
+ Scraper --> Extraction[Data Extraction]
+ Scraper --> Storage[Data Storage]
+ Navigation --> Browser
+ Navigation --> Extraction
+ Captcha --> Browser
+ Browser --> Human[Human Emulation]
+ Browser --> Proxy
+ AI --> LLM[(External LLM API)]
+ subgraph Data_Storage[Data Storage]
+ MemoryStorage[Memory Storage]
+ FileStorage[File Storage]
+ MongoDB[(MongoDB)]
+ Redis[(Redis)]
+ ApiStorage[API Storage]
+ end
+ Storage --> MemoryStorage
+ Storage --> FileStorage
+ Storage --> MongoDB
+ Storage --> Redis
+ Storage --> ApiStorage
+ AI --> Storage
 ```
 
 ## Core Components
