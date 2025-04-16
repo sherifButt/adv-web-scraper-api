@@ -62,6 +62,9 @@ async function updateJobStatus(job: Job, state: Partial<GenerateConfigState>) {
 
 // --- Main Worker Process ---
 export async function processGenerateConfigJob(job: Job): Promise<GenerateConfigResult> {
+  if (!job.id) {
+    throw new Error('Job ID is required but was not provided');
+  }
   const { url, prompt, options: reqOptions }: GenerateConfigRequest = job.data;
   const jobId = job.id;
   logger.info(`Starting AI config generation job ${jobId} for URL: ${url}`);
