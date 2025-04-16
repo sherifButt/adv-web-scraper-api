@@ -38,6 +38,14 @@
 - `/api/v1/jobs` lists all jobs across queues.
 - `/api/v1/jobs/:id` retrieves job status and attempts to retrieve results (from storage or `job.returnvalue`).
 - `/api/v1/jobs/:id` (DELETE) cancels a job.
+- `/api/v1/ai/generate-config` queues AI config generation jobs.
+
+### AI Configuration Generation
+- Backend foundation implemented (types, service placeholder, worker, queue, API endpoint).
+- Worker includes generate-validate-test-fix loop logic.
+- Basic Zod schema validation for generated config.
+- Job status updates track generation/testing/fixing stages.
+- Cost estimation based on token usage.
 
 ## What's Left to Build
 
@@ -46,7 +54,13 @@
    - Verify storage mechanism is working reliably (pending log review).
    - Refine error handling within workers.
 
-2. **Monitoring & Management**
+2. **AI Feature Completion**
+   - Implement actual LLM API calls in `AiService` (replace placeholder).
+   - Refine prompt engineering for generation and fixing.
+   - Enhance testing logic and success criteria in `generate-config-worker.ts`.
+   - Add more detailed Zod schema validation for generated configurations.
+
+3. **Monitoring & Management**
    - Implement a dashboard or CLI tools for queue monitoring.
    - Add functionality for job prioritization adjustments.
    - Collect and expose performance metrics (job duration, failure rates).
@@ -58,9 +72,9 @@
    - Consider webhook notifications for job completion/failure.
 
 4. **Testing**
-   - Implement unit tests for core services (QueueService, StorageService, workers).
-   - Create integration tests for API endpoints, especially job submission and retrieval.
-   - Develop end-to-end tests for common navigation/scraping flows.
+   - Implement unit tests for core services (QueueService, StorageService, AiService, workers).
+   - Create integration tests for API endpoints, including AI generation and job status retrieval.
+   - Develop end-to-end tests for common navigation/scraping flows and AI generation scenarios.
 
 ## Updated Implementation Plan
 
@@ -74,8 +88,18 @@
 - [ ] Performance optimization (concurrency, resource limits)
 - [ ] Monitoring implementation
 
+### Phase 8: AI Integration & Refinement (Next)
+- [x] AI config generation backend foundation (API, Queue, Worker, Service Placeholder)
+- [ ] Implement actual LLM API calls in `AiService`.
+- [ ] Refine AI prompts and test/fix loop in `generate-config-worker`.
+- [ ] Add detailed Zod schema validation for AI output.
+- [ ] Implement unit and integration tests for AI feature.
+- [ ] Document AI feature (`docs/ai/README.md`, update main README/API docs).
+
 ## Documentation Updates Needed
 - [x] Add queue system architecture to `systemPatterns.md` (Done previously)
 - [x] Update API documentation (`docs/api/queue-system.md`) for job status response fields and result retrieval logic.
-- [x] Update worker implementation details in `techContext.md`.
-- [ ] Update `docs/README.md` Table of Contents if necessary.
+- [x] Update worker implementation details in `techContext.md` (Added AI worker details).
+- [ ] Update `docs/README.md` Table of Contents (Add AI section).
+- [ ] Create `docs/ai/README.md` (or similar) for AI feature documentation.
+- [ ] Update `docs/api/README.md` (or create `docs/api/ai-api.md`) with AI endpoint details.

@@ -59,6 +59,15 @@ graph TD
    - Manage browser state
    - Process pagination
 
+3. **AI Config Generation Jobs**
+   - Receive URL and natural language prompt.
+   - Interact with an AI model (LLM) to generate initial configuration.
+   - Validate the generated configuration schema.
+   - (Optional) Test the configuration using the Navigation Engine.
+   - If testing fails, interact with the AI model again to fix the configuration based on errors.
+   - Repeat test/fix loop up to a maximum number of iterations.
+   - Store the final validated (and potentially tested) configuration.
+
 ### Error Handling
 - Automatic retries for transient failures
 - Exponential backoff for rate limits
@@ -82,3 +91,65 @@ graph TD
    - Job processing times
    - Failure rates and patterns
    - Resource utilization
+
+## AI Configuration Generation Flow
+
+```mermaid
+graph TD
+    Client[Client/UI] -->|POST /api/v1/ai/generate-config (URL, Prompt)| API[API Server]
+    API -->|Add Job 'generate-config'| RedisQueue[(Redis Queue)]
+    RedisQueue --> GenWorker[Generate Config Worker]
+
+    subgraph GenWorker Logic
+        direction TB
+        Start --> Init[Initialize (Iter=0, Status='Initializing')]
+        Init --> FetchPage[Fetch Page (Optional)]
+        FetchPage --> LoopStart{Iter < MaxIter?}
+        LoopStart -- Yes --> BuildPrompt[Build LLM Prompt (Initial/Fix)]
+        BuildPrompt --> CallLLM[Call LLM API (Track Tokens/Cost)]
+        CallLLM --> ParseValidate[Parse & Validate Schema]
+        ParseValidate -- Invalid --> HandleValidationError[Log Error, Set lastError/lastConfig, Status='Validation Failed']
+        HandleValidationError --> LoopEnd[Increment Iter]
+        ParseValidate -- Valid --> TestCheck{Test Config Enabled?}
+        TestCheck -- No --> StoreResult[Store Config (StorageService)]
+        TestCheck -- Yes --> TestConfig[Execute Config w/ NavEngine (Status='Testing')]
+        TestConfig --> Evaluate{Test Successful?}
+        Evaluate -- Yes --> StoreResult
+        Evaluate -- No --> HandleTestFailure[Log Error, Set lastError/lastConfig, Status='Test Failed']
+        HandleTestFailure --> LoopEnd
+        StoreResult --> Success[End Job (Status='Completed')]
+        LoopEnd --> LoopStart
+        LoopStart -- No --> MaxIterFailure[End Job (Status='Failed - Max Iterations')]
+        CallLLM -- API Error --> HandleGenericError[Log Error, Set lastError]
+        FetchPage -- Error --> HandleGenericError
+        HandleGenericError --> Failure[End Job (Failed)]
+    end
+
+    GenWorker --> Storage[(Storage Service)]
+    GenWorker -- Update Status/Data --> RedisJobUpdate[Update Job Status/Data (Redis)]
+
+    Client -->|GET /api/v1/jobs/:jobId| API
+    API -->|Get Job State, Progress, Result| RedisQueue
+    API -->|Get Result (Primary)| Storage
+    Storage -->|Result| API
+    RedisQueue -->|Result (Fallback)| API
+    API -->|Return Config JSON / Status / Progress / Cost| Client
+```
+
+### AI Generation Components
+1.  **API Endpoint (`/api/v1/ai/generate-config`)**: Receives URL and prompt, queues a `generate-config` job.
+2.  **Queue (`config-generation-jobs`)**: Holds pending generation tasks.
+3.  **Worker (`generate-config-worker.ts`)**:
+    *   Orchestrates the generation process.
+    *   Calls `AiService` for LLM interaction.
+    *   Validates the generated JSON schema using Zod.
+    *   Optionally calls `NavigationEngine` to test the generated config.
+    *   Enters a fix loop if testing fails, providing errors back to `AiService`.
+    *   Updates job status and progress frequently.
+    *   Stores the final successful config using `StorageService`.
+4.  **AI Service (`ai-service.ts`)**:
+    *   Builds prompts for initial generation and fixing.
+    *   Interacts with the configured LLM API (placeholder currently).
+    *   Parses the LLM response.
+    *   Tracks token usage and calculates estimated cost.
+5.  **Job Status (`/api/v1/jobs/:id`)**: Allows clients to poll for the status (`pending`, `generating`, `testing`, `fixing`, `completed`, `failed`), progress, cost, and final result (the generated config).

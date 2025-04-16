@@ -69,7 +69,7 @@ The project has progressed from planning to implementation. Recent activities in
    - Created directory structure following the planned architecture
    - Implemented type definitions for core components
 
-2. **Core Component Implementation**
+3. **Core Component Implementation**
    - Implemented browser automation module with Playwright
    - Created human behavior emulation with realistic patterns
    - Developed CAPTCHA detection for multiple CAPTCHA types
@@ -77,7 +77,7 @@ The project has progressed from planning to implementation. Recent activities in
    - Implemented initial navigation engine for multi-step flows
    - **Refactored Navigation Engine:** Migrated step execution logic into individual handler classes (Strategy pattern) managed by a `StepHandlerFactory`. This improves modularity and extensibility.
 
-3. **API Implementation**
+4. **API Implementation**
    - Set up Express.js server with middleware
    - Created API routes for core functionality
    - Implemented navigation routes connected to the navigation engine
@@ -91,6 +91,15 @@ The project has progressed from planning to implementation. Recent activities in
    - Adjusted `QueueService` to handle worker functions returning values.
    - **Fixed Proxy Integration in Worker**: Updated `navigation-worker.ts` to correctly fetch a proxy from `ProxyManager` (if enabled) and pass it to `BrowserPool` when requesting a browser instance. This ensures navigation jobs use the configured proxies.
 
+5. **AI Configuration Generation (Backend Foundation)**
+   - Created types for AI generation requests, options, status, and results (`src/types/ai-generation.types.ts`).
+   - Added AI configuration section to main config (`src/config/index.ts`).
+   - Implemented `AiService` (`src/core/ai/ai-service.ts`) with placeholder LLM interaction logic, prompt building, and cost calculation.
+   - Implemented `generate-config-worker.ts` (`src/core/queue/`) to handle asynchronous job processing, including the generate-validate-test-fix loop and status updates.
+   - Integrated the new `config-generation-jobs` queue and worker into `QueueService` (`src/core/queue/queue-service.ts`).
+   - Created the `POST /api/v1/ai/generate-config` endpoint (`src/api/routes/ai.routes.ts`).
+   - Mounted the AI routes in the main API router (`src/api/routes/index.ts`).
+
 ## Next Steps
 
 The immediate next steps for the project are:
@@ -103,20 +112,27 @@ The immediate next steps for the project are:
     *   Implement the worker process for handling scraping jobs queued via `/api/v1/scrape`.
     *   Ensure scraping results are stored and retrieved similarly to navigation jobs.
 
-3.  **API Completion**:
-    *   Add request validation (e.g., using Zod).
+3.  **AI Feature Completion**:
+    *   Implement actual LLM API calls in `AiService` (replace placeholder).
+    *   Refine prompt engineering for better configuration generation and fixing.
+    *   Refine the testing logic and success criteria within `generate-config-worker.ts`.
+    *   Add more robust schema validation (Zod) for generated configurations.
+
+4.  **API Completion**:
+    *   Add request validation (e.g., using Zod) for all endpoints, including AI generation.
     *   Implement consistent response formatting and pagination.
     *   Add rate limiting.
 
-4.  **Testing and Validation**:
-    *   Implement unit tests for `QueueService`, `StorageService`, and worker functions.
-    *   Create integration tests for job submission (`/navigate`, `/scrape`) and status retrieval (`/jobs/:id`).
-    *   Develop end-to-end tests for representative scraping scenarios.
+5.  **Testing and Validation**:
+    *   Implement unit tests for `QueueService`, `StorageService`, `AiService`, and worker functions.
+    *   Create integration tests for job submission (`/navigate`, `/scrape`, `/ai/generate-config`) and status retrieval (`/jobs/:id`).
+    *   Develop end-to-end tests for representative scraping scenarios, including AI generation.
 
-5.  **Documentation**:
+6.  **Documentation**:
     *   Update `docs/api/queue-system.md` with final details on job status response and result retrieval.
-    *   Update `techContext.md` with worker implementation details.
-    *   Ensure `docs/README.md` is up-to-date.
+    *   Update `techContext.md` with worker implementation details (including AI worker).
+    *   Create documentation for the AI configuration generation feature (`docs/ai/README.md` or similar).
+    *   Update `docs/README.md` Table of Contents.
 
 ## Active Decisions and Considerations
 
@@ -131,16 +147,16 @@ Several key decisions have been implemented, while others are being refined:
      - Transformation pipeline for data cleaning
    - **Refinement Needed**: None - Storage adapters fully implemented
 
-1. **Browser Automation Implementation**
+2. **Browser Automation Implementation**
    - **Decision**: Playwright implementation with browser pool
-   - **Current Status**: 
+   - **Current Status**:
      - Browser pool management implemented
      - Context isolation working as expected
      - Support for different browser types added
      - Resource management functioning properly
    - **Refinement Needed**: Better error handling for browser crashes
 
-2. **CAPTCHA Solving Implementation**
+3. **CAPTCHA Solving Implementation**
    - **Decision**: Multi-strategy approach with framework
    - **Current Status**:
      - CAPTCHA detection for multiple types implemented
@@ -149,7 +165,7 @@ Several key decisions have been implemented, while others are being refined:
      - Basic solving capabilities implemented
    - **Refinement Needed**: Complete external service integration and audio solving
 
-3. **Human Emulation Implementation**
+4. **Human Emulation Implementation**
    - **Decision**: Sophisticated behavior patterns
    - **Current Status**:
      - Bezier curves for mouse movements implemented
@@ -158,7 +174,7 @@ Several key decisions have been implemented, while others are being refined:
      - Configurable behavior profiles added
    - **Refinement Needed**: More randomization in timing patterns
 
-4. **Proxy Management Implementation**
+5. **Proxy Management Implementation**
    - **Decision**: Comprehensive proxy management system using detailed JSON source.
    - **Current Status**:
      - Proxy loading from `proxies.json` implemented.
@@ -168,6 +184,11 @@ Several key decisions have been implemented, while others are being refined:
      - Health checking and proxy rotation logic updated.
      - Session-based proxy assignment working.
    - **Refinement Needed**: Consider adding more proxy sources (API); further refine error recovery and health checking heuristics.
+
+6. **AI Configuration Generation**
+   - **Decision**: Use LLM via API call within an asynchronous worker, implement iterative test-and-fix loop.
+   - **Current Status**: Backend foundation implemented (types, service placeholder, worker, queue, API endpoint). Uses Zod for basic schema validation. Iterative loop logic is in place.
+   - **Refinement Needed**: Implement actual LLM API calls. Improve prompt engineering. Enhance testing logic and success criteria within the worker. Add more detailed Zod schema validation.
 
 ## Important Patterns and Preferences
 
@@ -236,6 +257,12 @@ As implementation has progressed, we've gained several insights:
    - Type safety is crucial for complex extraction configurations
    - Browser context isolation is important for reliable extraction
 
+6. **AI Integration** (New)
+   - Prompt engineering is critical for consistent and accurate JSON output from LLMs.
+   - Iterative testing and fixing loops are necessary to handle potential AI errors or suboptimal configurations.
+   - Schema validation (like Zod) is essential for verifying AI output structure.
+   - Managing state (last config, last error) within the worker job data is crucial for the fixing loop.
+
 ## Open Questions
 
 As implementation progresses, several questions need to be addressed:
@@ -265,11 +292,17 @@ As implementation progresses, several questions need to be addressed:
    - What is the most effective approach for testing browser automation? (Needs definition)
    - How can we simulate various CAPTCHA scenarios for testing? (Needs definition)
    - What metrics should we use to evaluate human emulation effectiveness? (Needs definition)
+   - How can the AI-generated config testing be made more robust (beyond basic error/data checks)?
 
 5. **Job Result Handling**
    - **Decision**: Retrieve results first from `StorageService`, fallback to `job.returnvalue`.
    - **Status**: Implemented in `/api/v1/jobs/:id`. Logging added to verify flow. Worker now explicitly returns results.
    - **Refinement Needed**: Confirm reliability based on log analysis. Decide on error handling if both methods fail.
+
+6. **AI Generation Refinement**
+    - Which LLM provides the best balance of cost and accuracy for config generation?
+    - How can prompt engineering be improved to handle more complex scraping scenarios?
+    - What are the best strategies for evaluating the success of an AI-generated test run?
 
 ## Current Blockers
 
@@ -279,6 +312,7 @@ Current implementation challenges include:
 2.  **Testing Infrastructure**: Lack of tests makes verifying changes difficult and regression-prone. Unit and integration tests are needed urgently.
 3.  **Scraping Worker**: The worker for handling `/api/v1/scrape` jobs is not yet implemented.
 4.  **CAPTCHA Solving Completion**: External service integration and advanced techniques are pending.
-5.  **ESLint/TypeScript Issues**: Minor formatting and type issues still need cleanup.
+5.  **AI Service Implementation**: Placeholder logic in `AiService` needs replacement with actual LLM API calls.
+6.  **ESLint/TypeScript Issues**: Minor formatting and type issues still need cleanup (some persistent issues in worker files).
 
 *Note: This document will be regularly updated as implementation progresses and new insights emerge.*

@@ -2,6 +2,7 @@ import { Queue, Worker, QueueEvents, Job } from 'bullmq';
 import { redisConnection } from '../config/redis.js';
 import { logger } from '../../utils/logger.js';
 import { processNavigationJob } from './navigation-worker.js';
+import { processGenerateConfigJob } from './generate-config-worker.js'; // Import the new worker process
 
 export class QueueService {
   private queues: Record<string, Queue> = {};
@@ -40,6 +41,15 @@ export class QueueService {
 
     // Create worker for navigation jobs
     this.createWorker('navigation-jobs', processNavigationJob);
+
+    // Create queue and worker for AI config generation jobs
+    this.createQueue('config-generation-jobs', {
+      defaultJobOptions: {
+        attempts: 1, // Config generation might be less critical to retry automatically
+        timeout: 300000, // Allow 5 minutes for generation + testing
+      },
+    });
+    this.createWorker('config-generation-jobs', processGenerateConfigJob);
   }
 
   public createQueue(name: string, options: any = {}) {

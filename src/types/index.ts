@@ -200,3 +200,6 @@ export * from './extraction.types.js';
 // Export navigation types
 export * from '../navigation/types/navigation.types.js';
 export * from '../navigation/types/step-handler.interface.js';
+
+// Export AI generation types
+export * from './ai-generation.types.js';

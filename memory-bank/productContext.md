@@ -16,13 +16,13 @@ The Advanced Web Scraper API was conceived to address significant challenges in 
 
 ## Problems It Solves
 
-1. **Technical Complexity Reduction**: Abstracts away the complexities of browser automation, JavaScript rendering, and DOM traversal behind a clean API.
+1. **Technical Complexity Reduction**: Abstracts away the complexities of browser automation, JavaScript rendering, and DOM traversal behind a clean API. Provides AI-powered tools to generate scraping configurations from natural language, further lowering the technical barrier.
 
 2. **Reliability Improvement**: Implements robust error handling, retry mechanisms, and fallback strategies to ensure consistent data extraction even from unstable sources.
 
 3. **Performance Optimization**: Provides efficient resource utilization and parallel processing capabilities to handle large-scale scraping tasks.
 
-4. **Maintenance Simplification**: Offers tools and patterns that make scraper maintenance and adaptation to website changes more manageable.
+4. **Maintenance Simplification**: Offers tools and patterns that make scraper maintenance and adaptation to website changes more manageable. AI generation can potentially help adapt configurations more quickly.
 
 5. **Compliance Facilitation**: Builds in features that encourage ethical scraping practices, such as respecting robots.txt, rate limiting, and proper identification.
 
@@ -30,7 +30,7 @@ The Advanced Web Scraper API was conceived to address significant challenges in 
 
 The Advanced Web Scraper API follows these core operational principles:
 
-1. **Configuration-Driven**: Users define what data they want and how to extract it through declarative configurations rather than imperative code.
+1. **Configuration-Driven**: Users define what data they want and how to extract it through declarative configurations. Alternatively, users can provide a URL and natural language prompt to have the configuration generated automatically via AI.
 
 2. **Pipeline Architecture**: Data extraction follows a clear pipeline: request → render → extract → transform → store.
 
@@ -56,7 +56,9 @@ The Advanced Web Scraper API follows these core operational principles:
 
 6. **Guided Optimization**: Offers recommendations and insights for improving scraping performance and reliability.
 
-7. **Ethical Guardrails**: Encourages responsible usage through built-in rate limiting, respect for robots.txt, and other ethical scraping practices.
+7. **Simplified Configuration**: AI-powered generation simplifies the process of creating complex scraping configurations.
+
+8. **Ethical Guardrails**: Encourages responsible usage through built-in rate limiting, respect for robots.txt, and other ethical scraping practices.
 
 ## Target Users
 

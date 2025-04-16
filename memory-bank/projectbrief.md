@@ -26,6 +26,7 @@ The Advanced Web Scraper API (adv-web-scraper-api) is a robust and flexible API 
    - Session management and cookie handling
    - Rate limiting and request throttling
    - CAPTCHA solving integration
+   - **AI-Powered Configuration Generation**: Generate scraping configurations from natural language prompts.
 
 5. **Developer Experience**
    - Clean, intuitive API design
@@ -42,7 +43,7 @@ The Advanced Web Scraper API (adv-web-scraper-api) is a robust and flexible API 
 
 1. Create a versatile web scraping solution that can handle a wide range of websites and use cases
 2. Provide superior performance compared to existing scraping libraries
-3. Offer a developer-friendly API that simplifies complex scraping tasks
+3. Offer a developer-friendly API that simplifies complex scraping tasks, including AI-driven configuration generation.
 4. Ensure reliability and stability for production use cases
 5. Support ethical scraping practices and compliance with website terms of service
 

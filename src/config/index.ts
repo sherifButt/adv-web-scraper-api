@@ -76,6 +76,10 @@ interface LoggingConfig {
   file: string | null;
 }
 
+interface AiConfig {
+  apiKey: string | null;
+}
+
 interface Config {
   environment: string;
   server: ServerConfig;
@@ -86,6 +90,7 @@ interface Config {
   captcha: CaptchaConfig;
   proxy: ProxyConfig;
   logging: LoggingConfig;
+  ai?: AiConfig; // Add optional AI config
 }
 
 export const config: Config = {
@@ -166,5 +171,8 @@ export const config: Config = {
   logging: {
     level: process.env.LOG_LEVEL || 'info',
     file: process.env.LOG_FILE || null,
+  },
+  ai: {
+    apiKey: process.env.OPENAI_API_KEY || null,
   },
 };

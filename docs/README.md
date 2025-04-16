@@ -13,12 +13,14 @@ Welcome to the Advanced Web Scraper API documentation. This documentation provid
 - [Extraction Module](extraction/README.md): Documentation for data extraction strategies.
   - [Regex Extraction](extraction/regex-extraction.md): Using regular expressions for extraction.
 - [Storage Module](storage/README.md): Documentation for the storage module, including adapters.
- - [Session Management](sessions/session-management.md): Managing persistent scraping sessions.
-   - [Browser Configuration](sessions/browser-configuration.md): Configuring browser settings for sessions.
-   - [Proxy Configuration](sessions/proxy-configuration.md): Configuring and using proxies.
-   - [Storage Adapters Comparison](sessions/storage-adapters.md): Comparing session storage options.
- - [Deployment Guides](deployment.md): General deployment instructions using Docker.
-   - [Coolify Deployment](coolify-deployment.md): Specific guide for deploying with Coolify.
+- [Session Management](sessions/session-management.md): Managing persistent scraping sessions.
+  - [Browser Configuration](sessions/browser-configuration.md): Configuring browser settings for sessions.
+  - [Proxy Configuration](sessions/proxy-configuration.md): Configuring and using proxies.
+  - [Storage Adapters Comparison](sessions/storage-adapters.md): Comparing session storage options.
+- [AI Features](ai/README.md): Documentation for AI-powered capabilities.
+  - [AI Configuration Generation](ai/README.md): Generating configurations from prompts.
+- [Deployment Guides](deployment.md): General deployment instructions using Docker.
+  - [Coolify Deployment](coolify-deployment.md): Specific guide for deploying with Coolify.
 - [Configuration](configuration.md): Configuration options and environment variables (coming soon).
 - [Examples](examples.md): Examples of common use cases (coming soon).
 
@@ -35,7 +37,8 @@ graph TD
     API --> Navigation[Navigation Module]
     API --> Captcha[CAPTCHA Module]
     API --> Proxy[Proxy Module]
-    
+    API --> AI[AI Module]
+
     Scraper --> Browser[Browser Automation]
     Scraper --> Extraction[Data Extraction]
     Scraper --> Storage[Data Storage]
@@ -47,7 +50,8 @@ graph TD
     
     Browser --> Human[Human Emulation]
     Browser --> Proxy
-    
+    AI --> LLM[(External LLM API)]
+
     subgraph Data Storage
         MemoryStorage[Memory Storage]
         FileStorage[File Storage]
@@ -61,6 +65,8 @@ graph TD
     Storage --> MongoDB
     Storage --> Redis
     Storage --> ApiStorage
+
+    AI --> Storage # Store generated configs
 ```
 
 ## Core Components
@@ -84,6 +90,8 @@ The Advanced Web Scraper API consists of the following core components:
 8. **Data Extraction**: Implements various selector strategies, extracts structured data from pages, transforms and cleans extracted data, and validates against schemas.
 
 9. **Data Storage**: Provides a flexible and extensible system for storing, retrieving, updating, and deleting extraction results, with support for multiple storage destinations.
+
+10. **AI Module**: (New) Handles interactions with Large Language Models (LLMs) to provide features like configuration generation from natural language prompts.
 
 ## Getting Started
 

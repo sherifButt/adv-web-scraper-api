@@ -5,6 +5,7 @@ import { proxyRoutes } from './proxy.routes.js';
 import { navigationRoutes } from './navigation.routes.js';
 import { sessionRoutes } from './session.routes.js';
 import { jobRoutes } from './job.routes.js';
+import { aiRoutes } from './ai.routes.js'; // Import AI routes
 
 // Create router
 const router = Router();
@@ -21,5 +22,6 @@ router.use('/proxy', proxyRoutes);
 router.use('/navigate', navigationRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/jobs', jobRoutes);
+router.use('/ai', aiRoutes); // Mount AI routes
 
 export const apiRoutes = router;

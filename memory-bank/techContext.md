@@ -34,6 +34,11 @@ interface QueueConfig {
       concurrency: number;
       priority: number;
     };
+    // Added config generation queue
+    configGeneration: {
+        concurrency: number; // Lower concurrency for potentially long-running AI tasks
+        timeout: number; // Longer timeout
+    };
   };
 }
 ```
@@ -107,13 +112,83 @@ const workerOptions = {
 // Queue service usage in API routes
 router.post('/scrape', async (req, res) => {
   const job = await queueService.addJob('scraping-jobs', 'extract-data', req.body);
-  
+
   res.status(202).json({
     jobId: job.id,
     statusUrl: `/jobs/${job.id}`
   });
 });
 ```
+
+## AI Configuration Generation Implementation
+
+### Core Technologies & Libraries
+- **Node.js**: Runtime environment
+- **TypeScript**: Programming language
+- **BullMQ**: Queue management for asynchronous job processing
+- **Redis**: Backend for BullMQ
+- **Zod**: Schema declaration and validation (used for validating generated config)
+- **Playwright**: Used by the worker to test the generated configuration
+- **LLM API Client**: (Placeholder) Client library for interacting with the chosen Large Language Model (e.g., OpenAI SDK). Requires API key (`OPENAI_API_KEY` environment variable).
+
+### Configuration (`src/config/index.ts`)
+```typescript
+// Added AI configuration section
+interface AiConfig {
+  apiKey: string | null;
+}
+
+interface Config {
+  // ... other config sections
+  ai?: AiConfig;
+}
+
+export const config: Config = {
+  // ... other config values
+  ai: {
+    apiKey: process.env.OPENAI_API_KEY || null,
+  },
+};
+```
+
+### Service (`src/core/ai/ai-service.ts`)
+- Implemented as a Singleton (`AiService.getInstance()`).
+- Reads API key from configuration/environment.
+- **`generateConfiguration()`**: Builds initial prompt (system + user context including URL, prompt, optional HTML), calls LLM API (placeholder), parses JSON response, returns config and token usage.
+- **`fixConfiguration()`**: Builds fixing prompt (system + user context including URL, original prompt, previous failed config, error log), calls LLM API (placeholder), parses JSON response, returns corrected config and token usage.
+- **`calculateCost()`**: Calculates estimated cost based on tokens used and model pricing.
+- Contains detailed system prompts defining the required JSON output structure and rules for the LLM.
+
+### Worker (`src/core/queue/generate-config-worker.ts`)
+- **`processGenerateConfigJob(job)`**: The main processor function for the `config-generation-jobs` queue.
+- **Orchestration**: Manages the overall generate-test-fix loop.
+- **State Management**: Tracks iteration count, token usage, cost, status messages, last config, and last error within the job data. Uses `job.updateData()` and `job.updateProgress()` frequently.
+- **AI Interaction**: Calls `AiService.generateConfiguration()` or `AiService.fixConfiguration()`.
+- **Schema Validation**: Uses Zod (`ScrapingConfigSchema`) to validate the basic structure of the JSON returned by the AI. If validation fails, logs the error and proceeds to the next fix iteration.
+- **Testing (Optional)**: If `testConfig` option is true:
+    - Launches a browser using `BrowserPool` (potentially with proxy).
+    - Creates a `NavigationEngine` instance.
+    - Executes the generated configuration using `navigationEngine.executeFlow()`.
+    - Evaluates the result (checks for errors, basic data presence).
+    - If the test fails, captures the error log for the next fix iteration.
+- **Loop Control**: Continues iterating (up to `maxIterations`) if validation or testing fails. Exits successfully if testing passes or is disabled. Throws an error if max iterations are reached.
+- **Result Storage**: Stores the final, successful configuration using `StorageService`.
+
+### Queue (`src/core/queue/queue-service.ts`)
+- A new queue named `config-generation-jobs` is created.
+- The `processGenerateConfigJob` worker is registered to process jobs from this queue.
+- Default job options include a longer timeout (e.g., 5 minutes) and potentially fewer retry attempts compared to navigation jobs.
+
+### API Integration (`src/api/routes/ai.routes.ts`)
+- New route file created.
+- **`POST /api/v1/ai/generate-config`**:
+    - Accepts `url` (string) and `prompt` (string) in the request body, along with optional `options`.
+    - Performs basic validation on `url` and `prompt`.
+    - Adds a job to the `config-generation-jobs` queue via `QueueService`.
+    - Returns a standard 202 Accepted response with the `jobId` and `statusUrl` (`/api/v1/jobs/:jobId`).
+
+### API Router (`src/api/routes/index.ts`)
+- The `aiRoutes` router is mounted under the `/api/v1/ai` path.
 
 ## Monitoring and Management
 
@@ -131,7 +206,7 @@ npm run queue:monitor
 # Pause processing
 npm run queue:pause scraping-jobs
 
-# Resume processing  
+# Resume processing
 npm run queue:resume scraping-jobs
 
 # Clean completed jobs
