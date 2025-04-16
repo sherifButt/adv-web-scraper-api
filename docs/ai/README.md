@@ -33,44 +33,44 @@ The AI configuration generation process works asynchronously using the API's que
 
 ```mermaid
 graph TD
-    Client[Client/UI] -->|POST /api/v1/ai/generate-config (URL, Prompt)| API[API Server]
-    API -->|Add Job 'generate-config'| RedisQueue[(Redis Queue)]
+    Client[Client/UI] -->|POST /api/v1/ai/generate-config| API[API Server]
+    API -->|Add Job generate-config| RedisQueue[(Redis Queue)]
     RedisQueue --> GenWorker[Generate Config Worker]
 
-    subgraph GenWorker Logic
+    subgraph GenWorker[Generate Config Worker Process]
         direction TB
-        Start --> Init[Initialize (Iter=0, Status='Initializing')]
-        Init --> FetchPage[Fetch Page (Optional)]
-        FetchPage --> LoopStart{Iter < MaxIter?}
-        LoopStart -- Yes --> BuildPrompt[Build LLM Prompt (Initial/Fix)]
-        BuildPrompt --> CallLLM[Call LLM API (Track Tokens/Cost)]
+        Start --> Init[Initialize]
+        Init --> FetchPage[Fetch Page]
+        FetchPage --> LoopStart{Iteration < MaxAttempts?}
+        LoopStart -- Yes --> BuildPrompt[Build LLM Prompt]
+        BuildPrompt --> CallLLM[Call LLM API]
         CallLLM --> ParseValidate[Parse & Validate Schema]
-        ParseValidate -- Invalid --> HandleValidationError[Log Error, Set lastError/lastConfig, Status='Validation Failed']
-        HandleValidationError --> LoopEnd[Increment Iter]
-        ParseValidate -- Valid --> TestCheck{Test Config Enabled?}
-        TestCheck -- No --> StoreResult[Store Config (StorageService)]
-        TestCheck -- Yes --> TestConfig[Execute Config w/ NavEngine (Status='Testing')]
+        ParseValidate -- Invalid --> HandleValidationError[Log Validation Error]
+        HandleValidationError --> LoopEnd[Increment Iteration]
+        ParseValidate -- Valid --> TestCheck{Test Enabled?}
+        TestCheck -- No --> StoreResult[Store Config]
+        TestCheck -- Yes --> TestConfig[Test Config with NavEngine]
         TestConfig --> Evaluate{Test Successful?}
         Evaluate -- Yes --> StoreResult
-        Evaluate -- No --> HandleTestFailure[Log Error, Set lastError/lastConfig, Status='Test Failed']
+        Evaluate -- No --> HandleTestFailure[Log Test Failure]
         HandleTestFailure --> LoopEnd
-        StoreResult --> Success[End Job (Status='Completed')]
+        StoreResult --> Success[Mark Job Completed]
         LoopEnd --> LoopStart
-        LoopStart -- No --> MaxIterFailure[End Job (Status='Failed - Max Iterations')]
-        CallLLM -- API Error --> HandleGenericError[Log Error, Set lastError]
+        LoopStart -- No --> MaxIterFailure[Max Attempts Reached]
+        CallLLM -- API Error --> HandleGenericError[Log Error]
         FetchPage -- Error --> HandleGenericError
-        HandleGenericError --> Failure[End Job (Failed)]
+        HandleGenericError --> Failure[Mark Job Failed]
     end
 
     GenWorker --> Storage[(Storage Service)]
-    GenWorker -- Update Status/Data --> RedisJobUpdate[Update Job Status/Data (Redis)]
+    GenWorker -- Update Status --> RedisJobUpdate[Update Job Status]
 
     Client -->|GET /api/v1/jobs/:jobId| API
-    API -->|Get Job State, Progress, Result| RedisQueue
-    API -->|Get Result (Primary)| Storage
+    API -->|Get Job State| RedisQueue
+    API -->|Get Result Primary| Storage
     Storage -->|Result| API
-    RedisQueue -->|Result (Fallback)| API
-    API -->|Return Config JSON / Status / Progress / Cost| Client
+    RedisQueue -->|Result Fallback| API
+    API -->|Return Results| Client
 ```
 
 ### API Usage
