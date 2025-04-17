@@ -167,8 +167,14 @@ graph TD
     *   Updates job status and progress frequently.
     *   Stores the final successful config using `StorageService`.
 4.  **AI Service (`ai-service.ts`)**:
+    *   Uses adapter pattern to support multiple LLM providers (OpenAI, DeepSeek)
     *   Builds prompts for initial generation and fixing.
-    *   Interacts with the configured LLM API (placeholder currently).
+    *   Routes requests to appropriate LLM adapter based on model selection.
     *   Parses the LLM response.
-    *   Tracks token usage and calculates estimated cost.
-5.  **Job Status (`/api/v1/jobs/:id`)**: Allows clients to poll for the status (`pending`, `generating`, `testing`, `fixing`, `completed`, `failed`), progress, cost, and final result (the generated config).
+    *   Tracks token usage and calculates estimated cost for all supported models.
+5.  **LLM Adapters**:
+    *   Standardized interface (`llm-adapter.interface.ts`)
+    *   OpenAI adapter for GPT models
+    *   DeepSeek adapter for DeepSeek models
+    *   Handles provider-specific API calls and response formats
+6.  **Job Status (`/api/v1/jobs/:id`)**: Allows clients to poll for the status (`pending`, `generating`, `testing`, `fixing`, `completed`, `failed`), progress, cost, and final result (the generated config).

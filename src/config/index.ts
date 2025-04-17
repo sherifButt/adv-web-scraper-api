@@ -77,7 +77,12 @@ interface LoggingConfig {
 }
 
 interface AiConfig {
-  apiKey: string | null;
+  openai?: {
+    apiKey: string;
+  };
+  deepseek?: {
+    apiKey: string;
+  };
 }
 
 interface Config {
@@ -173,6 +178,11 @@ export const config: Config = {
     file: process.env.LOG_FILE || null,
   },
   ai: {
-    apiKey: process.env.OPENAI_API_KEY || null,
+    openai: {
+      apiKey: process.env.OPENAI_API_KEY || '',
+    },
+    deepseek: {
+      apiKey: process.env.DEEPSEEK_API_KEY || '',
+    },
   },
 };

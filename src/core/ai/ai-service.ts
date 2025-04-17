@@ -8,25 +8,45 @@ import {
 } from '../../types/ai-generation.types.js';
 import { NavigationStep } from '../../types/index.js'; // Import NavigationStep
 
-// Placeholder for actual AI SDK client (e.g., OpenAI)
-// import OpenAI from 'openai';
+import { OpenAI } from 'openai';
+import { DeepSeekAdapter } from './llm-adapters/deepseek.adapter.js';
+import { OpenAIAdapter } from './llm-adapters/openai.adapter.js';
+import type { LLMAdapter } from './llm-adapters/llm-adapter.interface.js';
 
 export class AiService {
   private static instance: AiService;
-  // private openai: OpenAI; // Placeholder for the actual client
+  private defaultModel = 'gpt-4o-mini';
+
+  private adapters: Map<string, LLMAdapter> = new Map();
 
   private constructor() {
-    // Initialize the AI client (e.g., OpenAI)
-    // This requires an API key, typically from environment variables
-    const apiKey = config.ai?.apiKey || process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      logger.warn('AI Service: API key not found. AI generation will not work.');
-      // Handle the absence of API key appropriately, maybe throw an error
-      // or disable AI features gracefully. For now, we'll allow it but log a warning.
-      // this.openai = null; // Or some indicator that the client is not available
-    } else {
-      // this.openai = new OpenAI({ apiKey });
-      logger.info('AI Service initialized.'); // Placeholder log
+    this.initializeAdapters();
+  }
+
+  private initializeAdapters() {
+    // Initialize OpenAI GPT-4 Mini adapter
+    const gpt4miniKey = config.ai?.openai?.apiKey || process.env.OPENAI_API_KEY;
+    if (gpt4miniKey) {
+      this.adapters.set('gpt-4o-mini', new OpenAIAdapter(gpt4miniKey));
+      logger.info('Initialized OpenAI GPT-4 Mini adapter');
+    }
+
+    // Initialize DeepSeek Reasoning adapter
+    const deepseekKey = config.ai?.deepseek?.apiKey || process.env.DEEPSEEK_API_KEY;
+    if (deepseekKey) {
+      this.adapters.set('deepseek-reasoning', new DeepSeekAdapter(deepseekKey));
+      logger.info('Initialized DeepSeek Reasoning adapter');
+    }
+
+    // Initialize OpenAI adapter (fallback)
+    const openaiKey = config.ai?.openai?.apiKey || process.env.OPENAI_API_KEY;
+    if (openaiKey) {
+      this.adapters.set('openai', new OpenAIAdapter(openaiKey));
+      logger.info('Initialized OpenAI adapter');
+    }
+
+    if (this.adapters.size === 0) {
+      logger.warn('No AI adapters initialized - API keys missing');
     }
   }
 
@@ -189,58 +209,24 @@ Generate the corrected JSON configuration:`;
     userPrompt: string,
     options: Required<GenerateConfigOptions>
   ): Promise<AiModelResponse> {
-    logger.info(`Calling AI model (${options.model})`);
-    // Placeholder implementation - Replace with actual OpenAI API call
-    // if (!this.openai) {
-    //   throw new Error('AI Service client is not initialized. Cannot call AI model.');
-    // }
+    const adapter = this.adapters.get(options.model);
+    if (!adapter) {
+      throw new Error(`No adapter available for model: ${options.model}`);
+    }
 
     try {
-      // const response = await this.openai.chat.completions.create({
-      //   model: options.model,
-      //   messages: [
-      //     { role: 'system', content: systemPrompt },
-      //     { role: 'user', content: userPrompt },
-      //   ],
-      //   max_tokens: options.maxTokens,
-      //   temperature: options.temperature,
-      //   response_format: { type: 'json_object' }, // Request JSON output if supported
-      // });
-
-      // const generatedJsonString = response.choices[0]?.message?.content;
-      // const usage = response.usage; // { prompt_tokens, completion_tokens, total_tokens }
-
-      // --- Placeholder Response ---
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
-      const generatedJsonString = `{
-        "startUrl": "placeholder_url",
-        "steps": [ { "type": "wait", "value": 500, "description": "Placeholder step" } ],
-        "variables": {},
-        "options": {}
-      }`;
-      const usage = { prompt_tokens: 500, completion_tokens: 100, total_tokens: 600 };
-      // --- End Placeholder ---
-
-      if (!generatedJsonString) {
-        throw new Error('AI model returned empty content.');
-      }
-
-      let generatedConfig: any;
-      try {
-        generatedConfig = JSON.parse(generatedJsonString);
-      } catch (parseError) {
-        logger.error('Failed to parse AI model response as JSON:', generatedJsonString);
-        throw new Error(`AI model did not return valid JSON. Response: ${generatedJsonString}`);
-      }
-
-      const tokensUsed = usage?.total_tokens || 0; // Get actual token usage
-
-      logger.info(`AI model call successful. Tokens used: ${tokensUsed}`);
+      const response = await adapter.generate({
+        systemPrompt,
+        userPrompt,
+        maxTokens: options.maxTokens,
+        temperature: options.temperature,
+      });
 
       return {
-        config: generatedConfig,
-        tokensUsed: tokensUsed,
-        model: options.model, // Return the model used
+        config: response.config,
+        tokensUsed: response.usage.total_tokens,
+        model: options.model,
+        cost: this.calculateCost(response.usage.total_tokens, options.model),
       };
     } catch (error: any) {
       logger.error(`Error calling AI model: ${error.message}`);

@@ -1,272 +1,118 @@
-// src/types/ai-generation.types.ts
+export interface AiModelResponse {
+  config: any;
+  tokensUsed: number;
+  model: string;
+  cost: number;
+}
 
-/**
- * Request to generate a scraping configuration using AI
- */
 export interface GenerateConfigRequest {
-  /**
-   * The URL of the website to scrape
-   */
   url: string;
-
-  /**
-   * Natural language prompt describing what data to extract and how to navigate
-   */
   prompt: string;
-
-  /**
-   * Optional configuration options
-   */
+  selectors?: Record<string, string>;
   options?: GenerateConfigOptions;
 }
 
-/**
- * Options for configuration generation
- */
+export interface GenerateConfigState {
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number;
+  message: string;
+  url: string;
+  prompt: string;
+  options: Required<GenerateConfigOptions>;
+  iteration: number;
+  tokensUsed: number;
+  estimatedCost: number;
+  currentStatus: string;
+  lastConfig: any | null;
+  lastError: string | null;
+  testResult: any | null;
+}
+
+export interface GenerateConfigResult {
+  id: string;
+  url: string;
+  status: string;
+  config: any;
+  state?: GenerateConfigState; // Made optional since it's not always provided
+  tokensUsed: number;
+  estimatedCost: number;
+  iterations: number;
+  timestamp: string;
+}
+
 export interface GenerateConfigOptions {
-  /**
-   * Maximum number of iterations for testing and fixing
-   * @default 3
-   */
+  model: string;
+  maxTokens: number;
+  temperature: number;
   maxIterations?: number;
-
-  /**
-   * Whether to test the generated configuration
-   * @default true
-   */
   testConfig?: boolean;
-
-  /**
-   * Model to use for generation
-   * @default "gpt-4"
-   */
-  model?: string;
-
-  /**
-   * Maximum tokens to use for generation
-   * @default 8192
-   */
-  maxTokens?: number;
-
-  /**
-   * Temperature for generation
-   * @default 0.7
-   */
-  temperature?: number;
-
-  /**
-   * Browser options for testing
-   */
   browserOptions?: {
-    /**
-     * Whether to run in headless mode
-     * @default true
-     */
     headless?: boolean;
-
-    /**
-     * Whether to use a proxy
-     * @default false
-     */
+    timeout?: number;
     proxy?: boolean;
+    viewport?: {
+      width: number;
+      height: number;
+    };
   };
 }
 
-/**
- * Status of a configuration generation job
- */
-export interface GenerateConfigStatus {
-  /**
-   * Job ID
-   */
-  id: string;
-
-  /**
-   * URL being scraped
-   */
-  url: string;
-
-  /**
-   * Current status of the job
-   */
-  status: 'pending' | 'generating' | 'testing' | 'fixing' | 'completed' | 'failed';
-
-  /**
-   * Detailed status message
-   */
-  statusMessage: string;
-
-  /**
-   * Current iteration (1-based)
-   */
-  currentIteration?: number;
-
-  /**
-   * Maximum iterations
-   */
-  maxIterations?: number;
-
-  /**
-   * Tokens used so far
-   */
-  tokensUsed?: number;
-
-  /**
-   * Estimated cost so far
-   */
-  estimatedCost?: number;
-
-  /**
-   * Generated configuration (if completed)
-   */
-  config?: any;
-
-  /**
-   * Error message (if failed)
-   */
-  error?: string;
-
-  /**
-   * Timestamp
-   */
-  timestamp: string;
+export interface LLMAdapter {
+  generate(options: {
+    systemPrompt: string;
+    userPrompt: string;
+    maxTokens?: number;
+    temperature?: number;
+  }): Promise<LLMResponse>;
 }
 
-/**
- * Result of a configuration generation job
- */
-export interface GenerateConfigResult {
-  /**
-   * Job ID
-   */
-  id: string;
-
-  /**
-   * URL being scraped
-   */
-  url: string;
-
-  /**
-   * Status of the job
-   */
-  status: 'completed' | 'failed';
-
-  /**
-   * Generated configuration
-   */
-  config?: any;
-
-  /**
-   * Error message
-   */
-  error?: string;
-
-  /**
-   * Tokens used
-   */
-  tokensUsed: number;
-
-  /**
-   * Estimated cost
-   */
-  estimatedCost: number;
-
-  /**
-   * Number of iterations required
-   */
-  iterations: number;
-
-  /**
-   * Timestamp
-   */
-  timestamp: string;
-}
-
-/**
- * Internal state for the generate-config worker
- */
-export interface GenerateConfigState {
-  /**
-   * URL being scraped
-   */
-  url: string;
-
-  /**
-   * Prompt for generation
-   */
-  prompt: string;
-
-  /**
-   * Options for generation
-   */
-  options: Required<GenerateConfigOptions>;
-
-  /**
-   * Current iteration (0-based)
-   */
-  iteration: number;
-
-  /**
-   * Total tokens used
-   */
-  tokensUsed: number;
-
-  /**
-   * Estimated cost
-   */
-  estimatedCost: number;
-
-  /**
-   * Current status
-   */
-  currentStatus: string;
-
-  /**
-   * Last configuration
-   */
-  lastConfig: any;
-
-  /**
-   * Last error
-   */
-  lastError: string | null;
-
-  /**
-   * Test result
-   */
-  testResult: any;
-}
-
-/**
- * AI model response
- */
-export interface AiModelResponse {
-  /**
-   * Generated configuration
-   */
+export interface LLMResponse {
   config: any;
-
-  /**
-   * Tokens used
-   */
-  tokensUsed: number;
-
-  /**
-   * Model used
-   */
-  model: string;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 
-/**
- * Cost calculation for different models
- */
 export const MODEL_COSTS = {
+  // OpenAI models
+  'gpt-4o-mini': {
+    input: 0.002 / 1000,
+    output: 0.003 / 1000,
+  },
   'gpt-4': {
-    input: 0.00003, // $0.03 per 1K tokens
-    output: 0.00006, // $0.06 per 1K tokens
+    input: 0.03 / 1000,
+    output: 0.06 / 1000,
   },
   'gpt-3.5-turbo': {
-    input: 0.000001, // $0.001 per 1K tokens
-    output: 0.000002, // $0.002 per 1K tokens
+    input: 0.0015 / 1000,
+    output: 0.002 / 1000,
+  },
+
+  // DeepSeek models
+  'deepseek-reasoning': {
+    input: 0.0015 / 1000,
+    output: 0.0025 / 1000,
+  },
+  'deepseek-chat': {
+    input: 0.001 / 1000,
+    output: 0.002 / 1000,
+  },
+};
+
+export const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {
+  model: 'gpt-4o-mini',
+  maxTokens: 2000,
+  temperature: 0.7,
+  maxIterations: 3,
+  testConfig: false,
+  browserOptions: {
+    headless: true,
+    timeout: 30000,
+    viewport: {
+      width: 1280,
+      height: 800,
+    },
   },
 };

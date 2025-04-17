@@ -129,7 +129,10 @@ router.post('/scrape', async (req, res) => {
 - **Redis**: Backend for BullMQ
 - **Zod**: Schema declaration and validation (used for validating generated config)
 - **Playwright**: Used by the worker to test the generated configuration
-- **LLM API Client**: (Placeholder) Client library for interacting with the chosen Large Language Model (e.g., OpenAI SDK). Requires API key (`OPENAI_API_KEY` environment variable).
+- **LLM API Clients**:
+  - **OpenAI**: Official SDK for GPT models (`OPENAI_API_KEY` required)
+  - **DeepSeek**: Custom client for DeepSeek models (`DEEPSEEK_API_KEY` required)
+- **Adapter Pattern**: Standardized interface for multiple LLM providers
 
 ### Configuration (`src/config/index.ts`)
 ```typescript

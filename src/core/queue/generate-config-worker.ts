@@ -32,7 +32,7 @@ const ScrapingConfigSchema = z.object({
 const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {
   maxIterations: 3,
   testConfig: true,
-  model: 'gpt-4', // Or choose a default model available
+  model: 'gpt-4o-mini', // Or choose a default model available
   maxTokens: 8192,
   temperature: 0.7,
   browserOptions: {
@@ -82,8 +82,11 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
     },
   };
 
-  // Initialize state
+  // Initialize state with all required fields
   const state: GenerateConfigState = {
+    status: 'processing',
+    progress: 0,
+    message: 'Initializing config generation',
     url,
     prompt,
     options,

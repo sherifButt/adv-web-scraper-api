@@ -55,10 +55,12 @@
    - Refine error handling within workers.
 
 2. **AI Feature Completion**
-   - Implement actual LLM API calls in `AiService` (replace placeholder).
-   - Refine prompt engineering for generation and fixing.
-   - Enhance testing logic and success criteria in `generate-config-worker.ts`.
-   - Add more detailed Zod schema validation for generated configurations.
+   - Implemented LLM API calls in `AiService` for OpenAI and DeepSeek models
+   - Standardized model naming (gpt-4-mini, deepseek-reasoning)
+   - Simplified configuration to just OPENAI_API_KEY and DEEPSEEK_API_KEY
+   - Removed deprecated GPT4Mini and DeepSeek R1 adapters
+   - Enhanced cost calculation for all supported models
+   - Maintained backward compatibility with existing functionality
 
 3. **Monitoring & Management**
    - Implement a dashboard or CLI tools for queue monitoring.
