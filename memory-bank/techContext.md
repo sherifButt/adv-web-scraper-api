@@ -305,6 +305,27 @@ export class ProxyManager {
 // - Returns counts of removed and remaining proxies
 ```
 
+## Validation Libraries
+
+### Joi (v17.9.1)
+- Used for API request validation in route handlers
+- Key features:
+  - Schema-based validation
+  - Rich error messages
+  - Middleware integration
+- Usage locations:
+  - src/api/validators/proxy.validator.ts
+  - src/api/validators/session.validator.ts
+
+### Zod (v3.24.3)
+- Used for internal configuration validation
+- Key features:
+  - TypeScript-first schema validation
+  - Automatic type inference
+  - Complex nested structure validation
+- Usage locations:
+  - src/core/queue/generate-config-worker.ts
+
 ## Best Practices
 
 1. **Job Design**

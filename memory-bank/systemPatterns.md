@@ -74,6 +74,25 @@ graph TD
 - Dead letter queue for unrecoverable failures
 - Comprehensive logging for debugging
 
+## Validation Strategies
+
+### Dual Library Approach
+- **Joi**: Used for API request validation in route handlers (src/api/validators/)
+  - Validates external input from clients
+  - Integrates with Express middleware
+  - Provides detailed error messages for API consumers
+
+- **Zod**: Used for internal configuration validation (src/core/queue/generate-config-worker.ts)
+  - Validates AI-generated scraping configurations
+  - Enforces type safety for complex nested structures
+  - Enables automatic type inference for TypeScript
+
+Rationale:
+- Separation of concerns between external API contracts and internal data structures
+- Joi's middleware integration suits API validation needs
+- Zod's type inference better supports AI-generated configurations
+- No functional overlap between the two use cases
+
 ## Performance Considerations
 
 1. **Worker Scaling**
