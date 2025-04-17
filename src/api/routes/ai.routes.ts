@@ -71,7 +71,6 @@ router.post(
         timestamp: new Date().toISOString(),
       };
       return res.status(202).json(response);
-
     } catch (error: any) {
       logger.error(`Error in AI generate-config endpoint: ${error.message}`);
       const response: ApiResponse<null> = {
