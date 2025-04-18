@@ -11,6 +11,7 @@ export class DeepSeekAdapter implements LLMAdapter {
   }
 
   async generate(options: {
+    model: string; // Added model parameter
     systemPrompt: string;
     userPrompt: string;
     maxTokens?: number;
@@ -21,14 +22,14 @@ export class DeepSeekAdapter implements LLMAdapter {
       const response = await axios.post(
         `${this.baseUrl}/chat/completions`,
         {
-          model: 'deepseek-chat',
+          model: options.model, // Use the provided model name
           messages: [
             { role: 'system', content: options.systemPrompt },
             { role: 'user', content: options.userPrompt },
           ],
           max_tokens: options.maxTokens || 2000,
           temperature: options.temperature || 0.7,
-          response_format: { type: 'json_object' },
+          // response_format: { type: 'json_object' }, // Removed: May not be supported by all models
         },
         {
           headers: {
@@ -43,8 +44,18 @@ export class DeepSeekAdapter implements LLMAdapter {
         throw new Error('No content in DeepSeek response');
       }
 
+      // Attempt to parse the content as JSON, handle potential errors
+      let parsedConfig: any;
+      try {
+        parsedConfig = JSON.parse(content);
+      } catch (parseError: any) {
+        logger.error(`DeepSeek response content is not valid JSON: ${parseError.message}`, { content });
+        // Throw a specific error if JSON parsing fails, as the rest of the system expects JSON config
+        throw new Error(`DeepSeek model did not return valid JSON output.`);
+      }
+
       return {
-        config: JSON.parse(content),
+        config: parsedConfig,
         usage: {
           prompt_tokens: response.data.usage?.prompt_tokens || 0,
           completion_tokens: response.data.usage?.completion_tokens || 0,

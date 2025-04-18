@@ -56,7 +56,7 @@
 
 2. **AI Feature Completion**
    - Implemented LLM API calls in `AiService` for OpenAI and DeepSeek models
-   - Standardized model naming (gpt-4-mini, deepseek-reasoning)
+   - Standardized model naming (gpt-4-mini, deepseek-reasoner)
    - Simplified configuration to just OPENAI_API_KEY and DEEPSEEK_API_KEY
    - Removed deprecated GPT4Mini and DeepSeek R1 adapters
    - Enhanced cost calculation for all supported models

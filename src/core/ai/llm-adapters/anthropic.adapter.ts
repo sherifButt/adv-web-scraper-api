@@ -29,7 +29,7 @@ interface AnthropicResponse {
 
 export class AnthropicAdapter implements LLMAdapter {
   private apiKey: string;
-  private modelId = 'claude-3-5-sonnet-20240620'; // Use the specific model ID
+  // private modelId = 'claude-3-5-sonnet-20240620'; // Removed hardcoded model ID
   private apiUrl = 'https://api.anthropic.com/v1/messages';
 
   constructor(apiKey: string) {
@@ -41,15 +41,17 @@ export class AnthropicAdapter implements LLMAdapter {
 
   // Updated options to match interface definition directly
   async generate(options: {
+    model: string; // Added model parameter
     systemPrompt: string;
     userPrompt: string;
     maxTokens?: number;
     temperature?: number;
   }): Promise<LLMGenerateResponse> {
-    const { systemPrompt, userPrompt, maxTokens = 4096, temperature } = options; // Default maxTokens for Claude 3.5 Sonnet
+    // Use model from options, default maxTokens
+    const { model, systemPrompt, userPrompt, maxTokens = 4096, temperature } = options;
 
     const requestBody: AnthropicRequest = {
-      model: this.modelId,
+      model: model, // Use the provided model name
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
       max_tokens: maxTokens,
@@ -59,7 +61,7 @@ export class AnthropicAdapter implements LLMAdapter {
       requestBody.temperature = temperature;
     }
 
-    logger.debug(`Anthropic Request Body (model: ${this.modelId}):`, {
+    logger.debug(`Anthropic Request Body (model: ${model}):`, {
       // Avoid logging full prompts unless necessary
       model: requestBody.model,
       max_tokens: requestBody.max_tokens,

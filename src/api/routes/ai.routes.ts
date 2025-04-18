@@ -54,6 +54,7 @@ router.post(
       logger.info(`Queueing AI config generation job for URL: ${url}`);
 
       // --- Queue the Job ---
+      // The AiService now handles model selection based on the provided options.model
       const job = await queueService.addJob(
         'config-generation-jobs', // Target the correct queue
         'generate-config', // Job name/type

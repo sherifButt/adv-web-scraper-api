@@ -100,56 +100,80 @@ const googleMapsExample = `{
 
 export class AiService {
   private static instance: AiService;
-  private defaultModel = 'gpt-4o-mini'; // Consider moving to config
-  private adapters: Map<string, LLMAdapter> = new Map();
+  private defaultModel = 'gpt-4o-mini'; // Default model if none specified
+  private adapters: Map<string, LLMAdapter> = new Map(); // Stores adapters by provider name
 
   private constructor() {
     this.initializeAdapters();
   }
 
   private initializeAdapters() {
-    // Initialize OpenAI GPT-4 Mini adapter
-    const gpt4miniKey = config.ai?.openai?.apiKey || process.env.OPENAI_API_KEY;
-    if (gpt4miniKey) {
-      this.adapters.set('gpt-4o-mini', new OpenAIAdapter(gpt4miniKey));
-      logger.info('Initialized OpenAI GPT-4 Mini adapter');
-    }
+    logger.info('Initializing AI adapters...');
 
-    // Initialize DeepSeek Reasoning adapter
-    const deepseekKey = config.ai?.deepseek?.apiKey || process.env.DEEPSEEK_API_KEY;
-    if (deepseekKey) {
-      this.adapters.set('deepseek-reasoning', new DeepSeekAdapter(deepseekKey));
-      logger.info('Initialized DeepSeek Reasoning adapter');
-    }
-
-    // Initialize Anthropic Claude 3.5 Sonnet adapter
-    const anthropicKey = config.ai?.anthropic?.apiKey || process.env.ANTHROPIC_API_KEY;
-    if (anthropicKey) {
-      try {
-        this.adapters.set('claude-3-5-sonnet-20240620', new AnthropicAdapter(anthropicKey));
-        logger.info('Initialized Anthropic Claude 3.5 Sonnet adapter');
-      } catch (error: any) {
-        logger.error(`Failed to initialize Anthropic adapter: ${error.message}`);
-      }
-    }
-
-    // Initialize OpenAI adapter (fallback)
+    // Initialize OpenAI Adapter (handles all OpenAI models)
     const openaiKey = config.ai?.openai?.apiKey || process.env.OPENAI_API_KEY;
     if (openaiKey) {
-      this.adapters.set('openai', new OpenAIAdapter(openaiKey));
-      logger.info('Initialized OpenAI adapter');
+      if (!this.adapters.has('openai')) {
+        this.adapters.set('openai', new OpenAIAdapter(openaiKey));
+        logger.info('Initialized OpenAI adapter');
+      }
+    } else {
+      logger.warn('OpenAI API key not found. OpenAI models will be unavailable.');
+    }
+
+    // Initialize DeepSeek Adapter (handles all DeepSeek models)
+    const deepseekKey = config.ai?.deepseek?.apiKey || process.env.DEEPSEEK_API_KEY;
+    if (deepseekKey) {
+      if (!this.adapters.has('deepseek')) {
+        this.adapters.set('deepseek', new DeepSeekAdapter(deepseekKey));
+        logger.info('Initialized DeepSeek adapter');
+      }
+    } else {
+      logger.warn('DeepSeek API key not found. DeepSeek models will be unavailable.');
+    }
+
+    // Initialize Anthropic Adapter (handles all Anthropic models)
+    const anthropicKey = config.ai?.anthropic?.apiKey || process.env.ANTHROPIC_API_KEY;
+    if (anthropicKey) {
+      if (!this.adapters.has('anthropic')) {
+        try {
+          this.adapters.set('anthropic', new AnthropicAdapter(anthropicKey));
+          logger.info('Initialized Anthropic adapter');
+        } catch (error: any) {
+          logger.error(`Failed to initialize Anthropic adapter: ${error.message}`);
+        }
+      }
+    } else {
+      logger.warn('Anthropic API key not found. Anthropic models will be unavailable.');
     }
 
     if (this.adapters.size === 0) {
-      logger.warn('No AI adapters initialized - API keys missing');
+      logger.error('CRITICAL: No AI adapters initialized - All AI features disabled. Check API key configurations.');
     }
   }
 
   public static getInstance(): AiService {
     if (!AiService.instance) {
+      // Ensure adapters are initialized when getting the instance
       AiService.instance = new AiService();
     }
     return AiService.instance;
+  }
+
+  // Helper to determine the provider from the model name
+  private getProviderFromModel(modelName: string): string | null {
+    if (modelName.startsWith('gpt-')) {
+      return 'openai';
+    }
+    if (modelName.startsWith('deepseek-')) {
+      return 'deepseek';
+    }
+    if (modelName.startsWith('claude-')) {
+      return 'anthropic';
+    }
+    // Add more providers here if needed
+    logger.warn(`Could not determine provider for model: ${modelName}`);
+    return null; // Or handle unknown models differently
   }
 
   /**
@@ -191,11 +215,7 @@ export class AiService {
   // --- Prompt Building ---
 
   private buildInitialSystemPrompt(): string {
-    // Define the expected JSON structure and constraints
-    // This is crucial for getting the LLM to output the correct format.
-    // Providing a JSON schema or a detailed example is highly recommended.
-    // Define the expected JSON structure and constraints
-    // This is crucial for getting the LLM to output the correct format.
+    // ... (system prompt content remains the same) ...
     return `You are an expert web scraping assistant. Your task is to generate a JSON configuration object that defines the steps to scrape data from a given URL based on a user's prompt.
 
 The JSON configuration MUST follow this structure:
@@ -358,28 +378,44 @@ Generate the corrected JSON configuration:`;
     options: Required<GenerateConfigOptions>,
     jobId?: string // Optional Job ID for logging context
   ): Promise<AiModelResponse> {
-    const adapter = this.adapters.get(options.model);
     const logPrefix = jobId ? `Job ${jobId}: ` : '';
+    const modelName = options.model || this.defaultModel; // Use default if not specified
 
-    if (!adapter) {
-      logger.error(`${logPrefix}No adapter available for model: ${options.model}`);
-      throw new Error(`No adapter available for model: ${options.model}`);
+    // Determine provider and get adapter
+    const provider = this.getProviderFromModel(modelName);
+    if (!provider) {
+      logger.error(`${logPrefix}Could not determine AI provider for model: ${modelName}`);
+      throw new Error(`Unknown AI provider for model: ${modelName}`);
     }
 
-    logger.debug(`${logPrefix}Calling AI model ${options.model} with options:`, options);
+    const adapter = this.adapters.get(provider);
+    if (!adapter) {
+      // This likely means the API key for the provider was missing during initialization
+      logger.error(`${logPrefix}No adapter initialized for provider '${provider}'. Check API key configuration.`);
+      throw new Error(`AI provider '${provider}' is not available (missing API key?). Cannot use model: ${modelName}`);
+    }
+
+    logger.info(`${logPrefix}Using AI model ${modelName} via ${provider} adapter.`);
     // Avoid logging potentially large prompts/HTML in production info logs unless debug enabled
     logger.debug(`${logPrefix}System Prompt:\n${systemPrompt}`);
     logger.debug(`${logPrefix}User Prompt:\n${userPrompt}`);
+    logger.debug(`${logPrefix}Calling ${provider} adapter with options:`, {
+      model: modelName,
+      maxTokens: options.maxTokens,
+      temperature: options.temperature,
+    });
 
     try {
+      // Pass the specific model name to the adapter's generate method
       const response: LLMGenerateResponse = await adapter.generate({
+        model: modelName, // Pass the specific model
         systemPrompt,
         userPrompt,
-        maxTokens: options.maxTokens, // Ensure adapter uses this
-        temperature: options.temperature, // Ensure adapter uses this
+        maxTokens: options.maxTokens,
+        temperature: options.temperature,
       });
 
-      logger.debug(`${logPrefix}Raw AI Response:`, response); // Log raw response for debugging
+      logger.debug(`${logPrefix}Raw AI Response from ${modelName}:`, response); // Log raw response for debugging
 
       // Basic validation of response structure
       if (
@@ -389,36 +425,34 @@ Generate the corrected JSON configuration:`;
         typeof response.usage.total_tokens !== 'number'
       ) {
         logger.error(
-          `${logPrefix}Invalid response structure received from AI adapter for model ${options.model}.`
+          `${logPrefix}Invalid response structure received from AI adapter for model ${modelName}.`
         );
-        throw new Error(`Invalid response structure from AI model ${options.model}`);
+        throw new Error(`Invalid response structure from AI model ${modelName}`);
       }
 
       // Pass detailed usage to calculateCost
       const cost = this.calculateCost(
         response.usage.prompt_tokens,
         response.usage.completion_tokens,
-        options.model
+        modelName // Use the actual model name for cost calculation
       );
 
       logger.info(
-        `${logPrefix}AI call successful. Model: ${options.model}, Tokens: ${
+        `${logPrefix}AI call successful. Model: ${modelName}, Tokens: ${
           response.usage.total_tokens
-        }, Est. Cost: $${cost.toFixed(6)}` // Log total tokens
+        }, Est. Cost: $${cost.toFixed(6)}`
       );
 
       return {
-        config: response.config, // Assuming adapter returns parsed JSON directly
-        tokensUsed: response.usage.total_tokens, // Return total tokens here
-        model: options.model,
+        config: response.config,
+        tokensUsed: response.usage.total_tokens,
+        model: modelName, // Return the actual model used
         cost: cost,
       };
     } catch (error: any) {
-      logger.error(`${logPrefix}Error calling AI model ${options.model}: ${error.message}`, {
-        error,
-      });
-      // Consider wrapping the error for more context
-      throw new Error(`AI model ${options.model} failed: ${error.message}`);
+      logger.error(`${logPrefix}Error calling AI model ${modelName}: ${error.message}`, { error });
+      // Re-throw a more specific error
+      throw new Error(`AI model ${modelName} failed: ${error.message}`);
     }
   }
 

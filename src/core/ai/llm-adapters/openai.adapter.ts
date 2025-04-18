@@ -12,6 +12,7 @@ export class OpenAIAdapter implements LLMAdapter {
   }
 
   async generate(options: {
+    model: string; // Added model parameter
     systemPrompt: string;
     userPrompt: string;
     maxTokens?: number;
@@ -20,7 +21,7 @@ export class OpenAIAdapter implements LLMAdapter {
     // Updated return type
     try {
       const response = await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: options.model, // Use the provided model name
         messages: [
           { role: 'system', content: options.systemPrompt },
           { role: 'user', content: options.userPrompt },

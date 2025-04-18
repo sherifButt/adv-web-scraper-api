@@ -15,6 +15,7 @@ export interface ModelOptions {
 
 export interface LLMAdapter {
   generate(options: {
+    model: string; // Added model parameter
     systemPrompt: string;
     userPrompt: string;
     maxTokens?: number;
