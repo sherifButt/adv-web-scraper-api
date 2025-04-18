@@ -86,6 +86,18 @@ export class QueueService {
 
   public async addJob(queueName: string, jobName: string, data: any, options?: any) {
     const queue = this.queues[queueName] || this.createQueue(queueName);
+
+    // Ensure job ID is unique
+    if (options?.jobId) {
+      const existingJob = await queue.getJob(options.jobId);
+      if (existingJob) {
+        throw new Error(`Job ID ${options.jobId} already exists in queue ${queueName}`);
+      }
+    } else {
+      // Force UUID generation if no ID provided
+      options = { ...options, jobId: undefined };
+    }
+
     return queue.add(jobName, data, options);
   }
 

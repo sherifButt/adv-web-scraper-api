@@ -49,7 +49,9 @@ export class DeepSeekAdapter implements LLMAdapter {
       try {
         parsedConfig = JSON.parse(content);
       } catch (parseError: any) {
-        logger.error(`DeepSeek response content is not valid JSON: ${parseError.message}`, { content });
+        logger.error(`DeepSeek response content is not valid JSON: ${parseError.message}`, {
+          content,
+        });
         // Throw a specific error if JSON parsing fails, as the rest of the system expects JSON config
         throw new Error(`DeepSeek model did not return valid JSON output.`);
       }

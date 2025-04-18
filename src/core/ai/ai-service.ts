@@ -148,7 +148,9 @@ export class AiService {
     }
 
     if (this.adapters.size === 0) {
-      logger.error('CRITICAL: No AI adapters initialized - All AI features disabled. Check API key configurations.');
+      logger.error(
+        'CRITICAL: No AI adapters initialized - All AI features disabled. Check API key configurations.'
+      );
     }
   }
 
@@ -229,8 +231,19 @@ The JSON configuration MUST follow this structure:
 NavigationStep is an object with a 'type' property and other properties depending on the type. Each step can optionally include 'description' (string) and 'optional' (boolean, default false). Supported types are:
 
 **Basic Navigation & Waiting:**
-- goto: { type: "goto", value: "string (URL)", waitFor?: "load" | "networkidle" | "domcontentloaded" }
-- wait: { type: "wait", value: number (ms) | "navigation" | "networkidle" | "load", selector?: string (waits for element), timeout?: number }
+- goto: { 
+    type: "goto", 
+    value: "string (URL)", 
+    waitFor?: "load" | "networkidle" | "domcontentloaded",
+    description: "For page navigation, prefer 'networkidle' for SPAs or 'load' for traditional pages"
+  }
+- wait: { 
+    type: "wait", 
+    value: number (ms), 
+    selector?: string (specific element to wait for), 
+    timeout?: number,
+    description: "Never use string values like 'load' here - those belong in goto.waitFor"
+  }
 
 **Interactions:**
 - click: { type: "click", selector: "string", triggerType?: "mouse" | "keyboard", waitFor?: string | number, timeout?: number }
@@ -268,13 +281,28 @@ FieldDefinition (for 'extract' step):
 
 IMPORTANT RULES:
 1.  Generate ONLY the JSON configuration object. Do not include any introductory text, explanations, or markdown formatting like \`\`\`json.
-2.  Use robust CSS selectors. Prefer stable attributes like 'id', 'data-*' attributes, or unique, descriptive class names. Avoid relying on brittle selectors like complex tag hierarchies ('div > div > span'), index-based selectors (':nth-child(3)'), or auto-generated/dynamic class names (e.g., 'css-1q2w3e4').
-3.  Ensure the generated JSON is valid and strictly adheres to the defined structure for each step type.
-4.  The 'extract' step's 'fields' define the data structure. If 'multiple' is true on a field, it extracts an array. If that field also has nested 'fields', it extracts an array of objects. Use 'attribute' to get specific HTML attributes. Use 'regex' type for extracting data using regular expressions from text content or attributes.
-5.  For 'forEachElement', the 'elementSteps' run within the context of each matched element. Selectors inside 'elementSteps' are relative to the current element by default. Use 'usePageScope: true' in nested 'extract' steps if you need to extract data from the whole page relative to the loop item. The variable '{{index}}' (0-based) is available within 'elementSteps'.
-6.  The 'mergeContext' step combines data. 'source' is the key of the data to merge (e.g., extracted in a loop). 'target' is the destination path, often using '{{index}}' like 'results.items[{{index}}].details'. Use 'mergeStrategy' to control how fields are combined (default 'overwrite').
-7.  Pay close attention to the user's prompt for the exact data fields and navigation actions required. Include necessary 'wait' steps (e.g., wait for selectors, time, or navigation) before interacting with elements, especially after clicks or inputs that trigger dynamic content loading.
-8.  Utilize the full range of available 'NavigationStep' types where appropriate to create efficient and robust scraping logic (e.g., use 'scroll' for infinite scroll, 'forEachElement' for lists, 'condition' for handling variations).
+2.  Use robust CSS selectors following these guidelines:
+    - Prefer stable attributes like 'id', 'data-*' attributes, or unique, descriptive class names
+    - Avoid brittle selectors like complex tag hierarchies ('div > div > span')
+    - Never use index-based selectors (':nth-child(3)') or auto-generated class names
+    - For nested elements, always scope selectors to their parent context
+    - Add 'continueOnError: true' for optional elements
+3.  Waiting strategies:
+    - Always wait for elements before interacting (click/input/etc)
+    - Use 'waitFor' in goto steps for page loads
+    - Use numeric 'wait' steps only for fixed delays
+    - Combine waits with selectors when possible
+4.  Error handling:
+    - Add 'continueOnError: true' for non-critical steps
+    - Set reasonable timeouts for all interactive steps
+    - Use 'condition' steps to handle optional elements
+    - Validate selectors work in the current page context
+5.  Ensure the generated JSON is valid and strictly adheres to the defined structure for each step type.
+6.  The 'extract' step's 'fields' define the data structure. If 'multiple' is true on a field, it extracts an array. If that field also has nested 'fields', it extracts an array of objects. Use 'attribute' to get specific HTML attributes. Use 'regex' type for extracting data using regular expressions from text content or attributes.
+7.  For 'forEachElement', the 'elementSteps' run within the context of each matched element. Selectors inside 'elementSteps' are relative to the current element by default. Use 'usePageScope: true' in nested 'extract' steps if you need to extract data from the whole page relative to the loop item. The variable '{{index}}' (0-based) is available within 'elementSteps'.
+8.  The 'mergeContext' step combines data. 'source' is the key of the data to merge (e.g., extracted in a loop). 'target' is the destination path, often using '{{index}}' like 'results.items[{{index}}].details'. Use 'mergeStrategy' to control how fields are combined (default 'overwrite').
+9.  Pay close attention to the user's prompt for the exact data fields and navigation actions required. Include necessary 'wait' steps (e.g., wait for selectors, time, or navigation) before interacting with elements, especially after clicks or inputs that trigger dynamic content loading.
+10. Utilize the full range of available 'NavigationStep' types where appropriate to create efficient and robust scraping logic (e.g., use 'scroll' for infinite scroll, 'forEachElement' for lists, 'condition' for handling variations).
 
 Here are a couple of examples of well-structured configuration JSON objects:
 
@@ -391,8 +419,12 @@ Generate the corrected JSON configuration:`;
     const adapter = this.adapters.get(provider);
     if (!adapter) {
       // This likely means the API key for the provider was missing during initialization
-      logger.error(`${logPrefix}No adapter initialized for provider '${provider}'. Check API key configuration.`);
-      throw new Error(`AI provider '${provider}' is not available (missing API key?). Cannot use model: ${modelName}`);
+      logger.error(
+        `${logPrefix}No adapter initialized for provider '${provider}'. Check API key configuration.`
+      );
+      throw new Error(
+        `AI provider '${provider}' is not available (missing API key?). Cannot use model: ${modelName}`
+      );
     }
 
     logger.info(`${logPrefix}Using AI model ${modelName} via ${provider} adapter.`);
