@@ -35,7 +35,7 @@ export interface GenerateConfigResult {
   config: any;
   state?: GenerateConfigState; // Made optional since it's not always provided
   tokensUsed: number;
-  estimatedCost: number;
+  estimatedCost: number; // Ensure this is explicitly part of the final result
   iterations: number;
   timestamp: string;
 }
@@ -74,38 +74,6 @@ export interface LLMResponse {
     total_tokens: number;
   };
 }
-
-export const MODEL_COSTS = {
-  // OpenAI models
-  'gpt-4o-mini': {
-    input: 0.002 / 1000,
-    output: 0.003 / 1000,
-  },
-  'gpt-4': {
-    input: 0.03 / 1000,
-    output: 0.06 / 1000,
-  },
-  'gpt-3.5-turbo': {
-    input: 0.0015 / 1000,
-    output: 0.002 / 1000,
-  },
-
-  // DeepSeek models
-  'deepseek-reasoner': {
-    input: 0.0015 / 1000,
-    output: 0.0025 / 1000,
-  },
-  'deepseek-chat': {
-    input: 0.001 / 1000,
-    output: 0.002 / 1000,
-  },
-
-  // Anthropic models
-  'claude-3-5-sonnet-20240620': {
-    input: 0.000003, // $3 / 1M tokens
-    output: 0.000015, // $15 / 1M tokens
-  },
-};
 
 export const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {
   model: 'gpt-4o-mini',

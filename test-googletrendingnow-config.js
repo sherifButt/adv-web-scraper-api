@@ -1,4 +1,4 @@
-// Test script for the gassaferegister-config.json configuration
+// Test script for the googletrendingnow-config.json configuration
 import { chromium } from 'playwright'; // Removed LaunchOptions import
 import { NavigationEngine } from './src/navigation/navigation-engine.js';
 import fs from 'fs';
@@ -6,7 +6,7 @@ import { ProxyManager } from './src/core/proxy/proxy-manager.js'; // Added
 import { config as globalConfig } from './src/config/index.js'; // Added & aliased
 // Removed ProxyInfo import as types are not used in JS
 
-async function testGasSafeRegisterConfig() {
+async function testGoogletrendingnowConfig() {
   // Renamed function for clarity
   try {
     console.log('Starting test of googletrendingnow-config.json');
@@ -129,7 +129,7 @@ async function testGasSafeRegisterConfig() {
 }
 
 // Run the test
-testGasSafeRegisterConfig() // Renamed function call
+testGoogletrendingnowConfig() // Renamed function call
   .then(() => {
     console.log('Test completed successfully');
     process.exit(0);

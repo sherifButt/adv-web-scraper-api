@@ -156,42 +156,52 @@ export const config: Config = {
 
 ### Service (`src/core/ai/ai-service.ts`)
 - Implemented as a Singleton (`AiService.getInstance()`).
-- Reads API key from configuration/environment.
-- **`generateConfiguration()`**: Builds initial prompt (system + user context including URL, prompt, optional HTML), calls LLM API (placeholder), parses JSON response, returns config and token usage.
-- **`fixConfiguration()`**: Builds fixing prompt (system + user context including URL, original prompt, previous failed config, error log), calls LLM API (placeholder), parses JSON response, returns corrected config and token usage.
-- **`calculateCost()`**: Calculates estimated cost based on tokens used and model pricing.
-- Contains detailed system prompts defining the required JSON output structure and rules for the LLM.
+- Orchestrates AI interactions, delegating tasks to specialized components.
+- **`generateConfiguration()`**: Coordinates the process for generating a new configuration. Uses prompt templates, adapter factory, the selected LLM adapter, and the cost calculator.
+- **`fixConfiguration()`**: Coordinates the process for fixing an existing configuration based on errors. Uses prompt templates, adapter factory, the selected LLM adapter, and the cost calculator.
+- Relies on external modules for prompt content, adapter creation, model details, and cost calculation.
+
+### Prompt Templates (`src/core/ai/prompt-templates/`)
+- **`generate-config.prompt.ts`**: Defines the system and user prompt structures (including few-shot examples) for initial configuration generation.
+- **`fix-config.prompt.ts`**: Defines the system and user prompt structures (including few-shot examples) for fixing configurations based on errors.
+
+### Adapter Factory (`src/core/ai/factories/adapter-factory.ts`)
+- Provides a static `create` method to instantiate the correct LLM adapter (`OpenAIAdapter`, `DeepSeekAdapter`, `AnthropicAdapter`, etc.) based on the provider name and API key.
+
+### Model Configuration (`src/core/ai/config/model-config.ts`)
+- **`MODEL_PROVIDER_MAP`**: Maps model name prefixes (e.g., 'gpt-') to provider names ('openai').
+- **`MODEL_COSTS`**: Defines the input and output token costs for various supported LLM models. Includes placeholder for `gpt-4.1-mini`.
+- **`getProviderFromModel()`**: Helper function to determine the provider based on the model name using `MODEL_PROVIDER_MAP`.
+
+### Cost Calculator (`src/core/ai/services/cost-calculator.ts`)
+- Provides a static `calculate` method using `MODEL_COSTS` to determine the estimated cost of an AI call based on prompt tokens, completion tokens, and the specific model used.
 
 ### Worker (`src/core/queue/generate-config-worker.ts`)
-- **`processGenerateConfigJob(job)`**: The main processor function for the `config-generation-jobs` queue.
-- **Orchestration**: Manages the overall generate-test-fix loop.
-- **State Management**: Tracks iteration count, token usage, cost, status messages, last config, and last error within the job data. Uses `job.updateData()` and `job.updateProgress()` frequently.
+- **`processGenerateConfigJob(job)`**: Main processor for the `config-generation-jobs` queue.
+- **Orchestration**: Manages the generate-validate-test-fix loop.
+- **State Management**: Tracks iteration count, token usage, *accumulated estimated cost*, status messages, last config, and last error within the job data.
 - **AI Interaction**: Calls `AiService.generateConfiguration()` or `AiService.fixConfiguration()`.
-- **Schema Validation**: Uses Zod (`ScrapingConfigSchema`) to validate the basic structure of the JSON returned by the AI. If validation fails, logs the error and proceeds to the next fix iteration.
-- **Testing (Optional)**: If `testConfig` option is true:
-    - Launches a browser using `BrowserPool` (potentially with proxy).
-    - Creates a `NavigationEngine` instance.
-    - Executes the generated configuration using `navigationEngine.executeFlow()`.
-    - Evaluates the result (checks for errors, basic data presence).
-    - If the test fails, captures the error log for the next fix iteration.
-- **Loop Control**: Continues iterating (up to `maxIterations`) if validation or testing fails. Exits successfully if testing passes or is disabled. Throws an error if max iterations are reached.
-- **Result Storage**: Stores the final, successful configuration using `StorageService`.
+- **Schema Validation**: Uses Zod (`ScrapingConfigSchema`) to validate the AI response structure.
+- **Testing (Optional)**: Uses `BrowserPool` and `NavigationEngine` to test the generated config if enabled.
+- **Loop Control**: Iterates up to `maxIterations`, continuing on validation/test failures.
+- **Result Storage**: Stores the final successful configuration *and the total estimatedCost* using `StorageService`.
+- **Return Value**: Returns the final `GenerateConfigResult` object, including the `estimatedCost`.
 
 ### Queue (`src/core/queue/queue-service.ts`)
-- A new queue named `config-generation-jobs` is created.
-- The `processGenerateConfigJob` worker is registered to process jobs from this queue.
-- Default job options include a longer timeout (e.g., 5 minutes) and potentially fewer retry attempts compared to navigation jobs.
+- Manages the `config-generation-jobs` queue.
+- Registers the `processGenerateConfigJob` worker.
 
 ### API Integration (`src/api/routes/ai.routes.ts`)
-- New route file created.
-- **`POST /api/v1/ai/generate-config`**:
-    - Accepts `url` (string) and `prompt` (string) in the request body, along with optional `options`.
-    - Performs basic validation on `url` and `prompt`.
-    - Adds a job to the `config-generation-jobs` queue via `QueueService`.
-    - Returns a standard 202 Accepted response with the `jobId` and `statusUrl` (`/api/v1/jobs/:jobId`).
+- **`POST /api/v1/ai/generate-config`**: Queues a `generate-config` job. Returns job ID and status URL.
 
 ### API Router (`src/api/routes/index.ts`)
-- The `aiRoutes` router is mounted under the `/api/v1/ai` path.
+- Mounts `aiRoutes` under `/api/v1/ai`.
+
+### Job Status Route (`src/api/routes/job.routes.ts`)
+- **`GET /api/v1/jobs/:id`**:
+    - Retrieves job status from `QueueService`.
+    - If the job is completed, retrieves the stored result object (including `estimatedCost`) from `StorageService`.
+    - Includes the `estimatedCost` in the API response data.
 
 ## Monitoring and Management
 

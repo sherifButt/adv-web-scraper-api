@@ -91,12 +91,22 @@ The project has progressed from planning to implementation. Recent activities in
    - Adjusted `QueueService` to handle worker functions returning values.
    - **Fixed Proxy Integration in Worker**: Updated `navigation-worker.ts` to correctly fetch a proxy from `ProxyManager` (if enabled) and pass it to `BrowserPool` when requesting a browser instance. This ensures navigation jobs use the configured proxies.
 
-5. **AI Configuration Generation (Backend Foundation)**
+5. **AI Configuration Generation (Refactored & Enhanced)**
    - Created types for AI generation requests, options, status, and results (`src/types/ai-generation.types.ts`).
    - Added AI configuration section to main config (`src/config/index.ts`).
-   - Implemented `AiService` (`src/core/ai/ai-service.ts`) with placeholder LLM interaction logic, prompt building, and cost calculation.
+   - **Refactored `AiService` (`src/core/ai/ai-service.ts`)**:
+     - Separated concerns into distinct modules.
+     - Extracted prompt templates (including few-shot examples) into `src/core/ai/prompt-templates/`.
+     - Created `AdapterFactory` (`src/core/ai/factories/`) for LLM adapter instantiation.
+     - Moved model configuration (costs, provider mapping) to `src/core/ai/config/model-config.ts`.
+     - Created `CostCalculator` service (`src/core/ai/services/`) for cost estimation.
+     - Removed unused few-shot example constants from `AiService`.
+   - **Added Cost Tracking**:
+     - Updated `generate-config-worker.ts` to accumulate AI costs and store the final `estimatedCost` with the result.
+     - Updated `job.routes.ts` (`GET /api/v1/jobs/:id`) to retrieve and return the `estimatedCost` for completed jobs.
+   - **Added Model Cost Placeholder**: Added placeholder costs for `gpt-4.1-mini` in `model-config.ts` to prevent calculation warnings.
    - Implemented `generate-config-worker.ts` (`src/core/queue/`) to handle asynchronous job processing, including the generate-validate-test-fix loop and status updates.
-   - Integrated the new `config-generation-jobs` queue and worker into `QueueService` (`src/core/queue/queue-service.ts`).
+   - Integrated the `config-generation-jobs` queue and worker into `QueueService` (`src/core/queue/queue-service.ts`).
    - Created the `POST /api/v1/ai/generate-config` endpoint (`src/api/routes/ai.routes.ts`).
    - Mounted the AI routes in the main API router (`src/api/routes/index.ts`).
 
@@ -113,7 +123,7 @@ The immediate next steps for the project are:
     *   Ensure scraping results are stored and retrieved similarly to navigation jobs.
 
 3.  **AI Feature Completion**:
-    *   Implement actual LLM API calls in `AiService` (replace placeholder).
+    *   Implement actual LLM API calls in adapters (replace placeholder).
     *   Refine prompt engineering for better configuration generation and fixing.
     *   Refine the testing logic and success criteria within `generate-config-worker.ts`.
     *   Add more robust schema validation (Zod) for generated configurations.
@@ -186,9 +196,15 @@ Several key decisions have been implemented, while others are being refined:
    - **Refinement Needed**: Consider adding more proxy sources (API); further refine error recovery and health checking heuristics.
 
 6. **AI Configuration Generation**
-   - **Decision**: Use LLM via API call within an asynchronous worker, implement iterative test-and-fix loop.
-   - **Current Status**: Backend foundation implemented (types, service placeholder, worker, queue, API endpoint). Uses Zod for basic schema validation. Iterative loop logic is in place.
-   - **Refinement Needed**: Implement actual LLM API calls. Improve prompt engineering. Enhance testing logic and success criteria within the worker. Add more detailed Zod schema validation.
+   - **Decision**: Use LLM via API call within an asynchronous worker, implement iterative test-and-fix loop. Refactor service for modularity. Track costs.
+   - **Current Status**:
+     - Backend foundation implemented (types, worker, queue, API endpoint).
+     - `AiService` refactored into modular components (prompts, factory, config, calculator).
+     - Cost tracking implemented in worker and exposed via job status API.
+     - Placeholder costs added for `gpt-4.1-mini`.
+     - Few-shot examples integrated into prompt templates.
+     - Uses Zod for basic schema validation. Iterative loop logic is in place.
+   - **Refinement Needed**: Implement actual LLM API calls in adapters. Improve prompt engineering. Enhance testing logic and success criteria within the worker. Add more detailed Zod schema validation. Update placeholder costs when available.
 
 ## Important Patterns and Preferences
 
@@ -257,11 +273,13 @@ As implementation has progressed, we've gained several insights:
    - Type safety is crucial for complex extraction configurations
    - Browser context isolation is important for reliable extraction
 
-6. **AI Integration** (New)
-   - Prompt engineering is critical for consistent and accurate JSON output from LLMs.
+6. **AI Integration** (Updated)
+   - Prompt engineering is critical for consistent and accurate JSON output from LLMs. Few-shot examples in prompts are helpful.
    - Iterative testing and fixing loops are necessary to handle potential AI errors or suboptimal configurations.
    - Schema validation (like Zod) is essential for verifying AI output structure.
    - Managing state (last config, last error) within the worker job data is crucial for the fixing loop.
+   - Separating AI concerns (prompts, adapter logic, cost calculation, configuration) into distinct modules improves maintainability.
+   - Tracking AI costs per job provides valuable operational insight.
 
 ## Open Questions
 
@@ -300,9 +318,10 @@ As implementation progresses, several questions need to be addressed:
    - **Refinement Needed**: Confirm reliability based on log analysis. Decide on error handling if both methods fail.
 
 6. **AI Generation Refinement**
-    - Which LLM provides the best balance of cost and accuracy for config generation?
-    - How can prompt engineering be improved to handle more complex scraping scenarios?
-    - What are the best strategies for evaluating the success of an AI-generated test run?
+    - Which LLM provides the best balance of cost and accuracy for config generation? (Ongoing evaluation)
+    - How can prompt engineering be improved to handle more complex scraping scenarios? (Needs further refinement)
+    - What are the best strategies for evaluating the success of an AI-generated test run? (Needs definition beyond basic checks)
+    - When should the placeholder costs for `gpt-4.1-mini` be updated? (Requires monitoring OpenAI pricing)
 
 ## Current Blockers
 
@@ -312,7 +331,7 @@ Current implementation challenges include:
 2.  **Testing Infrastructure**: Lack of tests makes verifying changes difficult and regression-prone. Unit and integration tests are needed urgently.
 3.  **Scraping Worker**: The worker for handling `/api/v1/scrape` jobs is not yet implemented.
 4.  **CAPTCHA Solving Completion**: External service integration and advanced techniques are pending.
-5.  **AI Service Implementation**: Placeholder logic in `AiService` needs replacement with actual LLM API calls.
-6.  **ESLint/TypeScript Issues**: Minor formatting and type issues still need cleanup (some persistent issues in worker files).
+5.  **AI Service Implementation**: Placeholder logic in LLM adapters needs replacement with actual LLM API calls.
+6.  **ESLint/TypeScript Issues**: Minor formatting and type issues still need cleanup (some persistent issues in worker and route files).
 
 *Note: This document will be regularly updated as implementation progresses and new insights emerge.*

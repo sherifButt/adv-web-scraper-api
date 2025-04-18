@@ -150,7 +150,7 @@ graph TD
     Client -->|GET /api/v1/jobs/:jobId| API
     API -->|Get Job State, Progress, Result| RedisQueue
     API -->|Get Result (Primary)| Storage
-    Storage -->|Result| API
+    Storage -->|Result {config, cost}| API
     RedisQueue -->|Result (Fallback)| API
     API -->|Return Config JSON / Status / Progress / Cost| Client
 ```
@@ -165,16 +165,28 @@ graph TD
     *   Optionally calls `NavigationEngine` to test the generated config.
     *   Enters a fix loop if testing fails, providing errors back to `AiService`.
     *   Updates job status and progress frequently.
-    *   Stores the final successful config using `StorageService`.
+    *   Stores the final successful config and estimated cost using `StorageService`.
 4.  **AI Service (`ai-service.ts`)**:
-    *   Uses adapter pattern to support multiple LLM providers (OpenAI, DeepSeek)
-    *   Builds prompts for initial generation and fixing.
-    *   Routes requests to appropriate LLM adapter based on model selection.
-    *   Parses the LLM response.
-    *   Tracks token usage and calculates estimated cost for all supported models.
-5.  **LLM Adapters**:
-    *   Standardized interface (`llm-adapter.interface.ts`)
-    *   OpenAI adapter for GPT models
-    *   DeepSeek adapter for DeepSeek models
-    *   Handles provider-specific API calls and response formats
-6.  **Job Status (`/api/v1/jobs/:id`)**: Allows clients to poll for the status (`pending`, `generating`, `testing`, `fixing`, `completed`, `failed`), progress, cost, and final result (the generated config).
+    *   Orchestrates calls to other AI components.
+    *   Uses `AdapterFactory` to get the correct LLM adapter.
+    *   Uses prompt templates from `prompt-templates/`.
+    *   Calls the appropriate adapter's `generate` method.
+    *   Uses `CostCalculator` to determine the cost of the AI call.
+    *   Returns the AI response (config, usage, model, cost) to the worker.
+5.  **Prompt Templates (`prompt-templates/`)**:
+    *   Contain the system and user prompt structures, including few-shot examples.
+    *   `generate-config.prompt.ts` for initial generation.
+    *   `fix-config.prompt.ts` for correction iterations.
+6.  **Adapter Factory (`factories/adapter-factory.ts`)**:
+    *   Responsible for creating instances of specific LLM adapters based on provider name and API key.
+7.  **Model Configuration (`config/model-config.ts`)**:
+    *   Maps model name prefixes to provider names (`MODEL_PROVIDER_MAP`).
+    *   Contains the cost definitions for different models (`MODEL_COSTS`).
+    *   Includes the `getProviderFromModel` helper function.
+8.  **Cost Calculator (`services/cost-calculator.ts`)**:
+    *   Provides a static `calculate` method to determine AI call cost based on tokens and model.
+9.  **LLM Adapters (`llm-adapters/`)**:
+    *   Standardized interface (`llm-adapter.interface.ts`).
+    *   Specific implementations for each provider (OpenAI, DeepSeek, Anthropic).
+    *   Handle provider-specific API calls and response formats.
+10. **Job Status (`/api/v1/jobs/:id`)**: Allows clients to poll for the status (`pending`, `generating`, `testing`, `fixing`, `completed`, `failed`), progress, estimated cost, and final result (the generated config).

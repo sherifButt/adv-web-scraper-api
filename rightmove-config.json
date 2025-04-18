@@ -1,7 +1,6 @@
 {
     "startUrl": "https://www.rightmove.co.uk/property-for-sale.html",
     "steps": [
-       
         {
             "type": "condition",
             "condition": "#onetrust-accept-btn-handler",
@@ -21,7 +20,6 @@
             "distance": 10,
             "description": "Continue scrolling down 200 px"
         },
-        
         {
             "type": "input",
             "selector": "#ta_searchInput",
@@ -35,14 +33,12 @@
             "selector": "button[data-testid='forSaleCta']",
             "description": "Click the 'For Sale' button"
         },
-       
         {
             "type": "scroll",
             "direction": "down",
             "distance": 50,
             "description": "Continue scrolling down 200 px"
         },
-        
         {
             "type": "scroll",
             "direction": "down",
@@ -77,7 +73,6 @@
             "value": "0.25",
             "description": "Set search radius to within 1/4 mile"
         },
-       
         {
             "type": "select",
             "selector": "#propertyTypes",
@@ -89,7 +84,6 @@
             "selector": ".dsrm_button.dsrm_button--light.dsrm_primary.dsrm_core.dsrm_width_content",
             "description": "Click the 'Search properties' button"
         },
-       
         {
             "type": "scroll",
             "direction": "down",
@@ -133,11 +127,11 @@
         {
             "type": "extract",
             "name": "propertyResults",
-            "selector": ".l-searchResult, .l-searchResults, [class*=\"SearchResults_searchResults\"]",
+            "selector": "#l-searchResults",
             "description": "Extract property search results",
             "fields": {
                 "properties": {
-                    "selector": "[data-test=\"propertyCard\"], .propertyCard[data-property-id], [class*=\"PropertyCard_propertyCard\"][data-testid]",
+                    "selector": ".propertyCard-details",
                     "type": "css",
                     "multiple": true,
                     "continueOnError": true,
@@ -153,7 +147,7 @@
                             "continueOnError": true
                         },
                         "propertyImage": {
-                            "selector": ".propertyCard-img img, [class*=\"PropertyImage\"] img",
+                            "selector": ".PropertyCardImage_propertyImage__HDIrd img",
                             "type": "css",
                             "attribute": "src",
                             "continueOnError": true
@@ -161,15 +155,14 @@
                         "price": {
                             "selector": "[class*=\"PropertyPrice_price\"], .propertyCard-priceValue, .propertyCard-price",
                             "type": "regex",
-                            "pattern": "(?:£|\\b)([0-9,]+)\\b",
+                            "pattern": "£([\\d,]+)",
                             "dataType": "number",
                             "continueOnError": true
                         },
-                        
                         "postcode": {
-                            "selector": "address.propertyCard-address",
+                            "selector": "address.propertyCard-address, [class*=\"PropertyAddress_address\"]",
                             "type": "regex",
-                            "pattern": "/\\b([A-Z]{1,2}\\d[A-Z\\d]?\\s\\d[A-Z]{2})\\b/",
+                            "pattern": "\\b([A-Z]{1,2}\\d[A-Z\\d]?\\s\\d[A-Z]{2})\\b",
                             "continueOnError": true
                         },
                         "type": {
@@ -183,17 +176,12 @@
                             "continueOnError": true
                         },
                         "bathrooms": {
-                            "selector": ".propertyCard-bathrooms, [class*=\"PropertyInformation_bathContainer\"] span",
-                            "type": "css",
-                            "continueOnError": true
-                        },
-                        "distance": {
-                            "selector": ".propertyCard-description, [class*=\"PropertyCardSummary_summary\"]",
+                            "selector": "[class*=\"PropertyInformation_bathContainer\"] span",
                             "type": "css",
                             "continueOnError": true
                         },
                         "propertyUrl": {
-                            "selector": "a.propertyCard-anchor[href], a.propertyCard-link[href], a[href*=\"/properties/\"]",
+                            "selector": "a.propertyCard-link[href], a[href*=\"/properties/\"]",
                             "type": "css",
                             "attribute": "href",
                             "continueOnError": true
@@ -210,8 +198,8 @@
         }
     ],
     "variables": {
-        "postcode": "SA6 5LH",
-        "type": "flat"
+        "postcode": "CF5 1PW",
+        "type": "house"
     },
     "options": {
         "timeout": 30000,

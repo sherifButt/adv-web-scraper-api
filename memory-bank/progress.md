@@ -41,11 +41,14 @@
 - `/api/v1/ai/generate-config` queues AI config generation jobs.
 
 ### AI Configuration Generation
-- Backend foundation implemented (types, service placeholder, worker, queue, API endpoint).
+- Backend foundation implemented (types, worker, queue, API endpoint).
+- **`AiService` refactored** into modular components (prompts, factory, config, calculator).
+- Prompt templates extracted and include few-shot examples.
 - Worker includes generate-validate-test-fix loop logic.
 - Basic Zod schema validation for generated config.
 - Job status updates track generation/testing/fixing stages.
-- Cost estimation based on token usage.
+- **Cost tracking implemented**: Worker accumulates cost, stores it with the result, and the job status API returns it.
+- Placeholder costs added for `gpt-4.1-mini`.
 
 ## What's Left to Build
 
@@ -55,12 +58,11 @@
    - Refine error handling within workers.
 
 2. **AI Feature Completion**
-   - Implemented LLM API calls in `AiService` for OpenAI and DeepSeek models
-   - Standardized model naming (gpt-4-mini, deepseek-reasoner)
-   - Simplified configuration to just OPENAI_API_KEY and DEEPSEEK_API_KEY
-   - Removed deprecated GPT4Mini and DeepSeek R1 adapters
-   - Enhanced cost calculation for all supported models
-   - Maintained backward compatibility with existing functionality
+   - Implement actual LLM API calls in adapters (replace placeholder logic).
+   - Refine prompt engineering for better configuration generation and fixing.
+   - Refine the testing logic and success criteria within `generate-config-worker.ts`.
+   - Add more robust schema validation (Zod) for generated configurations.
+   - Update placeholder costs for `gpt-4.1-mini` when available.
 
 3. **Monitoring & Management**
    - Implement a dashboard or CLI tools for queue monitoring.
@@ -90,9 +92,12 @@
 - [ ] Performance optimization (concurrency, resource limits)
 - [ ] Monitoring implementation
 
-### Phase 8: AI Integration & Refinement (Next)
-- [x] AI config generation backend foundation (API, Queue, Worker, Service Placeholder)
-- [ ] Implement actual LLM API calls in `AiService`.
+### Phase 8: AI Integration & Refinement (In Progress)
+- [x] AI config generation backend foundation (API, Queue, Worker)
+- [x] Refactor `AiService` into modular components.
+- [x] Implement AI cost tracking and API exposure.
+- [x] Integrate few-shot examples into prompts.
+- [ ] Implement actual LLM API calls in adapters.
 - [ ] Refine AI prompts and test/fix loop in `generate-config-worker`.
 - [ ] Add detailed Zod schema validation for AI output.
 - [ ] Implement unit and integration tests for AI feature.
@@ -101,7 +106,8 @@
 ## Documentation Updates Needed
 - [x] Add queue system architecture to `systemPatterns.md` (Done previously)
 - [x] Update API documentation (`docs/api/queue-system.md`) for job status response fields and result retrieval logic.
-- [x] Update worker implementation details in `techContext.md` (Added AI worker details).
+- [x] Update worker implementation details in `techContext.md` (Reflected AI refactoring and cost tracking).
+- [x] Update AI component descriptions in `systemPatterns.md` and `techContext.md`.
 - [ ] Update `docs/README.md` Table of Contents (Add AI section).
 - [ ] Create `docs/ai/README.md` (or similar) for AI feature documentation.
 - [ ] Update `docs/api/README.md` (or create `docs/api/ai-api.md`) with AI endpoint details.

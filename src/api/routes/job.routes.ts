@@ -88,7 +88,6 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
 
     // Get job status from queue
-    // Get job from any queue
     const job = await queueService.getJobFromAnyQueue(id);
     if (!job) {
       return res.status(404).json({
@@ -100,27 +99,36 @@ router.get('/:id', async (req, res) => {
     }
 
     // Get stored results if job completed
-    let result = null;
+    let resultData = null; // Rename to avoid conflict
+    let estimatedCost = null; // Variable to hold the cost
     const jobState = await job.getState();
     logger.debug(`Job ${id} state: ${jobState}`);
 
     if (jobState === 'completed') {
       logger.debug(`Attempting to retrieve results for completed job ${id} from storage`);
-      result = await storageService.retrieve(id);
+      const storedResult = await storageService.retrieve(id); // Retrieve the full stored object
       logger.debug(
         `Result from storage for job ${id}:`,
-        result ? JSON.stringify(result, null, 2) : 'null'
+        storedResult ? JSON.stringify(storedResult, null, 2) : 'null'
       );
 
-      if (!result) {
+      if (storedResult) {
+        // Extract cost and the actual result data (assuming cost is stored alongside config)
+        estimatedCost = storedResult.estimatedCost; // Extract cost
+        resultData = storedResult; // Keep the full result object or just the config part as needed
+        // If you only want the config in the 'result' field:
+        // resultData = { config: storedResult.config, startUrl: storedResult.startUrl, ... };
+      } else {
         logger.warn(`No stored results found for completed job ${id}. Checking job.returnvalue.`);
-        // Check if results might be in job return value
+        // Check if results might be in job return value (less likely now with storage)
         if (job.returnvalue) {
           logger.debug(
             `Found result in job.returnvalue for job ${id}:`,
             JSON.stringify(job.returnvalue, null, 2)
           );
-          result = job.returnvalue;
+          resultData = job.returnvalue;
+          // Attempt to get cost from returnvalue if available (might not be reliable)
+          estimatedCost = job.returnvalue.estimatedCost;
         } else {
           logger.warn(`No result found in job.returnvalue for job ${id}.`);
         }
@@ -134,7 +142,8 @@ router.get('/:id', async (req, res) => {
         id: job.id,
         status: jobState,
         progress: job.progress,
-        result,
+        result: resultData, // Send back the retrieved result data
+        estimatedCost: estimatedCost, // Add the estimated cost
         createdAt: job.timestamp,
         completedAt: job.finishedOn,
         failedReason: job.failedReason,
