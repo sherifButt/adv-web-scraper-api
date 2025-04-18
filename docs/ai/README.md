@@ -83,17 +83,20 @@ See [AI API Documentation](../api/ai-api.md) for details on the `/api/v1/ai/gene
     - OpenAI: `OPENAI_API_KEY`
     - DeepSeek: `DEEPSEEK_API_KEY`
     - Anthropic: `ANTHROPIC_API_KEY`
-- See `src/config/index.ts` for the `ai` configuration section, which includes optional keys for `openai`, `deepseek`, and `anthropic`.
-- The desired model (e.g., `'gpt-4o-mini'`, `'deepseek-reasoner'`, `'claude-3-5-sonnet-20240620'`) can be specified in the `options.model` field of the `/api/v1/ai/generate-config` request. If not specified, it defaults to the model defined in `src/core/ai/ai-service.ts` (`gpt-4o-mini`).
+- See `src/config/index.ts` for the `ai` configuration section, which includes optional keys for `openai`, `deepseek`, and `anthropic`. These keys enable the corresponding provider adapter.
+- The desired model (e.g., `'gpt-4o-mini'`, `'deepseek-chat'`, `'deepseek-reasoner'`, `'claude-3-5-sonnet-20240620'`) can be specified in the `options.model` field of the `/api/v1/ai/generate-config` request.
+- The `AiService` determines the provider (OpenAI, DeepSeek, Anthropic) based on the model name prefix (`gpt-`, `deepseek-`, `claude-`) and uses the corresponding adapter.
+- If no model is specified in the request, it defaults to the `defaultModel` defined in `src/core/ai/ai-service.ts` (currently `gpt-4o-mini`).
 
 ### Current Status & Limitations
 
-- The backend foundation is implemented with support for multiple LLM providers via adapters (`src/core/ai/llm-adapters/`).
-- Currently supported models include:
-    - OpenAI: `gpt-4o-mini` (default), others via `OpenAIAdapter`.
-    - DeepSeek: `deepseek-reasoner` via `DeepSeekAdapter`.
-    - Anthropic: `claude-3-5-sonnet-20240620` via `AnthropicAdapter`.
-- Adapters use standard `fetch` for API calls.
-- Prompt engineering may require further refinement for optimal results across various websites and prompts.
+- The backend foundation is implemented with support for multiple LLM providers via adapters (`src/core/ai/llm-adapters/`). The system dynamically routes requests to the correct provider adapter based on the requested model name.
+- Any model supported by the respective provider's API (and compatible with the adapter's implementation) can potentially be used by specifying its name in the request, provided the provider's API key is configured. Examples:
+    - OpenAI: `gpt-4o-mini` (default), `gpt-4o`, `gpt-3.5-turbo`, etc.
+    - DeepSeek: `deepseek-chat`, `deepseek-reasoner`, etc.
+    - Anthropic: `claude-3-5-sonnet-20240620`, `claude-3-opus-20240229`, etc.
+- Adapters use standard `fetch` (Anthropic) or `axios` (DeepSeek, OpenAI) for API calls.
+- The DeepSeek adapter no longer forces JSON output (`response_format`) due to potential compatibility issues; it relies on the model following prompt instructions to return JSON. Error handling is added for non-JSON responses.
+- Prompt engineering may require further refinement for optimal results across various websites, prompts, and models.
 - The testing success criteria within the worker are currently basic (no errors, some data extracted) and could be enhanced.
 - Zod schema validation could be made more detailed to catch finer structural issues.
