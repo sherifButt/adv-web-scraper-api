@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-import type { LLMAdapter, LLMResponse, ModelOptions } from './llm-adapter.interface.js';
+import type { LLMAdapter, LLMGenerateResponse, ModelOptions } from './llm-adapter.interface.js'; // Updated import
 import { logger } from '../../../utils/logger.js';
 
 export class OpenAIAdapter implements LLMAdapter {
@@ -16,7 +16,8 @@ export class OpenAIAdapter implements LLMAdapter {
     userPrompt: string;
     maxTokens?: number;
     temperature?: number;
-  }): Promise<LLMResponse> {
+  }): Promise<LLMGenerateResponse> {
+    // Updated return type
     try {
       const response = await this.client.chat.completions.create({
         model: 'gpt-4o-mini',

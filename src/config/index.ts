@@ -69,6 +69,7 @@ interface ProxyConfig {
   }[];
   testUrl: string;
   healthCheckInterval: number;
+  useForHtmlFetch?: boolean; // Added: Use proxy for initial HTML fetch in AI worker?
 }
 
 interface LoggingConfig {
@@ -172,6 +173,7 @@ export const config: Config = {
     ],
     testUrl: 'https://httpbin.org/ip',
     healthCheckInterval: 300000, // 5 minutes
+    useForHtmlFetch: process.env.PROXY_USE_FOR_HTML_FETCH === 'true', // Default to false
   },
   logging: {
     level: process.env.LOG_LEVEL || 'info',

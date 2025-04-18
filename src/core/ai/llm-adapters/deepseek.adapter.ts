@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { LLMAdapter, LLMResponse, ModelOptions } from './llm-adapter.interface.js';
+import type { LLMAdapter, LLMGenerateResponse, ModelOptions } from './llm-adapter.interface.js'; // Updated import
 import { logger } from '../../../utils/logger.js';
 
 export class DeepSeekAdapter implements LLMAdapter {
@@ -15,7 +15,8 @@ export class DeepSeekAdapter implements LLMAdapter {
     userPrompt: string;
     maxTokens?: number;
     temperature?: number;
-  }): Promise<LLMResponse> {
+  }): Promise<LLMGenerateResponse> {
+    // Updated return type
     try {
       const response = await axios.post(
         `${this.baseUrl}/chat/completions`,

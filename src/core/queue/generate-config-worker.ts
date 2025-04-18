@@ -18,6 +18,26 @@ import {
 import { NavigationStep, NavigationResult, ProxyInfo } from '../../types/index.js';
 import { Page } from 'playwright';
 import * as z from 'zod'; // Using Zod for schema validation
+// Basic HTML Cleaning Helper
+function cleanHtml(html: string): string {
+  // Remove script tags and their content
+  html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove style tags and their content
+  html = html.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+  // Remove HTML comments
+  html = html.replace(/<!--.*?-->/gs, '');
+  // Remove SVG tags
+  html = html.replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, '');
+  // Remove noscript tags
+  html = html.replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '');
+  // Optional: Remove inline styles (more complex, might remove valid content attributes)
+  // html = html.replace(/ style="[^"]*"/gi, '');
+  // Optional: Remove all attributes starting with 'on' (event handlers)
+  // html = html.replace(/ on\w+="[^"]*"/gi, '');
+  // Basic whitespace reduction
+  html = html.replace(/\s+/g, ' ').trim();
+  return html;
+}
 
 // --- Configuration Schema (Reverted to Basic Example) ---
 // This should match the structure expected by NavigationEngine
@@ -66,8 +86,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
     throw new Error('Job ID is required but was not provided');
   }
   const { url, prompt, options: reqOptions }: GenerateConfigRequest = job.data;
-  const jobId = job.id;
-  logger.info(`Starting AI config generation job ${jobId} for URL: ${url}`);
+  const jobId = job.id; // Keep jobId accessible
+  logger.info(`Job ${jobId}: Starting AI config generation for URL: ${url}`);
 
   const aiService = AiService.getInstance();
   const storageService = StorageService.getInstance();
@@ -111,44 +131,120 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
     await updateJobStatus(job, state);
 
     let aiResponse: AiModelResponse;
+    let fetchedHtmlContent: string | undefined;
+
     try {
-      // --- Call AI Service ---
+      // --- Fetch and Clean HTML on First Iteration ---
       if (state.iteration === 1) {
-        // TODO: Optionally fetch HTML content here
-        // let htmlContent: string | undefined;
-        // if (options.fetchHtml) { ... }
+        state.currentStatus = 'Fetching Initial HTML';
+        await updateJobStatus(job, state);
+        logger.info(`Job ${jobId}: Fetching HTML content for ${state.url}`);
+        let browser: any = null;
+        let page: Page | null = null;
+        try {
+          const browserOptions: BrowserOptions = { headless: true }; // Use simple headless for fetching
+          // Add proxy if configured globally for fetching, separate from test proxy setting
+          if (globalConfig.proxy.enabled && globalConfig.proxy.useForHtmlFetch) {
+            const proxyManager = ProxyManager.getInstance();
+            const proxyInfo: ProxyInfo | null = await proxyManager.getProxy();
+            if (proxyInfo?.protocols?.length) {
+              const protocol = proxyInfo.protocols[0];
+              browserOptions.proxy = { server: `${protocol}://${proxyInfo.ip}:${proxyInfo.port}` };
+              logger.info(
+                // Fixed formatting
+                `Job ${jobId}: Using proxy ${browserOptions.proxy.server} for HTML fetch.`
+              );
+            } else {
+              logger.warn(`Job ${jobId}: HTML fetch proxy requested but none found.`); // Adjusted formatting
+            }
+          }
+
+          browser = await BrowserPool.getInstance().getBrowser(browserOptions);
+          page = await browser.newPage();
+          // Add null check before using page
+          if (page) {
+            await page.goto(state.url, { waitUntil: 'domcontentloaded', timeout: 60000 }); // Wait for DOM
+            const rawHtml = await page.content();
+            fetchedHtmlContent = cleanHtml(rawHtml);
+            logger.info(
+              // Fixed formatting
+              `Job ${jobId}: Successfully fetched and cleaned HTML (${fetchedHtmlContent.length} chars).`
+            );
+          } else {
+            throw new Error(`Job ${jobId}: Failed to create page for HTML fetching.`); // Fixed formatting
+          }
+        } catch (fetchError: any) {
+          logger.warn(
+            // Fixed formatting
+            `Job ${jobId}: Failed to fetch or clean HTML: ${fetchError.message}. Proceeding without HTML context.`
+          );
+          state.lastError = `HTML fetch failed: ${fetchError.message}`; // Log fetch error
+          fetchedHtmlContent = undefined; // Ensure it's undefined if fetch fails
+        } finally {
+          // Add null check before closing page
+          if (page) {
+            await page.close();
+          }
+          if (browser) {
+            await BrowserPool.getInstance().releaseBrowser(browser);
+          }
+        }
+        state.currentStatus = 'Generating Initial Config'; // Update status after fetch attempt
+        await updateJobStatus(job, state);
+      }
+
+      // --- Call AI Service ---
+      logger.info(`Job ${jobId}: Calling AI Service (Iteration ${state.iteration})`);
+      if (state.iteration === 1) {
         aiResponse = await aiService.generateConfiguration(
           state.url,
           state.prompt,
-          state.options
-          // htmlContent
+          state.options,
+          fetchedHtmlContent, // Pass fetched HTML
+          jobId // Pass jobId
         );
       } else {
-        // Ensure lastConfig and lastError are not null/undefined before calling
-        if (!state.lastConfig || !state.lastError) {
-          // This should ideally not happen due to the check above, but belts and braces
-          throw new Error('Cannot perform fix iteration without previous config and error state.');
+        // Ensure lastConfig is not null/undefined before calling fix
+        if (!state.lastConfig) {
+          // If lastConfig is missing on a fix iteration, something went wrong.
+          throw new Error( // Fixed formatting
+            `Job ${jobId}: Cannot perform fix iteration ${state.iteration} without a previous configuration state.`
+          );
         }
+        // Note: lastError can be null if validation passed but testing failed without a specific error string
+        const errorForFix = // Fixed formatting
+          state.lastError ?? 'Test failed or validation passed but requires refinement.';
+
+        // Redundant check removed (already fixed in previous step, just ensuring context match)
         // Pass lastError directly, the check above guarantees it's a string here
         aiResponse = await aiService.fixConfiguration(
           state.url,
           state.prompt,
           state.lastConfig,
-          state.lastError, // Pass directly after check
-          state.options
+          errorForFix, // Pass potentially modified error string
+          state.options,
+          jobId // Pass jobId
         );
       }
 
+      logger.info(
+        // Fixed formatting
+        `Job ${jobId}: Received AI Response. Tokens: ${
+          aiResponse.tokensUsed
+        }, Cost: $${aiResponse.cost.toFixed(6)}`
+      );
       state.tokensUsed += aiResponse.tokensUsed;
-      state.estimatedCost = aiService.calculateCost(state.tokensUsed, aiResponse.model);
-      state.currentStatus = `Received LLM Response (Iteration ${state.iteration})`;
+      // Use the cost calculated by aiService which might be more accurate if input/output split is known
+      state.estimatedCost = aiService.calculateCost(state.tokensUsed, aiResponse.model); // Recalculate total cost
+      state.currentStatus = `Validating AI Response (Iteration ${state.iteration})`;
       await updateJobStatus(job, state);
 
       // --- Validate AI Response ---
+      logger.debug(`Job ${jobId}: Raw AI config:`, aiResponse.config); // Log raw config before validation
       const validationResult = ScrapingConfigSchema.safeParse(aiResponse.config);
       if (!validationResult.success) {
         const errorMsg = `AI response failed schema validation: ${validationResult.error.errors
-          .map((e: any) => `${e.path.join('.')}: ${e.message}`) // Add : any type to e
+          .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`) // Use ZodIssue type
           .join(', ')}`;
         logger.warn(`Job ${jobId}: ${errorMsg}`);
         state.lastError = errorMsg;
@@ -158,6 +254,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         continue; // Go to next iteration
       }
 
+      logger.info(`Job ${jobId}: AI response schema validation PASSED.`);
       // Cast the validated data to the expected type, keeping the steps cast for executeFlow
       const currentConfig = validationResult.data as {
         startUrl: string;
@@ -171,8 +268,9 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       // --- Test Configuration (if enabled) ---
       if (!state.options.testConfig) {
         logger.info(`Job ${jobId}: Skipping test phase as testConfig is false.`);
-        state.currentStatus = 'Completed';
+        state.currentStatus = 'Completed (No Test)';
         await updateJobStatus(job, state);
+        logger.info(`Job ${jobId}: Storing final configuration.`);
         await storageService.store({ id: jobId, ...currentConfig }); // Store final config
         return {
           id: jobId,
@@ -188,6 +286,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
 
       state.currentStatus = `Testing Config (Iteration ${state.iteration})`;
       await updateJobStatus(job, state);
+      logger.info(`Job ${jobId}: Starting configuration test (Iteration ${state.iteration}).`);
 
       let testPassed = false;
       let testErrorLog: string | null = null;
@@ -215,8 +314,9 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
 
         // --- Execute Test ---
         if (!page) {
-          throw new Error('Failed to create page for testing.');
+          throw new Error(`Job ${jobId}: Failed to create page for testing.`);
         }
+        logger.info(`Job ${jobId}: Executing navigation flow for test.`);
         const navigationEngine = new NavigationEngine(page, currentConfig.options || {});
         // Cast steps to NavigationStep[] when passing to executeFlow
         const testNavResult: NavigationResult = await navigationEngine.executeFlow(
@@ -224,6 +324,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           currentConfig.steps as NavigationStep[], // Cast here
           currentConfig.variables || {}
         );
+        logger.debug(`Job ${jobId}: Test navigation result:`, testNavResult);
 
         // --- Evaluate Test ---
         if (testNavResult.status === 'completed' && !testNavResult.error) {
@@ -246,6 +347,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         logger.error(`Job ${jobId}: ${testErrorLog}`, execError);
       } finally {
         // --- Cleanup Test Browser ---
+        logger.debug(`Job ${jobId}: Cleaning up test browser resources.`);
         if (page) await page.close();
         if (browser) await BrowserPool.getInstance().releaseBrowser(browser);
       }
@@ -254,6 +356,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       if (testPassed) {
         state.currentStatus = 'Completed';
         await updateJobStatus(job, state);
+        logger.info(`Job ${jobId}: Storing final configuration after successful test.`);
         await storageService.store({ id: jobId, ...currentConfig }); // Store final config
         return {
           id: jobId,
@@ -269,18 +372,27 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         // Test failed, prepare for next iteration
         state.lastError = testErrorLog || 'Unknown test failure';
         state.currentStatus = `Test Failed (Iteration ${state.iteration})`;
+        logger.warn(
+          // Fixed formatting
+          `Job ${jobId}: Test failed. Preparing for fix iteration ${state.iteration + 1}. Error: ${
+            state.lastError
+          }`
+        );
         await updateJobStatus(job, state);
         // Loop continues
       }
     } catch (error: any) {
-      // Catch errors from AI call or validation
+      // Catch errors from AI call or validation or HTML fetch setup
       logger.error(
-        `Job ${jobId}: Error in generation/validation loop (Iteration ${state.iteration}): ${error.message}`
+        // Fixed formatting
+        `Job ${jobId}: Unhandled error in generation/validation loop (Iteration ${state.iteration}): ${error.message}`,
+        { error }
       );
       state.lastError = error.message;
       state.currentStatus = `Error Occurred (Iteration ${state.iteration})`;
       await updateJobStatus(job, state);
       // Continue to next iteration if possible, maybe the fix attempt can recover
+      // If the error is critical (e.g., AI service unavailable), it might make sense to fail fast here.
     }
   } // End of while loop
 
@@ -289,12 +401,16 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
     `Job ${jobId}: Failed to generate working config after ${state.options.maxIterations} iterations.`
   );
   state.currentStatus = 'Failed - Max Iterations Reached';
+  state.message = `Failed after ${state.options.maxIterations} attempts. Last error: ${
+    // Fixed formatting
+    state.lastError ?? 'Unknown'
+  }`;
   await updateJobStatus(job, state);
 
   // Throw error to mark job as failed in BullMQ
-  throw new Error(
+  throw new Error( // Fixed formatting
     `Failed to generate working config after ${
       state.options.maxIterations
-    } iterations. Last error: ${state.lastError ?? 'Unknown error'}` // Add fallback for lastError
+    } iterations. Last error: ${state.lastError ?? 'Unknown error'}`
   );
 }

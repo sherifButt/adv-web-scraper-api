@@ -1,22 +1,105 @@
 // src/core/ai/ai-service.ts
-import { logger } from '../../utils/logger.js';
 import { config } from '../../config/index.js';
 import {
   AiModelResponse,
-  MODEL_COSTS,
   GenerateConfigOptions,
+  MODEL_COSTS,
 } from '../../types/ai-generation.types.js';
-import { NavigationStep } from '../../types/index.js'; // Import NavigationStep
+import { logger } from '../../utils/logger.js';
 
-import { OpenAI } from 'openai';
 import { DeepSeekAdapter } from './llm-adapters/deepseek.adapter.js';
+import type { LLMAdapter, LLMGenerateResponse } from './llm-adapters/llm-adapter.interface.js'; // Import LLMGenerateResponse
 import { OpenAIAdapter } from './llm-adapters/openai.adapter.js';
-import type { LLMAdapter } from './llm-adapters/llm-adapter.interface.js';
+
+// --- Few-Shot Examples ---
+// Store the JSON content as strings
+const googleTrendsExample = `{
+  "startUrl": "https://trends.google.com/trending?geo=US&hl=en-US&sort=search-volume&hours=24&category=10&status=active",
+  "steps": [
+    { "type": "condition", "condition": "button[aria-label='Accept all']", "thenSteps": [{ "type": "click", "selector": "button[aria-label='Accept all']" }] },
+    { "type": "wait", "value": 1000 },
+    { "type": "wait", "value": 3000 },
+    { "type": "condition", "condition": "div[jsname='DRv89'] div[role='combobox'][jsname='oYxtQd']:not([aria-disabled='true'])", "thenSteps": [
+        { "type": "click", "selector": "div[jsname='DRv89'] div[role='combobox'][jsname='oYxtQd']", "timeout": 60000 },
+        { "type": "wait", "value": 1000 },
+        { "type": "click", "selector": ".W7g1Rb-rymPhb-ibnC6b[data-value='50']", "timeout": 60000 }
+    ]},
+    { "type": "wait", "value": 2000 },
+    { "type": "extract", "name": "trendsData", "selector": "table.enOdEe-wZVHld-zg7Cn", "fields": {
+        "trends": { "selector": "tr.enOdEe-wZVHld-xMbwt", "type": "css", "multiple": true, "continueOnError": true, "fields": {
+            "title": { "selector": ".mZ3RIc", "type": "css", "continueOnError": true },
+            "searchVolume": { "selector": ".lqv0Cb", "type": "css", "continueOnError": true },
+            "growth": { "selector": ".TXt85b", "type": "css", "continueOnError": true },
+            "status": { "selector": ".QxIiwc.TUfb9d div", "type": "css", "continueOnError": true },
+            "started": { "selector": ".vdw3Ld", "type": "css", "continueOnError": true },
+            "relatedQueries": { "selector": ".k36WW div button", "type": "css", "multiple": true, "continueOnError": true, "attribute": "data-term" }
+        }}
+    }},
+    { "type": "forEachElement", "selector": "tr.enOdEe-wZVHld-xMbwt", "maxIterations": 50, "elementSteps": [
+        { "type": "click", "selector": ".mZ3RIc" },
+        { "type": "wait", "value": 1000 },
+        { "type": "wait", "waitForSelector": ".mZ3RIc span.GDLTpd[role='button']", "timeout": 500, "continueOnError": true },
+        { "type": "condition", "condition": ".mZ3RIc span.GDLTpd[role='button']", "thenSteps": [
+            { "type": "click", "selector": ".mZ3RIc span.GDLTpd[role='button']" },
+            { "type": "wait", "timeout": 500 }
+        ]},
+        { "type": "wait", "value": 1000 },
+        { "type": "wait", "waitForSelector": ".EMz5P .jDtQ5", "timeout": 10000 },
+        { "type": "wait", "value": 1500 },
+        { "type": "extract", "name": "panelData", "selector": ".EMz5P", "usePageScope": true, "fields": {
+            "news": { "selector": ".jDtQ5 > div[jsaction]", "type": "css", "multiple": true, "fields": {
+                "title": { "selector": ".QbLC8c", "type": "css" },
+                "sourceInfo": { "selector": ".pojp0c", "type": "css" },
+                "url": { "selector": "a.xZCHj", "type": "css", "attribute": "href" },
+                "image": { "selector": ".QtVIpe", "type": "css", "attribute": "src" }
+            }},
+            "relatedQueries": { "selector": ".HLcRPe button", "type": "css", "multiple": true, "attribute": "data-term" }
+        }},
+        { "type": "mergeContext", "source": "panelData", "target": "trendsData.trends[{{index}}]", "mergeStrategy": { "news": "overwrite", "relatedQueries": "union" }},
+        { "type": "wait", "value": 500 }
+    ]},
+    { "type": "condition", "condition": "button[aria-label='Go to next page']:not([disabled])", "thenSteps": [
+        { "type": "click", "selector": "button[aria-label='Go to next page']" },
+        { "type": "wait", "value": 3000 },
+        { "type": "gotoStep", "step": 6 }
+    ]}
+  ],
+  "variables": { "country": "EG" },
+  "options": { "timeout": 60000, "waitForSelector": ".DEQ5Hc", "javascript": true, "screenshots": false, "userAgent": "Mozilla/5.0...", "debug": true }
+}`;
+
+const googleMapsExample = `{
+  "startUrl": "https://maps.google.com/maps?entry=wc",
+  "steps": [
+    { "type": "condition", "condition": "[aria-haspopup='menu']", "thenSteps": [{ "type": "click", "selector": "[aria-haspopup='menu']" }] },
+    { "type": "condition", "condition": "[data-lc='en']", "thenSteps": [{ "type": "click", "selector": "[data-lc='en']" }] },
+    { "type": "scroll", "distance": 500 },
+    { "type": "condition", "condition": "button[aria-label='Accept all']", "thenSteps": [{ "type": "click", "selector": "button[aria-label='Accept all']" }] },
+    { "type": "wait", "value": 500 },
+    { "type": "input", "selector": ".searchboxinput", "value": "{{keyword}} near {{postcode}}", "clearInput": true, "humanInput": true },
+    { "type": "click", "selector": "#searchbox-searchbutton" },
+    { "type": "wait", "value": 1000 },
+    { "type": "mousemove", "selector": ".m6QErb[role='feed']", "duration": 4000, "action": "wheel", "deltaY": 6000 },
+    { "type": "wait", "value": 3000 },
+    { "type": "extract", "name": "searchResults", "selector": ".m6QErb[role='feed']", "fields": {
+        "listings": { "selector": ".Nv2PK", "type": "css", "multiple": true, "continueOnError": true, "fields": {
+            "name": { "selector": ".fontHeadlineSmall", "type": "css", "continueOnError": true },
+            "rating": { "selector": ".MW4etd", "type": "css", "continueOnError": true },
+            "reviews": { "selector": "span .UY7F9", "type": "regex", "pattern": "\\\\((\\\\d+)\\\\)", "group": 1, "dataType": "number", "continueOnError": true },
+            "services": { "selector": ".W4Efsd .W4Efsd span span", "type": "css", "continueOnError": true },
+            "address": { "selector": ".W4Efsd .W4Efsd span + span span + span", "type": "css", "continueOnError": true },
+            "phone": { "selector": ".W4Efsd .W4Efsd + .W4Efsd span + span span + span", "type": "css", "continueOnError": true },
+            "website": { "selector": "div.lI9IFe div.Rwjeuc div:nth-child(1) a", "type": "css", "attribute": "href", "continueOnError": true }
+        }}
+    }}
+  ],
+  "variables": { "keyword": "architect", "postcode": "canton, cardiff,uk" },
+  "options": { "timeout": 45000, "waitForSelector": ".m6QErb[role='feed']", "javascript": true, "screenshots": false, "userAgent": "Mozilla/5.0...", "debug": true }
+}`;
 
 export class AiService {
   private static instance: AiService;
-  private defaultModel = 'gpt-4o-mini';
-
+  private defaultModel = 'gpt-4o-mini'; // Consider moving to config
   private adapters: Map<string, LLMAdapter> = new Map();
 
   private constructor() {
@@ -64,13 +147,14 @@ export class AiService {
     url: string,
     prompt: string,
     options: Required<GenerateConfigOptions>,
-    htmlContent?: string
+    htmlContent?: string,
+    jobId?: string // Added optional jobId
   ): Promise<AiModelResponse> {
     const systemPrompt = this.buildInitialSystemPrompt();
     const userPrompt = this.buildInitialUserPrompt(url, prompt, htmlContent);
 
-    // Placeholder for actual API call
-    return this.callAiModel(systemPrompt, userPrompt, options);
+    // Pass jobId to callAiModel
+    return this.callAiModel(systemPrompt, userPrompt, options, jobId);
   }
 
   /**
@@ -81,14 +165,15 @@ export class AiService {
     originalPrompt: string,
     previousConfig: any,
     errorLog: string | null, // Accept string or null
-    options: Required<GenerateConfigOptions>
+    options: Required<GenerateConfigOptions>,
+    jobId?: string // Added optional jobId
   ): Promise<AiModelResponse> {
     const systemPrompt = this.buildFixSystemPrompt();
     // Pass errorLog (which can be null) to the prompt builder
     const userPrompt = this.buildFixUserPrompt(url, originalPrompt, previousConfig, errorLog);
 
-    // Placeholder for actual API call
-    return this.callAiModel(systemPrompt, userPrompt, options);
+    // Pass jobId to callAiModel
+    return this.callAiModel(systemPrompt, userPrompt, options, jobId);
   }
 
   // --- Prompt Building ---
@@ -97,6 +182,8 @@ export class AiService {
     // Define the expected JSON structure and constraints
     // This is crucial for getting the LLM to output the correct format.
     // Providing a JSON schema or a detailed example is highly recommended.
+    // Define the expected JSON structure and constraints
+    // This is crucial for getting the LLM to output the correct format.
     return `You are an expert web scraping assistant. Your task is to generate a JSON configuration object that defines the steps to scrape data from a given URL based on a user's prompt.
 
 The JSON configuration MUST follow this structure:
@@ -156,6 +243,18 @@ IMPORTANT RULES:
 6.  The 'mergeContext' step combines data. 'source' is the key of the data to merge (e.g., extracted in a loop). 'target' is the destination path, often using '{{index}}' like 'results.items[{{index}}].details'. Use 'mergeStrategy' to control how fields are combined (default 'overwrite').
 7.  Pay close attention to the user's prompt for the exact data fields and navigation actions required. Include necessary 'wait' steps (e.g., wait for selectors, time, or navigation) before interacting with elements, especially after clicks or inputs that trigger dynamic content loading.
 8.  Utilize the full range of available 'NavigationStep' types where appropriate to create efficient and robust scraping logic (e.g., use 'scroll' for infinite scroll, 'forEachElement' for lists, 'condition' for handling variations).
+
+Here are a couple of examples of well-structured configuration JSON objects:
+
+**Example 1: Google Trends**
+\`\`\`json
+${googleTrendsExample}
+\`\`\`
+
+**Example 2: Google Maps**
+\`\`\`json
+${googleMapsExample}
+\`\`\`
 `;
   }
 
@@ -167,10 +266,12 @@ Prompt: ${prompt}`;
     if (htmlContent) {
       // Add relevant parts of HTML to give context
       // Be mindful of token limits - maybe just send body or specific sections
-      const maxLength = 10000; // Limit HTML context size
+      const maxLength = 15000; // Increased Limit HTML context size slightly
       const truncatedHtml =
         htmlContent.length > maxLength ? htmlContent.substring(0, maxLength) + '...' : htmlContent;
-      userPrompt += `\n\nRelevant HTML context (truncated):\n\`\`\`html\n${truncatedHtml}\n\`\`\``;
+      userPrompt += `\n\nRelevant HTML context (cleaned, truncated):\n\`\`\`html\n${truncatedHtml}\n\`\`\``;
+    } else {
+      userPrompt += `\n\n(No HTML content provided, generate based on URL structure and common patterns if possible)`;
     }
     return userPrompt;
   }
@@ -183,18 +284,30 @@ You will be given the original URL, the original user prompt, the previous JSON 
 
 Analyze the error and the previous configuration, then generate a NEW, CORRECTED JSON configuration object.
 
-The JSON configuration MUST follow the comprehensive structure defined previously (startUrl, steps, all NavigationStep types and their parameters, FieldDefinition, etc., as detailed in the generation prompt).
+The JSON configuration MUST follow the comprehensive structure defined previously (startUrl, steps, all NavigationStep types and their parameters, FieldDefinition, etc.). Refer to the structure definition and examples provided in the initial generation task if needed.
 
 IMPORTANT RULES:
 1.  Generate ONLY the corrected JSON configuration object. Do not include any introductory text, explanations, or markdown formatting like \`\`\`json.
-2.  Analyze the provided error message and the previous configuration carefully. Identify the likely root cause of the failure (e.g., incorrect selector, element not found, timeout, unexpected page state, flawed logic in 'condition' or 'forEachElement').
+2.  Analyze the provided error message and the previous configuration carefully. Identify the likely root cause of the failure (e.g., incorrect selector, element not found, timeout, unexpected page state, flawed logic in 'condition' or 'forEachElement', incorrect data extraction field).
 3.  Modify the configuration specifically to address this root cause. For example:
     - If an element wasn't found: Adjust the selector, add a 'wait' step before it, or mark the step as 'optional: true' if appropriate.
     - If a timeout occurred: Increase the relevant 'timeout' value or add a more specific 'wait' condition (e.g., wait for a specific selector).
     - If logic failed: Correct the 'condition', 'forEachElement' selector, or steps within 'thenSteps'/'elseSteps'/'elementSteps'.
+    - If extraction failed: Correct the 'selector', 'attribute', 'type', 'pattern', or nested 'fields' within the relevant 'extract' step.
 4.  Ensure the generated JSON is valid and adheres strictly to the defined structure.
 5.  Maintain the original intent of the user's prompt while fixing the error.
 6.  Use robust CSS selectors (prefer 'id', 'data-*', stable classes; avoid brittle ones).
+
+Reference Examples (Good Structure):
+**Example 1: Google Trends**
+\`\`\`json
+${googleTrendsExample}
+\`\`\`
+
+**Example 2: Google Maps**
+\`\`\`json
+${googleMapsExample}
+\`\`\`
 `;
   }
 
@@ -230,30 +343,66 @@ Generate the corrected JSON configuration:`;
   private async callAiModel(
     systemPrompt: string,
     userPrompt: string,
-    options: Required<GenerateConfigOptions>
+    options: Required<GenerateConfigOptions>,
+    jobId?: string // Optional Job ID for logging context
   ): Promise<AiModelResponse> {
     const adapter = this.adapters.get(options.model);
+    const logPrefix = jobId ? `Job ${jobId}: ` : '';
+
     if (!adapter) {
+      logger.error(`${logPrefix}No adapter available for model: ${options.model}`);
       throw new Error(`No adapter available for model: ${options.model}`);
     }
 
+    logger.debug(`${logPrefix}Calling AI model ${options.model} with options:`, options);
+    // Avoid logging potentially large prompts/HTML in production info logs unless debug enabled
+    logger.debug(`${logPrefix}System Prompt:\n${systemPrompt}`);
+    logger.debug(`${logPrefix}User Prompt:\n${userPrompt}`);
+
     try {
-      const response = await adapter.generate({
+      const response: LLMGenerateResponse = await adapter.generate({
         systemPrompt,
         userPrompt,
-        maxTokens: options.maxTokens,
-        temperature: options.temperature,
+        maxTokens: options.maxTokens, // Ensure adapter uses this
+        temperature: options.temperature, // Ensure adapter uses this
       });
 
+      logger.debug(`${logPrefix}Raw AI Response:`, response); // Log raw response for debugging
+
+      // Basic validation of response structure
+      if (
+        !response ||
+        typeof response.config !== 'object' ||
+        !response.usage ||
+        typeof response.usage.total_tokens !== 'number'
+      ) {
+        logger.error(
+          `${logPrefix}Invalid response structure received from AI adapter for model ${options.model}.`
+        );
+        throw new Error(`Invalid response structure from AI model ${options.model}`);
+      }
+
+      const tokensUsed = response.usage.total_tokens;
+      const cost = this.calculateCost(tokensUsed, options.model);
+
+      logger.info(
+        `${logPrefix}AI call successful. Model: ${
+          options.model
+        }, Tokens: ${tokensUsed}, Est. Cost: $${cost.toFixed(6)}`
+      );
+
       return {
-        config: response.config,
-        tokensUsed: response.usage.total_tokens,
+        config: response.config, // Assuming adapter returns parsed JSON directly
+        tokensUsed: tokensUsed,
         model: options.model,
-        cost: this.calculateCost(response.usage.total_tokens, options.model),
+        cost: cost,
       };
     } catch (error: any) {
-      logger.error(`Error calling AI model: ${error.message}`);
-      throw error; // Re-throw the error
+      logger.error(`${logPrefix}Error calling AI model ${options.model}: ${error.message}`, {
+        error,
+      });
+      // Consider wrapping the error for more context
+      throw new Error(`AI model ${options.model} failed: ${error.message}`);
     }
   }
 

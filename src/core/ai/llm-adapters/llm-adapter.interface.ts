@@ -1,5 +1,6 @@
-export interface LLMResponse {
-  config: any;
+export interface LLMGenerateResponse {
+  // Renamed from LLMResponse
+  config: any; // Consider defining a more specific type if possible
   usage: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -18,5 +19,5 @@ export interface LLMAdapter {
     userPrompt: string;
     maxTokens?: number;
     temperature?: number;
-  }): Promise<LLMResponse>;
+  }): Promise<LLMGenerateResponse>; // Updated return type
 }
