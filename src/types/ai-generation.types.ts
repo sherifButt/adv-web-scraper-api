@@ -99,6 +99,12 @@ export const MODEL_COSTS = {
     input: 0.001 / 1000,
     output: 0.002 / 1000,
   },
+
+  // Anthropic models
+  'claude-3-5-sonnet-20240620': {
+    input: 0.000003, // $3 / 1M tokens
+    output: 0.000015, // $15 / 1M tokens
+  },
 };
 
 export const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {

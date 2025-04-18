@@ -84,7 +84,11 @@ interface AiConfig {
   deepseek?: {
     apiKey: string;
   };
-}
+  anthropic?: {
+    // Added Anthropic config
+    apiKey: string;
+  };
+} // Removed extra newline before this brace
 
 interface Config {
   environment: string;
@@ -186,5 +190,9 @@ export const config: Config = {
     deepseek: {
       apiKey: process.env.DEEPSEEK_API_KEY || '',
     },
-  },
+    anthropic: {
+      // Added Anthropic config
+      apiKey: process.env.ANTHROPIC_API_KEY || '',
+    },
+  }, // Removed extra newline before this brace
 };

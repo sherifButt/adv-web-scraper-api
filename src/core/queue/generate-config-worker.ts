@@ -234,8 +234,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         }, Cost: $${aiResponse.cost.toFixed(6)}`
       );
       state.tokensUsed += aiResponse.tokensUsed;
-      // Use the cost calculated by aiService which might be more accurate if input/output split is known
-      state.estimatedCost = aiService.calculateCost(state.tokensUsed, aiResponse.model); // Recalculate total cost
+      state.estimatedCost += aiResponse.cost; // Accumulate cost from the current response
       state.currentStatus = `Validating AI Response (Iteration ${state.iteration})`;
       await updateJobStatus(job, state);
 

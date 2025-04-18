@@ -7,6 +7,7 @@ import {
 } from '../../types/ai-generation.types.js';
 import { logger } from '../../utils/logger.js';
 
+import { AnthropicAdapter } from './llm-adapters/anthropic.adapter.js'; // Import AnthropicAdapter
 import { DeepSeekAdapter } from './llm-adapters/deepseek.adapter.js';
 import type { LLMAdapter, LLMGenerateResponse } from './llm-adapters/llm-adapter.interface.js'; // Import LLMGenerateResponse
 import { OpenAIAdapter } from './llm-adapters/openai.adapter.js';
@@ -119,6 +120,17 @@ export class AiService {
     if (deepseekKey) {
       this.adapters.set('deepseek-reasoning', new DeepSeekAdapter(deepseekKey));
       logger.info('Initialized DeepSeek Reasoning adapter');
+    }
+
+    // Initialize Anthropic Claude 3.5 Sonnet adapter
+    const anthropicKey = config.ai?.anthropic?.apiKey || process.env.ANTHROPIC_API_KEY;
+    if (anthropicKey) {
+      try {
+        this.adapters.set('claude-3-5-sonnet-20240620', new AnthropicAdapter(anthropicKey));
+        logger.info('Initialized Anthropic Claude 3.5 Sonnet adapter');
+      } catch (error: any) {
+        logger.error(`Failed to initialize Anthropic adapter: ${error.message}`);
+      }
     }
 
     // Initialize OpenAI adapter (fallback)
@@ -382,18 +394,22 @@ Generate the corrected JSON configuration:`;
         throw new Error(`Invalid response structure from AI model ${options.model}`);
       }
 
-      const tokensUsed = response.usage.total_tokens;
-      const cost = this.calculateCost(tokensUsed, options.model);
+      // Pass detailed usage to calculateCost
+      const cost = this.calculateCost(
+        response.usage.prompt_tokens,
+        response.usage.completion_tokens,
+        options.model
+      );
 
       logger.info(
-        `${logPrefix}AI call successful. Model: ${
-          options.model
-        }, Tokens: ${tokensUsed}, Est. Cost: $${cost.toFixed(6)}`
+        `${logPrefix}AI call successful. Model: ${options.model}, Tokens: ${
+          response.usage.total_tokens
+        }, Est. Cost: $${cost.toFixed(6)}` // Log total tokens
       );
 
       return {
         config: response.config, // Assuming adapter returns parsed JSON directly
-        tokensUsed: tokensUsed,
+        tokensUsed: response.usage.total_tokens, // Return total tokens here
         model: options.model,
         cost: cost,
       };
@@ -407,17 +423,16 @@ Generate the corrected JSON configuration:`;
   }
 
   /**
-   * Calculates the estimated cost based on token usage and model.
+   * Calculates the estimated cost based on input/output token usage and model.
    */
-  public calculateCost(tokensUsed: number, model: string): number {
+  public calculateCost(promptTokens: number, completionTokens: number, model: string): number {
     const costs = MODEL_COSTS[model as keyof typeof MODEL_COSTS];
     if (!costs) {
       logger.warn(`Cost calculation not available for model: ${model}`);
       return 0;
     }
-    // Note: This is a simplified calculation assuming all tokens are output tokens
-    // A more accurate calculation would need input/output token counts if available.
-    const estimatedCost = tokensUsed * costs.output; // Using output cost as approximation
+    // Calculate cost based on input and output tokens
+    const estimatedCost = promptTokens * costs.input + completionTokens * costs.output;
     return estimatedCost;
   }
 }

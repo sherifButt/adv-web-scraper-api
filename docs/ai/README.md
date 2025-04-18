@@ -79,13 +79,21 @@ See [AI API Documentation](../api/ai-api.md) for details on the `/api/v1/ai/gene
 
 ### Configuration
 
-- An API key for the chosen LLM service (e.g., OpenAI) must be provided via the `OPENAI_API_KEY` environment variable.
-- See `src/config/index.ts` for the `ai` configuration section.
+- API keys for the desired LLM services must be provided via environment variables:
+    - OpenAI: `OPENAI_API_KEY`
+    - DeepSeek: `DEEPSEEK_API_KEY`
+    - Anthropic: `ANTHROPIC_API_KEY`
+- See `src/config/index.ts` for the `ai` configuration section, which includes optional keys for `openai`, `deepseek`, and `anthropic`.
+- The desired model (e.g., `'gpt-4o-mini'`, `'deepseek-reasoning'`, `'claude-3-5-sonnet-20240620'`) can be specified in the `options.model` field of the `/api/v1/ai/generate-config` request. If not specified, it defaults to the model defined in `src/core/ai/ai-service.ts` (`gpt-4o-mini`).
 
 ### Current Status & Limitations
 
-- The backend foundation is implemented.
-- The interaction with the actual LLM API in `AiService` is currently a placeholder and needs to be implemented using a specific SDK (e.g., `openai`).
+- The backend foundation is implemented with support for multiple LLM providers via adapters (`src/core/ai/llm-adapters/`).
+- Currently supported models include:
+    - OpenAI: `gpt-4o-mini` (default), others via `OpenAIAdapter`.
+    - DeepSeek: `deepseek-reasoning` via `DeepSeekAdapter`.
+    - Anthropic: `claude-3-5-sonnet-20240620` via `AnthropicAdapter`.
+- Adapters use standard `fetch` for API calls.
 - Prompt engineering may require further refinement for optimal results across various websites and prompts.
 - The testing success criteria within the worker are currently basic (no errors, some data extracted) and could be enhanced.
 - Zod schema validation could be made more detailed to catch finer structural issues.
