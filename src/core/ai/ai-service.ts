@@ -104,39 +104,58 @@ The JSON configuration MUST follow this structure:
   "startUrl": "string (The target URL)",
   "steps": [ NavigationStep ],
   "variables": { /* Optional key-value pairs */ },
-  "options": { /* Optional scraping options */ }
+  "options": { /* Optional scraping options like timeout, userAgent, debug, etc. */ }
 }
 
-NavigationStep is an object with a 'type' property and other properties depending on the type. Supported types are:
-- goto: { type: "goto", url: "string" }
-- click: { type: "click", selector: "string", description?: "string", timeout?: number }
-- input: { type: "input", selector: "string", value: "string", description?: "string", humanInput?: boolean }
-- wait: { type: "wait", value: number (ms) | "navigation" | "networkidle" | "load", selector?: string (waitForSelector), timeout?: number, description?: "string" }
-- extract: { type: "extract", name: "string", selector?: "string", fields: { fieldName: FieldDefinition }, description?: "string", usePageScope?: boolean }
-- condition: { type: "condition", condition: "string (selector)" | function, thenSteps: [ NavigationStep ], elseSteps?: [ NavigationStep ], description?: "string" }
-- forEachElement: { type: "forEachElement", selector: "string", elementSteps: [ NavigationStep ], maxIterations?: number, description?: "string" }
-- mergeContext: { type: "mergeContext", source: "string", target: "string", mergeStrategy?: { field: "overwrite" | "union" | "append" | "ignore" }, defaultMergeStrategy?: "overwrite" | "union" | "append" | "ignore", description?: "string" }
-- gotoStep: { type: "gotoStep", step: number (1-based index), description?: "string" }
-(Other types like select, scroll, mousemove, hover, executeScript exist but focus on the core ones first).
+NavigationStep is an object with a 'type' property and other properties depending on the type. Each step can optionally include 'description' (string) and 'optional' (boolean, default false). Supported types are:
 
-FieldDefinition (for extract step):
+**Basic Navigation & Waiting:**
+- goto: { type: "goto", value: "string (URL)", waitFor?: "load" | "networkidle" | "domcontentloaded" }
+- wait: { type: "wait", value: number (ms) | "navigation" | "networkidle" | "load", selector?: string (waits for element), timeout?: number }
+
+**Interactions:**
+- click: { type: "click", selector: "string", triggerType?: "mouse" | "keyboard", waitFor?: string | number, timeout?: number }
+- input: { type: "input", selector: "string", value: "string", clearInput?: boolean, humanInput?: boolean, timeout?: number }
+- select: { type: "select", selector: "string", value: "string", timeout?: number } // Selects dropdown option by value
+- scroll: { type: "scroll", direction?: "up" | "down" | "left" | "right", distance?: number, selector?: string, scrollIntoView?: boolean, scrollMargin?: number, behavior?: "smooth" | "auto", timeout?: number, waitFor?: string }
+- mousemove: { type: "mousemove", selector?: string, x?: number, y?: number, duration?: number, humanLike?: boolean, action?: "move" | "click" | "drag" | "wheel", pathPoints?: Array<{ x: number; y: number } | { selector: string }>, dragTo?: { x: number; y: number } | { selector: string }, deltaX?: number, deltaY?: number, waitFor?: string, timeout?: number }
+- hover: { type: "hover", selector: "string", duration?: number, waitFor?: string, timeout?: number }
+
+**Data Extraction:**
+- extract: { type: "extract", name: "string (context key)", selector?: string (base selector for fields), fields: { fieldName: FieldDefinition }, usePageScope?: boolean, timeout?: number }
+
+**Flow Control:**
+- condition: { type: "condition", condition: "string (selector)" | function, thenSteps: [ NavigationStep ], elseSteps?: [ NavigationStep ] }
+- forEachElement: { type: "forEachElement", selector: "string", elementSteps: [ NavigationStep ], maxIterations?: number }
+- mergeContext: { type: "mergeContext", source: "string (context key)", target: "string (context key, use {{index}} for loops)", mergeStrategy?: { field: "overwrite" | "union" | "append" | "ignore" }, defaultMergeStrategy?: "overwrite" | "union" | "append" | "ignore" }
+- gotoStep: { type: "gotoStep", step: number (1-based index) } // Jumps to another step
+- paginate: { type: "paginate", selector: "string (next button)", maxPages?: number, extractSteps: [ NavigationStep ] } // Simplified pagination loop
+
+**Advanced:**
+- executeScript: { type: "executeScript", script: "string (JS code)" | function }
+
+FieldDefinition (for 'extract' step):
 {
-  "selector": "string (CSS selector)",
-  "type": "css",
-  "attribute"?: "string (e.g., 'href', 'src')",
-  "multiple"?: boolean,
+  "selector": "string (CSS selector relative to parent or page if usePageScope=true)",
+  "type": "css" | "regex", // Use 'css' by default. Use 'regex' for pattern matching.
+  "attribute"?: "string (e.g., 'href', 'src', 'textContent', 'outerHTML')", // Specify attribute for 'css' type
+  "pattern"?: "string (JS Regex pattern)", // Required for 'regex' type
+  "group"?: number (Regex capture group index), // Optional for 'regex' type
+  "dataType"?: "string" | "number" | "boolean", // Optional for 'regex' type
+  "multiple"?: boolean (Extract array of values/objects),
   "continueOnError"?: boolean,
   "fields"?: { fieldName: FieldDefinition } // For nested objects/lists
 }
 
 IMPORTANT RULES:
 1.  Generate ONLY the JSON configuration object. Do not include any introductory text, explanations, or markdown formatting like \`\`\`json.
-2.  Use robust CSS selectors. Prefer selectors with stable attributes like 'id', 'data-*', or specific class names. Avoid overly complex or brittle selectors.
-3.  Ensure the generated JSON is valid.
-4.  The 'extract' step's 'fields' property defines the structure of the extracted data. If 'multiple' is true on a field definition, it extracts an array. If that field definition also has nested 'fields', it extracts an array of objects.
-5.  For 'forEachElement', the 'elementSteps' run within the context of each matched element. Use selectors relative to that element or simple tag/class selectors. Use 'usePageScope: true' in nested 'extract' steps if you need to extract data from the whole page relative to the loop item.
-6.  The 'mergeContext' step is used to combine data extracted in different steps (e.g., merging panel details into a list item). The 'target' path often uses '{{index}}' when merging into items from a 'forEachElement' loop.
-7.  Pay close attention to the user's prompt for the exact data fields and navigation actions required. Include necessary 'wait' steps.
+2.  Use robust CSS selectors. Prefer stable attributes like 'id', 'data-*' attributes, or unique, descriptive class names. Avoid relying on brittle selectors like complex tag hierarchies ('div > div > span'), index-based selectors (':nth-child(3)'), or auto-generated/dynamic class names (e.g., 'css-1q2w3e4').
+3.  Ensure the generated JSON is valid and strictly adheres to the defined structure for each step type.
+4.  The 'extract' step's 'fields' define the data structure. If 'multiple' is true on a field, it extracts an array. If that field also has nested 'fields', it extracts an array of objects. Use 'attribute' to get specific HTML attributes. Use 'regex' type for extracting data using regular expressions from text content or attributes.
+5.  For 'forEachElement', the 'elementSteps' run within the context of each matched element. Selectors inside 'elementSteps' are relative to the current element by default. Use 'usePageScope: true' in nested 'extract' steps if you need to extract data from the whole page relative to the loop item. The variable '{{index}}' (0-based) is available within 'elementSteps'.
+6.  The 'mergeContext' step combines data. 'source' is the key of the data to merge (e.g., extracted in a loop). 'target' is the destination path, often using '{{index}}' like 'results.items[{{index}}].details'. Use 'mergeStrategy' to control how fields are combined (default 'overwrite').
+7.  Pay close attention to the user's prompt for the exact data fields and navigation actions required. Include necessary 'wait' steps (e.g., wait for selectors, time, or navigation) before interacting with elements, especially after clicks or inputs that trigger dynamic content loading.
+8.  Utilize the full range of available 'NavigationStep' types where appropriate to create efficient and robust scraping logic (e.g., use 'scroll' for infinite scroll, 'forEachElement' for lists, 'condition' for handling variations).
 `;
   }
 
@@ -164,14 +183,18 @@ You will be given the original URL, the original user prompt, the previous JSON 
 
 Analyze the error and the previous configuration, then generate a NEW, CORRECTED JSON configuration object.
 
-The JSON configuration MUST follow the structure defined previously (startUrl, steps, NavigationStep types, FieldDefinition, etc.).
+The JSON configuration MUST follow the comprehensive structure defined previously (startUrl, steps, all NavigationStep types and their parameters, FieldDefinition, etc., as detailed in the generation prompt).
 
 IMPORTANT RULES:
 1.  Generate ONLY the corrected JSON configuration object. Do not include any introductory text, explanations, or markdown formatting like \`\`\`json.
-2.  Focus on fixing the specific error reported. Modify selectors, add wait steps, adjust logic, etc., as needed based on the error.
-3.  Ensure the generated JSON is valid.
-4.  Maintain the original intent of the user's prompt.
-5.  Use robust CSS selectors.
+2.  Analyze the provided error message and the previous configuration carefully. Identify the likely root cause of the failure (e.g., incorrect selector, element not found, timeout, unexpected page state, flawed logic in 'condition' or 'forEachElement').
+3.  Modify the configuration specifically to address this root cause. For example:
+    - If an element wasn't found: Adjust the selector, add a 'wait' step before it, or mark the step as 'optional: true' if appropriate.
+    - If a timeout occurred: Increase the relevant 'timeout' value or add a more specific 'wait' condition (e.g., wait for a specific selector).
+    - If logic failed: Correct the 'condition', 'forEachElement' selector, or steps within 'thenSteps'/'elseSteps'/'elementSteps'.
+4.  Ensure the generated JSON is valid and adheres strictly to the defined structure.
+5.  Maintain the original intent of the user's prompt while fixing the error.
+6.  Use robust CSS selectors (prefer 'id', 'data-*', stable classes; avoid brittle ones).
 `;
   }
 

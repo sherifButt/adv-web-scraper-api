@@ -91,7 +91,7 @@ export const MODEL_COSTS = {
   },
 
   // DeepSeek models
-  'deepseek-reasoning': {
+  'deepseek-reasoner': {
     input: 0.0015 / 1000,
     output: 0.0025 / 1000,
   },
