@@ -25,7 +25,8 @@ Generates a web scraping configuration based on a target URL and a natural langu
     "browserOptions": {
       "headless": "boolean (optional, default: true)",
       "proxy": "boolean (optional, default: false)"
-    }
+    },
+    "interactionHints": ["string"] // Optional array of strings
   }
 }
 ```
@@ -35,6 +36,7 @@ Generates a web scraping configuration based on a target URL and a natural langu
 - `url` (string, required): The target URL of the website to scrape.
 - `prompt` (string, required): A natural language description of the desired data and navigation steps.
 - `options` (object, optional): Options to control the generation process.
+  - `interactionHints` (string[], optional): An array of strings providing hints to the AI about necessary user interactions (e.g., "Click the 'Load More' button", "Paginate using the '.next-page' link"). Useful for guiding the AI on pages with dynamic content loading.
   - `maxIterations` (number): Maximum number of test-and-fix iterations the worker will perform if testing fails.
   - `testConfig` (boolean): If `true`, the worker will attempt to execute the generated configuration to verify it works. If `false`, the configuration is returned after initial generation and schema validation only.
   - `model` (string): The identifier of the LLM to use (e.g., 'gpt-4', 'gpt-3.5-turbo'). Must match a model supported by the configured AI service.

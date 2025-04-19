@@ -55,6 +55,7 @@ const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {
     headless: true,
     proxy: false,
   },
+  interactionHints: [], // Add default empty array for the new required property
 };
 
 // --- Helper Function to Update Job Progress/Data ---
@@ -178,7 +179,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           state.prompt,
           state.options,
           fetchedHtmlContent,
-          jobId
+          jobId,
+          state.options.interactionHints // Pass interaction hints
         );
       } else {
         if (!state.lastConfig) {
@@ -194,7 +196,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           state.lastConfig,
           errorForFix,
           state.options,
-          jobId
+          jobId,
+          state.options.interactionHints // Pass interaction hints
         );
       }
 

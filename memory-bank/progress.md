@@ -49,6 +49,7 @@
 - Job status updates track generation/testing/fixing stages.
 - **Cost tracking implemented**: Worker accumulates cost, stores it with the result, and the job status API returns it.
 - Placeholder costs added for `gpt-4.1-mini`.
+- **Interaction Hints**: Added optional `interactionHints` to API request and integrated into worker, service, and prompt generation to guide AI for dynamic content.
 
 ## What's Left to Build
 
@@ -59,7 +60,7 @@
 
 2. **AI Feature Completion**
    - Implement actual LLM API calls in adapters (replace placeholder logic).
-   - Refine prompt engineering for better configuration generation and fixing.
+   - Refine prompt engineering (including use of `interactionHints`) for better configuration generation and fixing.
    - Refine the testing logic and success criteria within `generate-config-worker.ts`.
    - Add more robust schema validation (Zod) for generated configurations.
    - Update placeholder costs for `gpt-4.1-mini` when available.

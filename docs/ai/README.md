@@ -16,14 +16,14 @@ This feature allows you to generate complex web scraping configurations automati
 
 The AI configuration generation process works asynchronously using the API's queue system:
 
-1.  **API Request**: The client sends a `POST` request to `/api/v1/ai/generate-config` with the target `url` and a natural language `prompt`. Optional `options` can be provided to control the generation process (e.g., `maxIterations`, `testConfig`).
+1.  **API Request**: The client sends a `POST` request to `/api/v1/ai/generate-config` with the target `url` and a natural language `prompt`. Optional `options` can be provided to control the generation process (e.g., `maxIterations`, `testConfig`, `interactionHints`).
 2.  **Job Queuing**: The API server validates the request and adds a job to the `config-generation-jobs` queue. It immediately returns a `jobId` and a `statusUrl` (`/api/v1/jobs/:jobId`).
-3.  **Worker Processing**: A dedicated worker (`generate-config-worker.ts`) picks up the job from the queue.
-4.  **Initial Generation**: The worker calls the `AiService` to interact with an LLM, providing the URL, prompt, and potentially HTML context, to generate the initial JSON configuration.
+3.  **Worker Processing**: A dedicated worker (`generate-config-worker.ts`) picks up the job from the queue, including any provided `interactionHints`.
+4.  **Initial Generation**: The worker calls the `AiService` to interact with an LLM, providing the URL, prompt, potentially HTML context, and any `interactionHints`, to generate the initial JSON configuration. The hints help guide the LLM, especially for pages requiring interaction to reveal content.
 5.  **Validation**: The worker validates the structure of the AI-generated JSON using a Zod schema. If invalid, it logs the error and may attempt a fix in the next iteration.
 6.  **Testing (Optional)**: If the `testConfig` option is enabled (default: true), the worker launches a browser instance and uses the `NavigationEngine` to execute the generated configuration against the target URL.
 7.  **Evaluation**: The worker evaluates the test run. Success is typically defined as the flow completing without errors and extracting some data.
-8.  **Fixing Loop (If Testing Fails)**: If validation or testing fails, the worker calls the `AiService` again, providing the previous configuration and the error details. The AI attempts to generate a corrected configuration. This loop repeats up to `maxIterations` (default: 3).
+8.  **Fixing Loop (If Testing Fails)**: If validation or testing fails, the worker calls the `AiService` again, providing the previous configuration, the error details, and the original `interactionHints`. The AI attempts to generate a corrected configuration. This loop repeats up to `maxIterations` (default: 3).
 9.  **Completion/Failure**:
     *   If a configuration passes validation and testing (or if testing is disabled), the job is marked as `completed`. The final configuration is stored using the `StorageService` (accessible via the job status endpoint).
     *   If the process fails after `maxIterations`, the job is marked as `failed`, and the last error is recorded.

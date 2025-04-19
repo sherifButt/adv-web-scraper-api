@@ -75,10 +75,12 @@ export class AiService {
     prompt: string,
     options: Required<GenerateConfigOptions>,
     htmlContent?: string,
-    jobId?: string
+    jobId?: string,
+    interactionHints?: string[] // Add interactionHints parameter
   ): Promise<AiModelResponse> {
     const systemPrompt = GENERATE_CONFIG_SYSTEM_PROMPT;
-    const userPrompt = generateConfigUserPrompt(url, prompt, htmlContent);
+    // Pass interactionHints to the prompt function
+    const userPrompt = generateConfigUserPrompt(url, prompt, htmlContent, interactionHints);
     return this.callAiModel(systemPrompt, userPrompt, options, jobId);
   }
 
@@ -91,10 +93,18 @@ export class AiService {
     previousConfig: any,
     errorLog: string | null,
     options: Required<GenerateConfigOptions>,
-    jobId?: string
+    jobId?: string,
+    interactionHints?: string[] // Add interactionHints parameter
   ): Promise<AiModelResponse> {
     const systemPrompt = FIX_CONFIG_SYSTEM_PROMPT;
-    const userPrompt = fixConfigUserPrompt(url, originalPrompt, previousConfig, errorLog);
+    // Pass interactionHints to the prompt function
+    const userPrompt = fixConfigUserPrompt(
+      url,
+      originalPrompt,
+      previousConfig,
+      errorLog,
+      interactionHints
+    );
     return this.callAiModel(systemPrompt, userPrompt, options, jobId);
   }
 

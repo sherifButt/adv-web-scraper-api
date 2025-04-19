@@ -287,7 +287,12 @@ ${rightmoveExample}
 \`\`\`
 `;
 
-export const generateConfigUserPrompt = (url: string, prompt: string, htmlContent?: string) => {
+export const generateConfigUserPrompt = (
+  url: string,
+  prompt: string,
+  htmlContent?: string,
+  interactionHints?: string[] // Add interactionHints parameter
+) => {
   let userPrompt = `Generate the scraping configuration for the following request:
 URL: ${url}
 Prompt: ${prompt}`;
@@ -299,6 +304,14 @@ Prompt: ${prompt}`;
     userPrompt += `\n\nRelevant HTML context (cleaned, truncated):\n\`\`\`html\n${truncatedHtml}\n\`\`\``;
   } else {
     userPrompt += `\n\n(No HTML content provided, generate based on URL structure and common patterns if possible)`;
+  }
+
+  // Append interaction hints if provided
+  if (interactionHints && interactionHints.length > 0) {
+    userPrompt += `\n\nUser Interaction Hints (Consider these when generating steps, especially for dynamic content like pagination or load more buttons):`;
+    interactionHints.forEach(hint => {
+      userPrompt += `\n- ${hint}`;
+    });
   }
 
   return userPrompt;

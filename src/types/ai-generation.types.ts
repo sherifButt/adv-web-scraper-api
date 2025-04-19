@@ -55,6 +55,7 @@ export interface GenerateConfigOptions {
       height: number;
     };
   };
+  interactionHints?: string[]; // Add optional hints for dynamic content
 }
 
 export interface LLMAdapter {
@@ -89,4 +90,5 @@ export const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {
       height: 800,
     },
   },
+  interactionHints: [], // Add default empty array for the new required property
 };

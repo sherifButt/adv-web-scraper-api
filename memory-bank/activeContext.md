@@ -109,6 +109,13 @@ The project has progressed from planning to implementation. Recent activities in
    - Integrated the `config-generation-jobs` queue and worker into `QueueService` (`src/core/queue/queue-service.ts`).
    - Created the `POST /api/v1/ai/generate-config` endpoint (`src/api/routes/ai.routes.ts`).
    - Mounted the AI routes in the main API router (`src/api/routes/index.ts`).
+   - **Added `interactionHints` Feature**:
+     - Modified `GenerateConfigOptions` type (`src/types/ai-generation.types.ts`) to include optional `interactionHints: string[]`.
+     - Updated `DEFAULT_OPTIONS` in types and worker to include `interactionHints: []`.
+     - Updated API validator (`src/api/validators/ai.validator.ts`) to allow `interactionHints` in the request options.
+     - Modified `generate-config-worker.ts` to pass `interactionHints` to `AiService`.
+     - Updated `AiService` methods (`generateConfiguration`, `fixConfiguration`) to accept `interactionHints`.
+     - Updated prompt functions (`generateConfigUserPrompt`, `fixConfigUserPrompt`) to incorporate `interactionHints` into the user prompts sent to the LLM.
 
 ## Next Steps
 
@@ -196,10 +203,11 @@ Several key decisions have been implemented, while others are being refined:
    - **Refinement Needed**: Consider adding more proxy sources (API); further refine error recovery and health checking heuristics.
 
 6. **AI Configuration Generation**
-   - **Decision**: Use LLM via API call within an asynchronous worker, implement iterative test-and-fix loop. Refactor service for modularity. Track costs.
+   - **Decision**: Use LLM via API call within an asynchronous worker, implement iterative test-and-fix loop. Refactor service for modularity. Track costs. Allow user-provided `interactionHints` to guide generation for dynamic content.
    - **Current Status**:
      - Backend foundation implemented (types, worker, queue, API endpoint).
      - `AiService` refactored into modular components (prompts, factory, config, calculator).
+     - Added optional `interactionHints` to API request, worker logic, service calls, and prompt generation to help guide the LLM for dynamic pages.
      - Cost tracking implemented in worker and exposed via job status API.
      - Placeholder costs added for `gpt-4.1-mini`.
      - Few-shot examples integrated into prompt templates.

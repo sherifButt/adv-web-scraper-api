@@ -157,13 +157,13 @@ export const config: Config = {
 ### Service (`src/core/ai/ai-service.ts`)
 - Implemented as a Singleton (`AiService.getInstance()`).
 - Orchestrates AI interactions, delegating tasks to specialized components.
-- **`generateConfiguration()`**: Coordinates the process for generating a new configuration. Uses prompt templates, adapter factory, the selected LLM adapter, and the cost calculator.
-- **`fixConfiguration()`**: Coordinates the process for fixing an existing configuration based on errors. Uses prompt templates, adapter factory, the selected LLM adapter, and the cost calculator.
+- **`generateConfiguration()`**: Coordinates the process for generating a new configuration. Accepts optional `interactionHints`. Uses prompt templates, adapter factory, the selected LLM adapter, and the cost calculator.
+- **`fixConfiguration()`**: Coordinates the process for fixing an existing configuration based on errors. Accepts optional `interactionHints`. Uses prompt templates, adapter factory, the selected LLM adapter, and the cost calculator.
 - Relies on external modules for prompt content, adapter creation, model details, and cost calculation.
 
 ### Prompt Templates (`src/core/ai/prompt-templates/`)
-- **`generate-config.prompt.ts`**: Defines the system and user prompt structures (including few-shot examples) for initial configuration generation.
-- **`fix-config.prompt.ts`**: Defines the system and user prompt structures (including few-shot examples) for fixing configurations based on errors.
+- **`generate-config.prompt.ts`**: Defines the system and user prompt structures (including few-shot examples) for initial configuration generation. The user prompt function now incorporates optional `interactionHints`.
+- **`fix-config.prompt.ts`**: Defines the system and user prompt structures (including few-shot examples) for fixing configurations based on errors. The user prompt function now incorporates optional `interactionHints`.
 
 ### Adapter Factory (`src/core/ai/factories/adapter-factory.ts`)
 - Provides a static `create` method to instantiate the correct LLM adapter (`OpenAIAdapter`, `DeepSeekAdapter`, `AnthropicAdapter`, etc.) based on the provider name and API key.
@@ -180,7 +180,7 @@ export const config: Config = {
 - **`processGenerateConfigJob(job)`**: Main processor for the `config-generation-jobs` queue.
 - **Orchestration**: Manages the generate-validate-test-fix loop.
 - **State Management**: Tracks iteration count, token usage, *accumulated estimated cost*, status messages, last config, and last error within the job data.
-- **AI Interaction**: Calls `AiService.generateConfiguration()` or `AiService.fixConfiguration()`.
+- **AI Interaction**: Calls `AiService.generateConfiguration()` or `AiService.fixConfiguration()`, passing `interactionHints` from job options.
 - **Schema Validation**: Uses Zod (`ScrapingConfigSchema`) to validate the AI response structure.
 - **Testing (Optional)**: Uses `BrowserPool` and `NavigationEngine` to test the generated config if enabled.
 - **Loop Control**: Iterates up to `maxIterations`, continuing on validation/test failures.

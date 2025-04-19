@@ -17,6 +17,7 @@ const generateConfigOptionsSchema = Joi.object({
   maxTokens: Joi.number().integer().min(100).max(16384).strict().optional(), // Added .strict()
   temperature: Joi.number().min(0).max(1).strict().optional(), // Added .strict()
   browserOptions: browserOptionsSchema,
+  interactionHints: Joi.array().items(Joi.string()).optional(), // Allow optional array of strings
 }).optional();
 
 // Schema for the POST /api/v1/ai/generate-config request body

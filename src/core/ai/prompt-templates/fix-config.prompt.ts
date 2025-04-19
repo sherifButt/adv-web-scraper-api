@@ -116,10 +116,11 @@ export const fixConfigUserPrompt = (
   url: string,
   originalPrompt: string,
   previousConfig: any,
-  errorLog: string | null
+  errorLog: string | null,
+  interactionHints?: string[] // Add interactionHints parameter
 ) => {
   const errorLogContent = errorLog ?? 'No specific error log was provided';
-  return `The following scraping configuration failed during testing. Please fix it based on the error provided.
+  let userPrompt = `The following scraping configuration failed during testing. Please fix it based on the error provided.
 
 Original URL: ${url}
 Original Prompt: ${originalPrompt}
@@ -132,7 +133,16 @@ ${JSON.stringify(previousConfig, null, 2)}
 Error/Log from Test Run:
 \`\`\`
 ${errorLogContent}
-\`\`\`
+\`\`\``;
 
-Generate the corrected JSON configuration:`;
+  // Append interaction hints if provided
+  if (interactionHints && interactionHints.length > 0) {
+    userPrompt += `\n\nUser Interaction Hints (Consider these when fixing the configuration, especially for dynamic content):`;
+    interactionHints.forEach(hint => {
+      userPrompt += `\n- ${hint}`;
+    });
+  }
+
+  userPrompt += `\n\nGenerate the corrected JSON configuration:`;
+  return userPrompt;
 };
