@@ -293,22 +293,48 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         );
         logger.debug(`Job ${jobId}: Test navigation result:`, testNavResult);
 
+        // Refined Test Evaluation
         if (testNavResult.status === 'completed' && !testNavResult.error) {
-          if (testNavResult.result && Object.keys(testNavResult.result).length > 0) {
+          // Check if any data was actually extracted in the result object
+          const hasExtractedData =
+            testNavResult.result && Object.keys(testNavResult.result).length > 0;
+
+          if (hasExtractedData) {
             testPassed = true;
-            state.testResult = testNavResult.result;
-            logger.info(`Job ${jobId}: Test PASSED (Iteration ${state.iteration})`);
+            state.testResult = testNavResult.result; // Store successful result
+            logger.info(
+              `Job ${jobId}: Test PASSED (Iteration ${state.iteration}) - Data extracted.`
+            );
           } else {
-            testErrorLog = 'Test completed but no data was extracted.';
-            logger.warn(`Job ${jobId}: ${testErrorLog}`);
+            // Test completed without errors, but no data was extracted. This is a failure scenario for fixing.
+            testPassed = false;
+            testErrorLog =
+              'Test completed successfully, but no data was extracted by the configuration.';
+            state.testResult = testNavResult.result; // Store empty result for context if needed
+            logger.warn(
+              `Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testErrorLog}`
+            );
           }
         } else {
-          testErrorLog = `Test failed: ${testNavResult.error ?? 'Unknown navigation error'}`;
-          logger.warn(`Job ${jobId}: ${testErrorLog}`);
+          // Test failed during navigation (e.g., selector not found, timeout)
+          testPassed = false;
+          // Prioritize the error message from the navigation result if available
+          testErrorLog = `Navigation test failed: ${
+            testNavResult.error ?? 'Unknown navigation error during execution.'
+          }`;
+          state.testResult = testNavResult.result; // Store partial result if any
+          logger.warn(`Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testErrorLog}`);
         }
       } catch (execError: any) {
-        testErrorLog = `Test execution error: ${execError.message}`;
-        logger.error(`Job ${jobId}: ${testErrorLog}`, execError);
+        // Catch errors from the overall executeFlow call (e.g., browser crash, setup issues)
+        testPassed = false;
+        testErrorLog = `Test execution crashed: ${execError.message}`;
+        state.testResult = null; // No reliable result available
+        // Apply ESLint formatting fix with careful indentation
+        logger.error(
+          `Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testErrorLog}`,
+          execError
+        );
       } finally {
         if (page) await page.close();
         if (browser) await BrowserPool.getInstance().releaseBrowser(browser);

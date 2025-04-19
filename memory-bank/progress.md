@@ -97,8 +97,8 @@
 - [x] Refactor `AiService` into modular components.
 - [x] Implement AI cost tracking and API exposure.
 - [x] Integrate few-shot examples into prompts.
-- [ ] Implement actual LLM API calls in adapters.
-- [ ] Refine AI prompts and test/fix loop in `generate-config-worker`.
+- [x] Implement actual LLM API calls in adapters.
+- [x] Refine AI prompts and test/fix loop in `generate-config-worker`.
 - [ ] Add detailed Zod schema validation for AI output.
 - [ ] Implement unit and integration tests for AI feature.
 - [ ] Document AI feature (`docs/ai/README.md`, update main README/API docs).

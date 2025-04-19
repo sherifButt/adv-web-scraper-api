@@ -4,6 +4,7 @@ import { asyncHandler } from '../middleware/error.middleware.js';
 import { QueueService } from '../../core/queue/queue-service.js';
 import { logger } from '../../utils/logger.js';
 import { GenerateConfigRequest, ApiResponse } from '../../types/index.js'; // Import relevant types
+import { validateRequest, generateConfigSchema } from '../validators/ai.validator.js'; // Import validator
 
 const router = Router();
 const queueService = new QueueService(); // Initialize queue service
@@ -15,41 +16,11 @@ const queueService = new QueueService(); // Initialize queue service
  */
 router.post(
   '/generate-config',
+  validateRequest(generateConfigSchema), // Apply validation middleware
   asyncHandler(async (req, res) => {
+    // No need for manual basic validation here anymore, Joi handles it
     try {
       const { url, prompt, options }: GenerateConfigRequest = req.body;
-
-      // --- Basic Validation ---
-      if (!url || typeof url !== 'string') {
-        return res.status(400).json({
-          success: false,
-          message: 'URL is required and must be a string',
-          error: 'Missing or invalid parameter: url',
-          timestamp: new Date().toISOString(),
-        });
-      }
-      try {
-        // Validate URL format
-        new URL(url);
-      } catch (_) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid URL format',
-          error: 'Invalid parameter format: url',
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      if (!prompt || typeof prompt !== 'string') {
-        return res.status(400).json({
-          success: false,
-          message: 'Prompt is required and must be a string',
-          error: 'Missing or invalid parameter: prompt',
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      // TODO: Add more specific validation for options if needed using Zod
 
       logger.info(`Queueing AI config generation job for URL: ${url}`);
 
