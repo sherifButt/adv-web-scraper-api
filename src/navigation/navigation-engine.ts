@@ -121,9 +121,35 @@ export class NavigationEngine {
         }
 
         logger.info(`Executing step ${i + 1}: ${step.type}`);
-        // Execute step and get potential result (including jump index)
+        // Execute step and get potential result (including jump index and new page)
         const stepResult = await this.executeStep(step, i);
         stepsExecuted++;
+
+        // Handle potential page switch returned by the step handler
+        if (stepResult?.newPage !== undefined) {
+          // Check if newPage property exists (even if null)
+          if (stepResult.newPage && stepResult.newPage !== this.page) {
+            logger.info(`Switching active page context to: ${await stepResult.newPage.url()}`);
+            this.page = stepResult.newPage;
+            // Update dependencies that rely on the current page object
+            this.behaviorEmulator = new BehaviorEmulator(
+              this.page,
+              typeof this.options.humanEmulation === 'boolean'
+                ? undefined
+                : this.options.humanEmulation
+            );
+            this.captchaSolver = new CaptchaSolver(this.page);
+            // Re-create factory to ensure all handlers have the correct page reference
+            this.handlerFactory = new StepHandlerFactory(this.page);
+          } else if (stepResult.newPage === null) {
+            // The last page was closed
+            logger.error('The active page was closed by the step. Halting execution.');
+            throw new Error('Active page was closed during execution.');
+          }
+          // If stepResult.newPage === this.page, no change needed.
+        }
+        // Clear the __currentPage context variable if it was set by the handler
+        delete this.context.__currentPage; // Corrected: use this.context
 
         // Handle gotoStep jump
         if (stepResult?.gotoStepIndex !== undefined && stepResult.gotoStepIndex >= -1) {
@@ -172,7 +198,7 @@ export class NavigationEngine {
 
   /**
    * Executes a single navigation step using the appropriate handler.
-   * Returns StepResult which might contain a gotoStepIndex.
+   * Returns StepResult which might contain a gotoStepIndex or newPage.
    */
   private async executeStep(step: NavigationStep, stepIndex: number): Promise<StepResult | void> {
     await this.takeScreenshot(`before_${step.type}`, stepIndex);
@@ -182,8 +208,7 @@ export class NavigationEngine {
       // Get the appropriate handler from the factory based on step type
       const handler = this.handlerFactory.getHandler(step.type);
       // Execute the step using the handler - potentially returns StepResult
-      // We need to cast the result type here as the interface expects void
-      stepResult = (await handler.execute(step, this.context, this.page)) as StepResult | void;
+      stepResult = await handler.execute(step, this.context, this.page);
     } catch (error) {
       logger.error(`Error executing step type ${step.type}:`, error);
       // Re-throw the error to be caught by the main executeFlow catch block
@@ -358,14 +383,27 @@ export class NavigationEngine {
     stepsExecuted: number,
     error?: any
   ): NavigationResult {
+    // Construct base URL using config, ensuring correct protocol and port handling
+    const protocol = 'http'; // Assuming http, adjust if https is possible/needed
+    // Use URL constructor to handle potential edge cases with host/port
+    const baseUrlObj = new URL(`${protocol}://${config.server.host}`);
+    baseUrlObj.port = config.server.port.toString();
+    const baseUrl = baseUrlObj.origin; // origin includes protocol, hostname, and port correctly
+
     const result: NavigationResult = {
       id: `nav_${Date.now()}`,
       startUrl,
       status,
       stepsExecuted,
       result: this.context, // Include the final context
-      // Prepend domain to screenshot paths (use just the base domain)
-      screenshots: this.screenshotsTaken.map(p => `${p}`),
+      // Prepend base URL to screenshot paths
+      screenshots: this.screenshotsTaken.map(p => {
+        // Remove potential leading './' from relative path and ensure single slash join
+        const cleanPath = p.replace(/\\/g, '/').replace(/^\.?\//, ''); // Normalize slashes and remove leading ./ or /
+        // Ensure the base URL ends with a slash before joining
+        const baseWithSlash = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+        return `${baseWithSlash}${cleanPath}`;
+      }),
       timestamp: new Date().toISOString(),
     };
     if (error) {

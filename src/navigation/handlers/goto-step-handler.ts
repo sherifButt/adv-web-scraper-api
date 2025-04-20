@@ -1,57 +1,86 @@
-import { Page } from 'playwright';
-import {
-  GotoStep,
-  StepResult,
-  NavigationStep,
-  NavigationContext,
-} from '../types/navigation.types.js';
+import { Page } from 'playwright'; // Removed PageGotoOptions import
+import { NavigationStep, NavigationContext, StepResult } from '../types/navigation.types.js';
 import { IStepHandler } from '../types/step-handler.interface.js';
-import { logger } from '../../utils/logger.js'; // Corrected import name
+import { logger } from '../../utils/logger.js';
+import { BaseStepHandler } from './base-step-handler.js';
 
 /**
- * Handles the 'gotoStep' navigation step.
- * This handler instructs the NavigationEngine to jump to a specific step index.
+ * Handles the 'goto' navigation step for navigating to a URL.
  */
-export class GotoStepHandler implements IStepHandler {
-  // private logger = new Logger(GotoStepHandler.name); // Logger instance created directly from imported logger
+export class GotoStepHandler extends BaseStepHandler implements IStepHandler {
+  // Add constructor to accept page and pass to BaseStepHandler
+  constructor(page: Page) {
+    super(page);
+  }
 
   /**
    * Determines if this handler can execute the given step.
    * @param step The navigation step to evaluate.
-   * @returns True if the step type is 'gotoStep', false otherwise.
+   * @returns True if the step type is 'goto', false otherwise.
    */
   canHandle(step: NavigationStep): boolean {
-    return step.type === 'gotoStep';
+    // Correctly handle 'goto' type
+    return step.type === 'goto';
   }
 
   /**
-   * Executes the gotoStep logic.
-   * Note: The return type deviates from IStepHandler (Promise<void>) to pass the
-   * target index back to the engine. The engine needs modification to handle this.
-   * @param step - The GotoStep configuration object.
-   * @param context - The current navigation context (not directly used).
-   * @param page - The Playwright Page object (not directly used).
-   * @returns A Promise resolving to a StepResult containing the target step index.
+   * Executes the goto logic: navigates the page to a specified URL.
+   * @param step - The NavigationStep configuration object, expected to have 'value' (URL).
+   * @param context - The current navigation context.
+   * @param page - The Playwright Page object (passed for consistency, but uses this.page).
+   * @returns A Promise resolving to an empty StepResult.
    */
   async execute(
-    step: NavigationStep, // Use base type first
-    context: NavigationContext, // Use correct context type
-    page: Page // Match interface order
+    step: NavigationStep,
+    context: NavigationContext,
+    page: Page // Keep page param for interface consistency, but use this.page internally
   ): Promise<StepResult> {
-    // Return StepResult for engine
-    // Type assertion inside the method
-    const gotoStep = step as GotoStep;
+    const url = step.value;
+    // Map step.waitFor to Playwright's WaitUntilState type
+    const waitUntilState = (
+      step.waitFor === 'networkidle'
+        ? 'networkidle'
+        : step.waitFor === 'domcontentloaded'
+        ? 'domcontentloaded'
+        : step.waitFor === 'commit'
+        ? 'commit'
+        : 'load'
+    ) as 'load' | 'domcontentloaded' | 'networkidle' | 'commit'; // Default to 'load'
 
-    if (typeof gotoStep.step !== 'number' || gotoStep.step <= 0) {
-      // Step index should be 1-based
-      logger.error(`Invalid target step index: ${gotoStep.step}`);
-      throw new Error(
-        `Invalid target step index specified in gotoStep: ${gotoStep.step}. Must be 1 or greater.`
-      );
+    const timeout = step.timeout || 30000; // Default timeout
+
+    if (typeof url !== 'string' || !url) {
+      throw new Error("Step type 'goto' requires a non-empty string 'value' for the URL.");
     }
-    logger.info(`Executing gotoStep: Jumping to step index ${gotoStep.step}`);
-    // Return the target step index (0-based) for the engine to handle
-    // Subtract 1 because the engine loop increments before executing
-    return { gotoStepIndex: gotoStep.step - 1 };
+
+    const resolvedUrl = this.resolveValue(url, context) as string;
+    const stepDescription = step.description || `Navigate to ${resolvedUrl}`;
+    logger.info(`Executing step: ${stepDescription}`);
+
+    try {
+      // Define options object directly
+      const gotoOptions = {
+        timeout: timeout,
+        waitUntil: waitUntilState,
+      };
+
+      logger.debug(`Navigating to ${resolvedUrl} with options: ${JSON.stringify(gotoOptions)}`);
+
+      // Use the base class's page reference (this.page)
+      await this.page.goto(resolvedUrl, gotoOptions);
+
+      logger.info(`Successfully navigated to ${resolvedUrl}`);
+      return {}; // Indicate success, no jump needed
+    } catch (error: any) {
+      const errorMessage = `Error during goto step "${stepDescription}": ${error.message}`;
+      logger.error(errorMessage);
+      if (!step.optional) {
+        throw new Error(errorMessage); // Re-throw if mandatory
+      } else {
+        logger.warn(`Optional goto step failed, continuing flow.`);
+        context[`${step.name || 'lastGotoError'}`] = errorMessage;
+        return {}; // Continue flow
+      }
+    }
   }
 }

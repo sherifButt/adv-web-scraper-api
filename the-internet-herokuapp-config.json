@@ -1,0 +1,188 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "manageCookies",
+      "action": "add",
+      "cookies": [
+        {
+          "name": "myTestCookie",
+          "value": "ClineWasHere-{{Date.now()}}", 
+          "domain": ".the-internet.herokuapp.com",
+          "path": "/"
+        }
+      ],
+      "description": "Add a custom test cookie"
+    },
+    {
+      "type": "manageStorage",
+      "storageType": "local",
+      "action": "setItem",
+      "key": "myTestData",
+      "value": { "framework": "adv-web-scraper-api", "timestamp": "{{Date.now()}}" },
+      "description": "Set a test item in localStorage"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/login",
+      "description": "Navigate to login page"
+    },
+    {
+      "type": "login",
+      "usernameSelector": "#username",
+      "passwordSelector": "#password",
+      "submitSelector": "button[type='submit']",
+      "usernameValue": "tomsmith",
+      "passwordValue": "SuperSecretPassword!",
+      "waitForNavigation": false,
+      "waitFor": "#flash.success",
+      "description": "Perform login using known credentials"
+    },
+    {
+      "type": "assert",
+      "selector": "#flash",
+      "assertionType": "containsText",
+      "expectedValue": "You logged into a secure area!",
+      "description": "Assert successful login message"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/javascript_alerts",
+      "description": "Navigate to JS Alerts page"
+    },
+    {
+      "type": "handleDialog",
+      "action": "accept",
+      "description": "Set up listener to accept the next confirm dialog"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='jsConfirm()']",
+      "description": "Click button to trigger confirm dialog"
+    },
+    {
+      "type": "assert",
+      "selector": "#result",
+      "assertionType": "containsText",
+      "expectedValue": "You clicked: Ok",
+      "description": "Assert result text after accepting confirm"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/upload",
+      "description": "Navigate to File Upload page"
+    },
+    {
+      "type": "uploadFile",
+      "selector": "#file-upload",
+      "filePath": "./test-upload.txt",
+      "description": "Upload the test file (ensure test-upload.txt exists)"
+    },
+    {
+      "type": "click",
+      "selector": "#file-submit",
+      "waitFor": "#uploaded-files",
+      "description": "Submit the uploaded file"
+    },
+    {
+      "type": "assert",
+      "selector": "#uploaded-files",
+      "assertionType": "containsText",
+      "expectedValue": "test-upload.txt",
+      "description": "Assert uploaded file name is displayed"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/iframe",
+      "description": "Navigate to iFrame page"
+    },
+    {
+      "type": "switchToFrame",
+      "selector": "#mce_0_ifr",
+      "description": "Switch to the WYSIWYG editor iframe",
+      "optional": true,
+      "steps": [
+        {
+          "type": "input",
+          "selector": "#tinymce",
+          "value": "Hello from inside the iframe!",
+          "clearInput": true,
+          "description": "Type text inside the iframe editor",
+          "optional": true
+        },
+        {
+          "type": "assert",
+          "selector": "#tinymce",
+          "assertionType": "containsText",
+          "expectedValue": "Hello from inside the iframe!",
+          "description": "Assert text within the iframe editor",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/windows",
+      "description": "Navigate to Multiple Windows page"
+    },
+    {
+      "type": "click",
+      "selector": "#content > div > a",
+      "description": "Click link that opens a new window"
+    },
+    {
+      "type": "wait",
+      "value": 500,
+      "description": "Short wait for new tab event to potentially fire"
+    },
+    {
+      "type": "switchTab",
+      "action": "waitForNew",
+      "contextKey": "newWindowPage",
+      "waitFor": 2000,
+      "description": "Wait for and switch context to the new tab/window"
+    },
+    {
+      "type": "assert",
+      "selector": "h3",
+      "assertionType": "containsText",
+      "expectedValue": "New Window",
+      "description": "Assert content on the new tab",
+      "pageContextKey": "newWindowPage"
+    },
+    {
+       "type": "switchTab",
+       "action": "switch",
+       "target": 0,
+       "description": "Switch back to the original tab"
+    },
+    {
+       "type": "assert",
+       "selector": "h3",
+       "assertionType": "containsText",
+       "expectedValue": "Opening a new window",
+       "description": "Assert content on the original tab after switching back"
+    },
+    {
+      "type": "manageCookies",
+      "action": "get",
+      "name": "myTestCookie",
+      "contextKey": "retrievedTestCookie",
+      "description": "Get the test cookie we added earlier"
+    },
+    {
+      "type": "manageStorage",
+      "storageType": "local",
+      "action": "getItem",
+      "key": "myTestData",
+      "contextKey": "retrievedTestData",
+      "description": "Get the test item from localStorage"
+    }
+  ],
+  "options": {
+    "timeout": 20000,
+    "screenshots": true,
+    "screenshotsPath": "./screenshots/herokuapp-test"
+  },
+  "variables": {}
+}

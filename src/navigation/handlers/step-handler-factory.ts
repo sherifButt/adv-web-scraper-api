@@ -13,17 +13,25 @@ import { HoverStepHandler } from './hover-step-handler.js';
 import { ScriptStepHandler } from './script-step-handler.js';
 import { PaginateStepHandler } from './paginate-step-handler.js';
 import { ForEachElementStepHandler } from './for-each-element-step-handler.js';
-import { MergeContextStepHandler } from './merge-context-step-handler.js'; // Import the new handler
-import { BehaviorEmulator } from '../../core/human/behavior-emulator.js';
+import { MergeContextStepHandler } from './merge-context-step-handler.js';
+import { AssertStepHandler } from './assert-step-handler.js';
+import { LoginStepHandler } from './login-step-handler.js';
+import { SwitchToFrameStepHandler } from './switch-to-frame-step-handler.js';
+import { UploadFileStepHandler } from './upload-file-step-handler.js';
+import { HandleDialogStepHandler } from './handle-dialog-step-handler.js';
+import { ManageCookiesStepHandler } from './manage-cookies-step-handler.js';
+import { ManageStorageStepHandler } from './manage-storage-step-handler.js';
+import { SwitchTabStepHandler } from './switch-tab-step-handler.js';
+// Removed unused BehaviorEmulator import
 import { NavigationContext } from '../types/navigation.types.js'; // Import NavigationContext
 
 export class StepHandlerFactory {
   private handlers: IStepHandler[];
 
   constructor(page: Page) {
-    const behaviorEmulator = new BehaviorEmulator(page);
+    // Removed unused behaviorEmulator instantiation
     this.handlers = [
-      new GotoStepHandler(), // Instantiate GotoStepHandler (doesn't need page)
+      new GotoStepHandler(page), // Pass page to constructor
       new ClickStepHandler(page),
       new InputStepHandler(page),
       new SelectStepHandler(page),
@@ -36,7 +44,15 @@ export class StepHandlerFactory {
       new ScriptStepHandler(page),
       new PaginateStepHandler(page, this),
       new ForEachElementStepHandler(), // Note: ForEachElement might need the factory if it executes nested steps
-      new MergeContextStepHandler(page), // Add the new handler instance
+      new MergeContextStepHandler(page),
+      new AssertStepHandler(page),
+      new LoginStepHandler(page),
+      new SwitchToFrameStepHandler(page, this),
+      new UploadFileStepHandler(page),
+      new HandleDialogStepHandler(page),
+      new ManageCookiesStepHandler(page),
+      new ManageStorageStepHandler(page),
+      new SwitchTabStepHandler(page), // Add the SwitchTab handler instance
     ];
   }
 

@@ -118,9 +118,129 @@ export interface MergeContextStep extends NavigationStep {
 }
 
 /**
- * Result object returned by step handlers, potentially indicating a jump.
+ * Specific type for the 'assert' action
+ */
+export interface AssertStep extends NavigationStep {
+  type: 'assert';
+  selector: string; // Selector for the element to assert against
+  assertionType: // Type of assertion to perform
+  | 'exists' // Check if element exists in the DOM
+    | 'isVisible' // Check if element is visible
+    | 'isHidden' // Check if element is hidden
+    | 'containsText' // Check if element contains specific text
+    | 'hasAttribute' // Check if element has a specific attribute
+    | 'attributeEquals'; // Check if element's attribute has a specific value
+  expectedValue?: string | RegExp; // Value to compare against (for text/attribute checks)
+  attributeName?: string; // Attribute name (for attribute checks)
+  timeout?: number; // Optional timeout for the assertion check
+  optional?: boolean; // If true, failure doesn't stop the flow (defaults to false)
+  description?: string; // Optional description for logging
+}
+
+/**
+ * Specific type for the 'login' action
+ */
+export interface LoginStep extends NavigationStep {
+  type: 'login';
+  usernameSelector: string; // Selector for the username/email input field
+  passwordSelector: string; // Selector for the password input field
+  submitSelector: string; // Selector for the submit button
+  usernameValue: string; // Username or email to input (can use context variables)
+  passwordValue: string; // Password to input (can use context variables, consider security implications)
+  strategy?: 'standard' | string; // Optional: 'standard' or custom identifier for complex flows (e.g., SSO)
+  waitForNavigation?: boolean | string | number; // Optional: Wait condition after clicking submit (default: true, waits for navigation)
+  description?: string; // Optional description for logging
+}
+
+/**
+ * Specific type for the 'switchToFrame' action
+ */
+export interface SwitchToFrameStep extends NavigationStep {
+  type: 'switchToFrame';
+  selector?: string; // Selector to identify the iframe element
+  frameId?: string; // ID of the frame
+  frameName?: string; // Name of the frame
+  steps: NavigationStep[]; // Steps to execute within the iframe context
+  switchToDefault?: boolean; // Whether to switch back to the main context afterwards (default: true)
+  description?: string; // Optional description for logging
+}
+
+/**
+ * Specific type for the 'uploadFile' action
+ */
+export interface UploadFileStep extends NavigationStep {
+  type: 'uploadFile';
+  selector: string; // Selector for the <input type="file"> element
+  filePath: string; // Path to the file to upload (relative to worker or absolute)
+  description?: string; // Optional description for logging
+}
+
+/**
+ * Specific type for the 'handleDialog' action
+ */
+export interface HandleDialogStep extends NavigationStep {
+  type: 'handleDialog';
+  action: 'accept' | 'dismiss'; // Whether to accept or dismiss the dialog
+  promptText?: string; // Optional text to enter for prompt dialogs
+  description?: string; // Optional description for logging
+}
+
+/**
+ * Specific type for the 'manageCookies' action
+ */
+export interface ManageCookiesStep extends NavigationStep {
+  type: 'manageCookies';
+  action: 'add' | 'delete' | 'clear' | 'get'; // Action to perform
+  cookies?: Array<{
+    // Required for 'add'
+    name: string;
+    value: string;
+    url?: string; // Optional: Associates cookie with a URL
+    domain?: string; // Optional: Cookie domain
+    path?: string; // Optional: Cookie path
+    expires?: number; // Optional: Unix timestamp for expiration
+    httpOnly?: boolean; // Optional
+    secure?: boolean; // Optional
+    sameSite?: 'Strict' | 'Lax' | 'None'; // Optional
+  }>;
+  name?: string; // Required for 'delete', optional filter for 'get'
+  domain?: string; // Optional filter for 'delete', 'clear', 'get'
+  path?: string; // Optional filter for 'delete', 'clear', 'get'
+  contextKey?: string; // Optional: Key to store result in context for 'get' action (default: 'retrievedCookies')
+  description?: string; // Optional description for logging
+}
+
+/**
+ * Specific type for the 'manageStorage' action (localStorage/sessionStorage)
+ */
+export interface ManageStorageStep extends NavigationStep {
+  type: 'manageStorage';
+  storageType: 'local' | 'session'; // Type of storage to interact with
+  action: 'setItem' | 'getItem' | 'removeItem' | 'clear'; // Action to perform
+  key?: string; // Required for setItem, getItem, removeItem
+  value?: any; // Required for setItem (will be JSON.stringified)
+  contextKey?: string; // Optional: Key to store result in context for 'getItem' action (default: 'retrievedStorageItem')
+  description?: string; // Optional description for logging
+}
+
+/**
+ * Specific type for the 'switchTab' action
+ */
+export interface SwitchTabStep extends NavigationStep {
+  type: 'switchTab';
+  action: 'switch' | 'new' | 'close' | 'waitForNew'; // Action to perform
+  target?: number | string; // Tab index (0-based) or URL/Title pattern (regex string) for 'switch'/'close'
+  url?: string; // URL to open for 'new' action
+  waitFor?: string | number; // Optional wait condition after switching/opening/closing
+  contextKey?: string; // Optional: Key to store the new page object in context for 'new'/'waitForNew' action (default: 'newPage')
+  description?: string; // Optional description for logging
+}
+
+/**
+ * Result object returned by step handlers, potentially indicating a jump or page change.
  */
 export interface StepResult {
   gotoStepIndex?: number; // 0-based index to jump to
+  newPage?: Page | null; // Optional: The new page object if the active page changed (e.g., after switchTab, newTab, close)
   // Add other potential result properties here if needed
 }
