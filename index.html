@@ -16,39 +16,60 @@
       href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
     />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">  <style>
-    h1{
-      font-family: 'Bodoni Moda', serif;
-      font-size: 3rem;
-      font-weight: bold;
-    }
-    h2 {
-      font-family: 'Abhaya Libre', serif;
-      font-size: 2rem;
-      /* text-align: center; */
-      margin-top: 60px;
-    }
-    h3{
-      font-family: 'Abhaya Libre', serif;
-      font-size: 1.5rem;
-      
-  }
-  i{
-    color: #a2a2a2;
 
-  }
-    blockquote{
-      font-family: 'Abhaya Libre', serif;
-
-    }
-    p,li{
-      color: #a2a2a2;
-      font-weight: 300
-    }
-  </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Noto+Sans+JP:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      h1 {
+        font-family: LibreBaskerville, Georgia, Cambria, 'Bodoni Moda', serif;
+        font-size: 4rem;
+        font-weight: normal;
+      }
+      h2 {
+        font-family: 'Abhaya Libre', serif;
+        font-size: 2rem;
+        /* text-align: center; */
+        margin-top: 60px;
+      }
+      h3 {
+        font-family: 'Abhaya Libre', serif;
+        font-size: 1.5rem;
+      }
+      i {
+        color: #a2a2a2;
+      }
+      #logo {
+        font-family: LibreBaskerville, Georgia, Cambria, 'Bodoni Moda', serif;
+        font-size: 1rem;
+        font-weight: bold;
+      }
+      button {
+        font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+          Segoe UI Symbol,
+          Noto Color Apple Color Apple Color Apple Color Apple Color Apple Color Emoji;
+        border-radius: 100px;
+        border: none;
+        padding: 0.9rem 1.2rem;
+        background-color: black;
+        color: white;
+        cursor: pointer;
+      }
+      blockquote {
+        font-family: 'Abhaya Libre', serif;
+      }
+      p,
+      li {
+        font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+          Segoe UI Symbol, Noto Color Emoji;
+        color: #a2a2a2;
+        font-weight: 300;
+      }
+    </style>
+  </head>
 
   <body class="container">
     <header
@@ -60,12 +81,13 @@
         row-gap: 20px;
       "
     >
-      <strong title="Advanced Web Scraper API"><i class="ph-light ph-robot"></i> AWSA</strong>
+      <strong id="logo" title="Advanced Web Scraper API"
+        ><i class="ph-light ph-robot"></i> AWSA</strong
+      >
       <nav style="display: flex; gap: 20px; align-items: center">
         <span><i class="ph-light ph-plug"></i> API</span>
         <a href="#features"><i class="ph-light ph-star"></i> Features</a>
         <a href="#quickstart"><i class="ph-light ph-rocket"></i> Quick Start</a>
-
 
         <a href="https://github.com/sherifButt/adv-web-scraper-api"
           ><button title="GitHub"><i class="ph-light ph-github-logo"></i> Git</button></a
@@ -88,7 +110,9 @@
         <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="button"
           ><button><i class="ph-light ph-github-logo"></i> Documentation</button></a
         >
-        <button disabled title="API portal coming soon"><i class="ph-light ph-plug"></i> API</button>
+        <button disabled title="API portal coming soon">
+          <i class="ph-light ph-plug"></i> API
+        </button>
         <blockquote cite="">
           "The API documentation is not yet available, but it will be soon."
           <footer><cite>Sherif Butt, "Author of Advanced Web Scraper API"</cite></footer>
