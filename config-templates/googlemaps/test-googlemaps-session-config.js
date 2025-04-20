@@ -1,6 +1,6 @@
 // Test script for the googlemaps-session-config.json configuration
 import { chromium } from 'playwright';
-import { SessionManager } from './src/core/session/session-manager.js';
+import { SessionManager } from '../../src/core/session/session-manager.js';
 import fs from 'fs';
 
 async function testGooglemapsSessionConfig() {

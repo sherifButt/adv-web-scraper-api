@@ -1,18 +1,18 @@
-// Test script for the gassaferegister-config.json configuration
+// Test script for the the-internet-herokuapp-config.json configuration
 import { chromium } from 'playwright'; // Removed LaunchOptions import
-import { NavigationEngine } from './src/navigation/navigation-engine.js';
+import { NavigationEngine } from '../../src/navigation/navigation-engine.js';
 import fs from 'fs';
-import { ProxyManager } from './src/core/proxy/proxy-manager.js'; // Added
-import { config as globalConfig } from './src/config/index.js'; // Added & aliased
+import { ProxyManager } from '../../src/core/proxy/proxy-manager.js'; // Added
+import { config as globalConfig } from '../../src/config/index.js'; // Added & aliased
 // Removed ProxyInfo import as types are not used in JS
 
-async function testGasSafeRegisterConfig() {
+async function testTheInternetHerokuappConfig() {
   // Renamed function for clarity
   try {
-    console.log('Starting test of gassaferegister-config.json');
+    console.log('Starting test of the-internet-herokuapp-config.json');
 
     // Read the configuration file
-    const configPath = './gassaferegister-config.json';
+    const configPath = './the-internet-herokuapp-config.json';
     const configContent = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configContent);
 
@@ -56,9 +56,11 @@ async function testGasSafeRegisterConfig() {
           console.log('Any proxy selected:', proxyInfo);
         }
         // --- End of proxy selection logic ---
-        if (proxyInfo && proxyInfo.protocols && proxyInfo.protocols.length > 0) { // Removed blank line
+        if (proxyInfo && proxyInfo.protocols && proxyInfo.protocols.length > 0) {
+          // Removed blank line
           const protocol = proxyInfo.protocols[0]; // Use the first protocol listed for the selected proxy
-          launchOptions.proxy = { // Assign directly to const object property
+          launchOptions.proxy = {
+            // Assign directly to const object property
             server: `${protocol}://${proxyInfo.ip}:${proxyInfo.port}`,
             // username: proxyInfo.username, // Add if needed
             // password: proxyInfo.password, // Add if needed
@@ -127,7 +129,7 @@ async function testGasSafeRegisterConfig() {
 }
 
 // Run the test
-testGasSafeRegisterConfig() // Renamed function call
+testTheInternetHerokuappConfig() // Renamed function call
   .then(() => {
     console.log('Test completed successfully');
     process.exit(0);

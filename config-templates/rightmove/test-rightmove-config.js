@@ -1,18 +1,18 @@
-// Test script for the the-internet-herokuapp-config.json configuration
+// Test script for the rightmove-config.json configuration
 import { chromium } from 'playwright'; // Removed LaunchOptions import
-import { NavigationEngine } from './src/navigation/navigation-engine.js';
+import { NavigationEngine } from '../../src/navigation/navigation-engine.js';
 import fs from 'fs';
-import { ProxyManager } from './src/core/proxy/proxy-manager.js'; // Added
-import { config as globalConfig } from './src/config/index.js'; // Added & aliased
+import { ProxyManager } from '../../src/core/proxy/proxy-manager.js'; // Added
+import { config as globalConfig } from '../../src/config/index.js'; // Added & aliased
 // Removed ProxyInfo import as types are not used in JS
 
-async function testTheInternetHerokuappConfig() {
+async function testRightmoveConfig() {
   // Renamed function for clarity
   try {
-    console.log('Starting test of the-internet-herokuapp-config.json');
+    console.log('Starting test of rightmove-config.json');
 
     // Read the configuration file
-    const configPath = './the-internet-herokuapp-config.json';
+    const configPath = './rightmove-config.json';
     const configContent = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configContent);
 
@@ -129,7 +129,7 @@ async function testTheInternetHerokuappConfig() {
 }
 
 // Run the test
-testTheInternetHerokuappConfig() // Renamed function call
+testRightmoveConfig() // Renamed function call
   .then(() => {
     console.log('Test completed successfully');
     process.exit(0);

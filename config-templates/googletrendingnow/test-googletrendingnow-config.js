@@ -1,9 +1,9 @@
 // Test script for the googletrendingnow-config.json configuration
 import { chromium } from 'playwright'; // Removed LaunchOptions import
-import { NavigationEngine } from './src/navigation/navigation-engine.js';
+import { NavigationEngine } from '../../src/navigation/navigation-engine.js';
 import fs from 'fs';
-import { ProxyManager } from './src/core/proxy/proxy-manager.js'; // Added
-import { config as globalConfig } from './src/config/index.js'; // Added & aliased
+import { ProxyManager } from '../../src/core/proxy/proxy-manager.js'; // Added
+import { config as globalConfig } from '../../src/config/index.js'; // Added & aliased
 // Removed ProxyInfo import as types are not used in JS
 
 async function testGoogletrendingnowConfig() {

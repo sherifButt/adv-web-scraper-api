@@ -44,6 +44,10 @@ Next steps include implementing storage adapters for different destinations, enh
   - Schema-based validation and type conversion
   - Declarative configuration approach
 
+## Configuration Templates
+
+A library of example JSON configurations demonstrating various scraping scenarios and API features is available in the [`config-templates/`](./config-templates/) directory. These templates serve as practical examples and starting points for your own configurations.
+
 ## Project Structure
 
 ```
