@@ -229,7 +229,7 @@ export interface ManageStorageStep extends NavigationStep {
  */
 export interface SwitchTabStep extends NavigationStep {
   type: 'switchTab';
-  action: 'switch' | 'new' | 'close' | 'waitForNew'; // Action to perform
+  action: 'switch' | 'new' | 'close' | 'waitForNew' | 'switchToLast'; // Added 'switchToLast'
   target?: number | string; // Tab index (0-based) or URL/Title pattern (regex string) for 'switch'/'close'
   url?: string; // URL to open for 'new' action
   waitFor?: string | number; // Optional wait condition after switching/opening/closing

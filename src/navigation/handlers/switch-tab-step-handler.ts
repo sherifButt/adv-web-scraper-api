@@ -51,6 +51,29 @@ export class SwitchTabStepHandler extends BaseStepHandler {
           break;
         }
 
+        case 'switchToLast': { // New action implementation
+          logger.debug('Switching to the last opened tab...');
+          const pages = browserContext.pages();
+          if (pages.length < 2) {
+            // If only one page, maybe log a warning but don't fail? Or throw? Let's throw for now.
+            throw new Error('switchToLast action requires at least two tabs/windows to be open.');
+          }
+          const lastPage = pages[pages.length - 1]; // Get the last page
+          await lastPage.bringToFront();
+          // Optional: Wait for load state on the switched page
+          await lastPage.waitForLoadState('load', { timeout: step.timeout || 30000 });
+          logger.info(`Switched to last opened tab: ${await lastPage.url()}`);
+          targetPage = lastPage; // Update the target page reference
+          stepResult.newPage = targetPage; // Signal the page change to NavigationEngine
+          context[contextKey] = targetPage; // Store reference in context
+
+          // Optional wait condition within the new tab
+          if (waitFor) {
+            await this.performWaitOnPage(waitFor, targetPage, step.timeout);
+          }
+          break;
+        }
+
         case 'waitForNew': {
           // This step now *waits* for the popup event triggered by a *previous* step (usually a click).
           logger.debug('Waiting for new tab/popup...');
@@ -190,6 +213,9 @@ export class SwitchTabStepHandler extends BaseStepHandler {
         default:
           throw new Error(`Unsupported switchTab action: ${action}`);
       }
+
+      // Ensure the targetPage is updated in the handler's internal state if needed elsewhere
+      // this.page = targetPage; // This shouldn't be done here, NavigationEngine handles it
 
       return stepResult; // Return result containing potential newPage
     } catch (error: any) {

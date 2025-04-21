@@ -7,7 +7,7 @@
       "cookies": [
         {
           "name": "myTestCookie",
-          "value": "ClineWasHere-{{Date.now()}}", 
+          "value": "ClineWasHere-{{Date.now()}}",
           "domain": ".the-internet.herokuapp.com",
           "path": "/"
         }
@@ -104,6 +104,11 @@
       "steps": [
         {
           "type": "wait",
+          "value": 500,
+          "description": "Wait 0.5s after switching to frame for init"
+        },
+        {
+          "type": "wait",
           "selector": "#tinymce",
           "state": "visible",
           "timeout": 10000,
@@ -135,16 +140,22 @@
     {
       "type": "click",
       "selector": "#content > div > a",
-      "description": "Click link and wait for new window/tab",
-      "waitForPopup": true,
-      "name": "newWindowPage"
+      "description": "Click link that opens a new window"
+    },
+    {
+      "type": "switchTab",
+      "action": "switchToLast",
+      "contextKey": "newWindowPage",
+      "timeout": 10000,
+      "description": "Switch context to the newest tab"
     },
     {
       "type": "assert",
       "selector": "h3",
       "assertionType": "containsText",
       "expectedValue": "New Window",
-      "description": "Assert content on the new tab"
+      "description": "Assert content on the new tab",
+      "pageContextKey": "newWindowPage"
     },
     {
        "type": "switchTab",
