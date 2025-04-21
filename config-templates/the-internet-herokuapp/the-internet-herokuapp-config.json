@@ -32,8 +32,8 @@
       "usernameSelector": "#username",
       "passwordSelector": "#password",
       "submitSelector": "button[type='submit']",
-      "usernameValue": "{{username}}",
-      "passwordValue": "{{password}}",
+      "usernameValue": "{{form_auth_username}}",
+      "passwordValue": "{{form_auth_password}}",
       "waitForNavigation": false,
       "waitFor": "#flash.success",
       "description": "Perform login using known credentials"
@@ -192,8 +192,10 @@
     "screenshotsPath": "./screenshots/herokuapp-test"
   },
   "variables": {
-    "username": "tomsmith",
-    "password": "SuperSecretPassword!",
+    "form_auth_username": "tomsmith",
+    "form_auth_password": "SuperSecretPassword!",
+    "basic_auth_username": "admin",
+    "basic_auth_password": "admin",
     "text": "Hello from inside the iframe!"
   }
 }

@@ -1,0 +1,580 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "manageCookies",
+      "action": "add",
+      "cookies": [
+        {
+          "name": "myTestCookie",
+          "value": "ClineWasHere-{{Date.now()}}",
+          "domain": ".the-internet.herokuapp.com",
+          "path": "/"
+        }
+      ],
+      "description": "Add a custom test cookie"
+    },
+    {
+      "type": "manageStorage",
+      "storageType": "local",
+      "action": "setItem",
+      "key": "myTestData",
+      "value": { "framework": "adv-web-scraper-api", "timestamp": "{{Date.now()}}" },
+      "description": "Set a test item in localStorage"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/abtest",
+      "description": "Navigate to A/B Testing page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/add_remove_elements/",
+      "description": "Navigate to Add/Remove Elements page"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='addElement()']",
+      "description": "Click Add Element button"
+    },
+    {
+      "type": "assert",
+      "selector": "#elements button.added-manually",
+      "assertionType": "exists",
+      "description": "Assert element was added"
+    },
+    {
+      "type": "click",
+      "selector": "#elements button.added-manually",
+      "description": "Click Delete button"
+    },
+    {
+      "type": "assert",
+      "selector": "#elements button.added-manually",
+      "assertionType": "isHidden",
+      "description": "Assert element was removed"
+    },
+    {
+      "type": "goto",
+      "value": "https://admin:admin@the-internet.herokuapp.com/basic_auth",
+      "description": "Navigate to Basic Auth page with credentials"
+    },
+    {
+      "type": "wait",
+      "selector": "div.example > p",
+      "description": "Wait for success message element after Basic Auth"
+    },
+    {
+      "type": "extract",
+      "selector": "div.example",
+      "name": "basicAuthResult",
+      "description": "Extract content after Basic Auth",
+      "fields": {
+        "message": { "selector": "p", "type": "css" }
+      }
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/broken_images",
+      "description": "Navigate to Broken Images page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/challenging_dom",
+      "description": "Navigate to Challenging DOM page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/checkboxes",
+      "description": "Navigate to Checkboxes page"
+    },
+    {
+      "type": "click",
+      "selector": "#checkboxes input[type=checkbox]:first-of-type",
+      "description": "Click the first checkbox"
+    },
+    {
+      "type": "click",
+      "selector": "#checkboxes input[type=checkbox]:last-of-type",
+      "description": "Click the last checkbox"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/context_menu",
+      "description": "Navigate to Context Menu page"
+    },
+    {
+      "type": "handleDialog",
+      "action": "accept",
+      "description": "Set up listener to accept the next alert dialog"
+    },
+    {
+      "type": "click",
+      "selector": "#hot-spot",
+      "button": "right",
+      "description": "Right-click the hot spot"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/digest_auth",
+      "description": "Navigate to Digest Auth page (Manual auth likely required)",
+      "optional": true
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/disappearing_elements",
+      "description": "Navigate to Disappearing Elements page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/drag_and_drop",
+      "description": "Navigate to Drag and Drop page"
+    },
+    {
+      "type": "mousemove",
+      "selector": "#column-a",
+      "action": "drag",
+      "dragTo": { "selector": "#column-b" },
+      "duration": 1500,
+      "description": "Drag element A to element B"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/dropdown",
+      "description": "Navigate to Dropdown page"
+    },
+    {
+      "type": "select",
+      "selector": "#dropdown",
+      "value": "1",
+      "description": "Select Option 1 from dropdown"
+    },
+    {
+      "type": "assert",
+      "selector": "#dropdown option[selected='selected']",
+      "assertionType": "containsText",
+      "expectedValue": "Option 1",
+      "description": "Assert Option 1 is selected"
+    },
+    {
+      "type": "select",
+      "selector": "#dropdown",
+      "value": "Option 2",
+      "description": "Select Option 2 from dropdown"
+    },
+    {
+      "type": "assert",
+      "selector": "#dropdown option[selected='selected']",
+      "assertionType": "containsText",
+      "expectedValue": "Option 2",
+      "description": "Assert Option 2 is selected"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/dynamic_content",
+      "description": "Navigate to Dynamic Content page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/dynamic_controls",
+      "description": "Navigate to Dynamic Controls page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/dynamic_loading",
+      "description": "Navigate to Dynamic Loading page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/entry_ad",
+      "description": "Navigate to Entry Ad page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/exit_intent",
+      "description": "Navigate to Exit Intent page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/download",
+      "description": "Navigate to File Download page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/floating_menu",
+      "description": "Navigate to Floating Menu page"
+    },
+    {
+      "type": "scroll",
+      "direction": "down",
+      "distance": 1000,
+      "description": "Scroll down to test floating menu"
+    },
+    {
+      "type": "assert",
+      "selector": "#menu",
+      "assertionType": "isVisible",
+      "description": "Assert floating menu is still visible after scroll"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/forgot_password",
+      "description": "Navigate to Forgot Password page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/frames",
+      "description": "Navigate to Frames page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/geolocation",
+      "description": "Navigate to Geolocation page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/horizontal_slider",
+      "description": "Navigate to Horizontal Slider page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/hovers",
+      "description": "Navigate to Hovers page"
+    },
+    {
+      "type": "hover",
+      "selector": ".figure:nth-of-type(1)",
+      "description": "Hover over first image"
+    },
+    {
+      "type": "wait",
+      "selector": ".figure:nth-of-type(1) .figcaption",
+      "timeout": 2000
+    },
+    {
+      "type": "assert",
+      "selector": ".figure:nth-of-type(1) .figcaption",
+      "assertionType": "isVisible",
+      "description": "Assert first caption is visible"
+    },
+    {
+      "type": "assert",
+      "selector": ".figure:nth-of-type(1) .figcaption h5",
+      "assertionType": "containsText",
+      "expectedValue": "name: user1",
+      "description": "Assert first caption text"
+    },
+    {
+      "type": "hover",
+      "selector": ".figure:nth-of-type(2)",
+      "description": "Hover over second image"
+    },
+    {
+      "type": "wait",
+      "selector": ".figure:nth-of-type(2) .figcaption",
+      "timeout": 2000
+    },
+    {
+      "type": "assert",
+      "selector": ".figure:nth-of-type(2) .figcaption",
+      "assertionType": "isVisible",
+      "description": "Assert second caption is visible"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/infinite_scroll",
+      "description": "Navigate to Infinite Scroll page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/inputs",
+      "description": "Navigate to Inputs page"
+    },
+    {
+      "type": "input",
+      "selector": "input[type='number']",
+      "value": "12345",
+      "description": "Enter numbers into the input field"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/jqueryui/menu",
+      "description": "Navigate to JQuery UI Menus page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/javascript_error",
+      "description": "Navigate to JavaScript onload error page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/key_presses",
+      "description": "Navigate to Key Presses page"
+    },
+    {
+      "type": "click",
+      "selector": "#target",
+      "description": "Focus the input field"
+    },
+    {
+      "type": "input",
+      "selector": "#target",
+      "value": "A",
+      "description": "Simulate pressing 'A' key"
+    },
+    {
+      "type": "wait",
+      "value": 200,
+      "description": "Wait briefly for result update"
+    },
+    {
+      "type": "assert",
+      "selector": "#result",
+      "assertionType": "containsText",
+      "expectedValue": "A",
+      "description": "Assert result after key press"
+    },
+    {
+      "type": "extract",
+      "selector": "#result",
+      "name": "keyPressResult",
+      "description": "Extract result after key press",
+      "fields": {
+        "result": { "selector": "#result", "type": "css" }
+      }
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/large",
+      "description": "Navigate to Large & Deep DOM page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/nested_frames",
+      "description": "Navigate to Nested Frames page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/notification_message_rendered",
+      "description": "Navigate to Notification Messages page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/redirector",
+      "description": "Navigate to Redirect Link page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/download_secure",
+      "description": "Navigate to Secure File Download page (Requires Login)"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/shadowdom",
+      "description": "Navigate to Shadow DOM page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/shifting_content",
+      "description": "Navigate to Shifting Content page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/slow",
+      "description": "Navigate to Slow Resources page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/tables",
+      "description": "Navigate to Sortable Data Tables page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/status_codes",
+      "description": "Navigate to Status Codes page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/typos",
+      "description": "Navigate to Typos page"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/login",
+      "description": "Navigate to login page (Original Step)"
+    },
+    {
+      "type": "login",
+      "usernameSelector": "#username",
+      "passwordSelector": "#password",
+      "submitSelector": "button[type='submit']",
+      "usernameValue": "{{username}}",
+      "passwordValue": "{{password}}",
+      "waitForNavigation": false,
+      "waitFor": "#flash.success",
+      "description": "Perform login using known credentials (Original Step)"
+    },
+    {
+      "type": "assert",
+      "selector": "#flash",
+      "assertionType": "containsText",
+      "expectedValue": "You logged into a secure area!",
+      "description": "Assert successful login message (Original Step)"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/javascript_alerts",
+      "description": "Navigate to JS Alerts page (Original Step)"
+    },
+    {
+      "type": "handleDialog",
+      "action": "accept",
+      "description": "Set up listener to accept the next confirm dialog (Original Step)"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='jsConfirm()']",
+      "description": "Click button to trigger confirm dialog (Original Step)"
+    },
+    {
+      "type": "assert",
+      "selector": "#result",
+      "assertionType": "containsText",
+      "expectedValue": "You clicked: Ok",
+      "description": "Assert result text after accepting confirm (Original Step)"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/upload",
+      "description": "Navigate to File Upload page (Original Step)"
+    },
+    {
+      "type": "uploadFile",
+      "selector": "#file-upload",
+      "filePath": "./test-upload.txt",
+      "description": "Upload the test file (Original Step)"
+    },
+    {
+      "type": "click",
+      "selector": "#file-submit",
+      "waitFor": "#uploaded-files",
+      "description": "Submit the uploaded file (Original Step)"
+    },
+    {
+      "type": "assert",
+      "selector": "#uploaded-files",
+      "assertionType": "containsText",
+      "expectedValue": "test-upload.txt",
+      "description": "Assert uploaded file name is displayed (Original Step)"
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/iframe",
+      "description": "Navigate to iFrame page (Original Step)"
+    },
+    {
+      "type": "switchToFrame",
+      "selector": "#mce_0_ifr",
+      "description": "Switch to the WYSIWYG editor iframe (Original Step)",
+      "optional": true,
+      "steps": [
+        {
+          "type": "wait",
+          "value": 500,
+          "description": "Wait 0.5s after switching to frame for init"
+        },
+        {
+          "type": "wait",
+          "selector": "#tinymce",
+          "state": "visible",
+          "timeout": 10000,
+          "description": "Wait for iframe editor to be visible"
+        },
+        {
+          "type": "input",
+          "selector": "#tinymce",
+          "value": "{{text}}",
+          "clearInput": true,
+          "description": "Type text inside the iframe editor",
+          "optional": true
+        },
+        {
+          "type": "assert",
+          "selector": "#tinymce",
+          "assertionType": "containsText",
+          "expectedValue": "{{text}}",
+          "description": "Assert text within the iframe editor",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/windows",
+      "description": "Navigate to Multiple Windows page (Original Step)"
+    },
+    {
+      "type": "click",
+      "selector": "#content > div > a",
+      "description": "Click link that opens a new window (Original Step)",
+      "waitForPopup": true
+    },
+    {
+      "type": "switchTab",
+      "action": "switchToLast",
+      "contextKey": "newWindowPage",
+      "timeout": 10000,
+      "description": "Switch context to the newest tab (Original Step)"
+    },
+    {
+      "type": "assert",
+      "selector": "h3",
+      "assertionType": "containsText",
+      "expectedValue": "New Window",
+      "description": "Assert content on the new tab (Original Step)",
+      "pageContextKey": "newWindowPage"
+    },
+    {
+       "type": "switchTab",
+       "action": "switch",
+       "target": 0,
+       "description": "Switch back to the original tab (Original Step)"
+    },
+    {
+       "type": "assert",
+       "selector": "h3",
+       "assertionType": "containsText",
+       "expectedValue": "Opening a new window",
+       "description": "Assert content on the original tab after switching back (Original Step)"
+    },
+    {
+      "type": "manageCookies",
+      "action": "get",
+      "name": "myTestCookie",
+      "contextKey": "retrievedTestCookie",
+      "description": "Get the test cookie we added earlier (Original Step)"
+    },
+    {
+      "type": "manageStorage",
+      "storageType": "local",
+      "action": "getItem",
+      "key": "myTestData",
+      "contextKey": "retrievedTestData",
+      "description": "Get the test item from localStorage (Original Step)"
+    }
+  ],
+  "options": {
+    "timeout": 20000,
+    "screenshots": false,
+    "screenshotsPath": "./screenshots/herokuapp-full-test"
+  },
+  "variables": {
+    "username": "tomsmith",
+    "password": "SuperSecretPassword!",
+    "form_auth_username": "tomsmith",
+    "form_auth_password": "SuperSecretPassword!",
+    "basic_auth_username": "admin",
+    "basic_auth_password": "admin",
+    "text": "Hello from inside the iframe!"
+  }
+}
