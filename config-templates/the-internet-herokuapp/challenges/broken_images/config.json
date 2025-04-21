@@ -1,0 +1,23 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/broken_images",
+      "description": "Navigate to Broken Images page"
+    },
+    {
+      "type": "extract",
+      "name": "brokenImagesInfo",
+      "selector": ".example img",
+      "multiple": true,
+      "description": "Extract src attribute from all images",
+      "fields": {
+        "src": { "attribute": "src" }
+      }
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/add_remove_elements/",
+      "description": "Navigate to Add/Remove Elements page"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='addElement()']",
+      "description": "Click Add Element button"
+    },
+    {
+      "type": "assert",
+      "selector": "#elements button.added-manually",
+      "assertionType": "exists",
+      "description": "Assert element was added"
+    },
+    {
+      "type": "click",
+      "selector": "#elements button.added-manually",
+      "description": "Click Delete button"
+    },
+    {
+      "type": "assert",
+      "selector": "#elements button.added-manually",
+      "assertionType": "isHidden",
+      "description": "Assert element was removed"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

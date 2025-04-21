@@ -1,0 +1,31 @@
+{
+    "startUrl": "https://the-internet.herokuapp.com/",
+    "steps": [
+      {
+        "type": "goto",
+        "value": "https://the-internet.herokuapp.com/disappearing_elements",
+        "description": "Navigate to Disappearing Elements page"
+      },
+      {
+        "type": "wait",
+        "selector": ".example > ul > li",
+        "description": "Wait for menu items to appear"
+      },
+      {
+        "type": "extract",
+        "name": "menuItems",
+        "selector": ".example  ul  li",
+        "multiple": true,
+        "description": "Extract text from potentially disappearing menu items",
+        "fields": {
+          "text": {
+            "selector": "a",
+            "type": "css"
+          }
+        }
+      }
+    ],
+    "options": {
+      "timeout": 15000
+    }
+  }

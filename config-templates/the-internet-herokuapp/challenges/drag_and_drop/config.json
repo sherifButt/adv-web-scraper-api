@@ -1,0 +1,21 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/drag_and_drop",
+      "description": "Navigate to Drag and Drop page"
+    },
+    {
+      "type": "mousemove",
+      "selector": "#column-a",
+      "action": "drag",
+      "dragTo": { "selector": "#column-b" },
+      "duration": 1500,
+      "description": "Drag element A to element B"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/digest_auth",
+      "description": "Navigate to Digest Auth page (Expected to fail gracefully)",
+      "optional": true
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

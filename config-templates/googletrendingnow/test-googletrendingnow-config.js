@@ -12,7 +12,7 @@ async function testGoogletrendingnowConfig() {
     console.log('Starting test of googletrendingnow-config.json');
 
     // Read the configuration file
-    const configPath = './googletrendingnow-config.json';
+    const configPath = 'config-templates/googletrendingnow/googletrendingnow-config.json';
     const configContent = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configContent);
 

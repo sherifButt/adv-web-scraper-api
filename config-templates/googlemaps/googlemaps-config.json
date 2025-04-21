@@ -80,13 +80,6 @@
     },
     {
       "type": "extract",
-      "name": "searchHTML",
-      "selector": ".m6QErb[role='feed']",
-      "description": "Extract the entire search results container",
-      "source": "html"
-    },
-    {
-      "type": "extract",
       "name": "searchResults",
       "selector": ".m6QErb[role='feed']",
       "description": "Extract listings from the search results container",

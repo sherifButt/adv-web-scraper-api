@@ -8,7 +8,7 @@ async function testGooglemapsConfig() {
     console.log('Starting test of googlemaps-config.json');
 
     // Read the configuration file
-    const configPath = './googlemaps-config.json';
+    const configPath = 'config-templates/googlemaps/googlemaps-config.json';
     const configContent = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configContent);
 

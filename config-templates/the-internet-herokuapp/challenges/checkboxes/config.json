@@ -1,0 +1,23 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/checkboxes",
+      "description": "Navigate to Checkboxes page"
+    },
+    {
+      "type": "click",
+      "selector": "#checkboxes input[type=checkbox]:first-of-type",
+      "description": "Click the first checkbox"
+    },
+    {
+      "type": "click",
+      "selector": "#checkboxes input[type=checkbox]:last-of-type",
+      "description": "Click the last checkbox"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

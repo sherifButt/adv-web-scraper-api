@@ -1,0 +1,26 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://admin:admin@the-internet.herokuapp.com/basic_auth",
+      "description": "Navigate to Basic Auth page with credentials"
+    },
+    {
+      "type": "wait",
+      "selector": "div.example > p",
+      "description": "Wait for success message element after Basic Auth"
+    },
+    {
+      "type": "extract",
+      "name": "basicAuthResult",
+      "description": "Extract content after Basic Auth",
+      "fields": {
+        "message": { "selector": "div.example > p", "type": "css" }
+      }
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

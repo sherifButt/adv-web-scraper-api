@@ -1,0 +1,24 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/context_menu",
+      "description": "Navigate to Context Menu page"
+    },
+    {
+      "type": "handleDialog",
+      "action": "accept",
+      "description": "Set up listener to accept the next alert dialog"
+    },
+    {
+      "type": "click",
+      "selector": "#hot-spot",
+      "button": "right",
+      "description": "Right-click the hot spot to trigger alert"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

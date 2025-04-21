@@ -1,0 +1,45 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/challenging_dom",
+      "description": "Navigate to Challenging DOM page"
+    },
+    {
+      "type": "click",
+      "selector": ".large-2.columns .button:nth-of-type(1)",
+      "description": "Click the first (blue) button"
+    },
+    {
+      "type": "click",
+      "selector": ".large-2.columns .button.alert",
+      "description": "Click the second (red) button"
+    },
+    {
+      "type": "click",
+      "selector": ".large-2.columns .button.success",
+      "description": "Click the third (green) button"
+    },
+    {
+      "type": "extract",
+      "name": "challengingDomTable",
+      "selector": "table tbody tr",
+      "multiple": true,
+      "description": "Extract table data",
+      "fields": {
+        "lorem": { "selector": "td:nth-of-type(1)", "type": "css" },
+        "ipsum": { "selector": "td:nth-of-type(2)", "type": "css" },
+        "dolor": { "selector": "td:nth-of-type(3)", "type": "css" },
+        "sit": { "selector": "td:nth-of-type(4)", "type": "css" },
+        "amet": { "selector": "td:nth-of-type(5)", "type": "css" },
+        "diceret": { "selector": "td:nth-of-type(6)", "type": "css" },
+        "action_edit_link": { "selector": "td:nth-of-type(7) a[href='#edit']", "attribute": "href" },
+        "action_delete_link": { "selector": "td:nth-of-type(7) a[href='#delete']", "attribute": "href" }
+      }
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

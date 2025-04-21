@@ -1,0 +1,21 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/abtest",
+      "description": "Navigate to A/B Testing page"
+    },
+    {
+      "type": "extract",
+      "name": "abTestHeading",
+      "description": "Extract the heading text",
+      "fields": {
+        "heading": { "selector": "h3", "type": "css" }
+      }
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

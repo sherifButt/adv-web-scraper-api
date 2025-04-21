@@ -1,26 +1,31 @@
-# The Internet (Herokuapp) Configuration Template
+# The Internet (Herokuapp) - Configuration Templates
 
-This configuration demonstrates various scraping and automation scenarios using the examples available at `the-internet.herokuapp.com`.
+This directory contains example navigation configuration files for the website [https://the-internet.herokuapp.com/](https://the-internet.herokuapp.com/). This site provides a safe environment to practice web scraping and automation against various common web elements and scenarios.
 
-## Files
+## Challenge-Based Structure
 
--   `the-internet-herokuapp-config.json`: The main configuration file showcasing different interactions.
+The configurations are organized into individual challenges within the `challenges/` subdirectory. Each challenge folder corresponds to a specific example page on the-internet.herokuapp.com and contains:
 
-## Features Demonstrated
+-   **`README.md`**: Explains the specific challenge, the approach taken in the configuration, expected outcomes, and relevant metadata (title, description, tags).
+-   **`config.json`**: A focused navigation configuration (`steps` array) demonstrating how to interact with and potentially extract data from that specific challenge page.
+-   **`test.js`**: A simple test script (using Node.js and the `adv-web-scraper-api` library) to execute the corresponding `config.json`.
 
-This template likely covers a range of features depending on which examples from the site it targets, such as:
+This structure allows for modular, focused examples that are easy to understand, test, and adapt.
 
--   Basic navigation (`goto`).
--   Login forms (`login` step or `input`/`click`).
--   Handling dropdowns (`select` step).
--   Interacting with checkboxes.
--   Handling alerts/dialogs (`handleDialog` step).
--   File uploads (`uploadFile` step).
--   Waiting for dynamic content (`wait` step).
--   Switching frames (`switchToFrame` step).
--   Assertions (`assert` step).
--   (Add more specific details as needed based on the actual config content)
+## Challenge Index
 
-## Usage
+*(This index will be populated with details from each challenge's README.md once they are created.)*
 
-Copy `the-internet-herokuapp-config.json` and adapt it to test specific features or scenarios on `the-internet.herokuapp.com`. This is a great template for learning and experimenting with different step types.
+## Running Tests
+
+Each challenge folder contains a `test.js` file. To run a specific test:
+
+1.  Ensure you have Node.js installed.
+2.  Navigate to the root directory of the `adv-web-scraper-api` project in your terminal.
+3.  Run the test using Node:
+    ```bash
+    node config-templates/the-internet-herokuapp/challenges/<challenge_folder_name>/test.js
+    ```
+    (Replace `<challenge_folder_name>` with the actual folder name, e.g., `add_remove_elements`).
+
+*(Note: The original, simpler config files like `the-internet-herokuapp-config.json` and `test-the-internet-herokuapp-config.js` may be removed once the challenge-based structure is fully populated.)*
