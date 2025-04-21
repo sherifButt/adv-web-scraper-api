@@ -35,32 +35,76 @@ Waits for a condition.
 
 ### `click`
 
-Clicks an element with mouse or keyboard.
+Clicks an element using various methods (single, double, keyboard) and options. This step uses Playwright's robust `elementHandle.click()` or `elementHandle.dblclick()` methods, which handle scrolling the element into view and performing actionability checks.
 
 ```typescript
 {
   type: 'click',
   selector: '#button',
-  triggerType: 'mouse', // 'mouse' (default) or 'keyboard'
-  waitFor: '#next-page' // optional
+  clickMethod: 'single', // 'single' (default), 'double', 'keyboard'
+  button: 'left',      // 'left' (default), 'right', 'middle'
+  modifiers: ['Shift'], // Optional: ['Alt', 'Control', 'Meta', 'Shift']
+  position: { x: 10, y: 10 }, // Optional: Click offset within element
+  force: false,        // Optional: Bypass actionability checks (default: false)
+  waitFor: '#next-page', // Optional: Wait condition after click
+  timeout: 30000       // Optional: Timeout for the click action itself
 }
 ```
 
-**Trigger Types:**
+**Parameters:**
 
-1. **mouse** (default): Standard mouse click
-2. **keyboard**: Simulates spacebar key press on element (useful for accessibility testing)
+-   `selector`: CSS selector for the target element.
+-   `clickMethod` (optional): The method used for clicking.
+    -   `'single'` (default): Performs a standard single click.
+    -   `'double'`: Performs a double click.
+    -   `'keyboard'`: Focuses the element and simulates a Spacebar press.
+-   `button` (optional): The mouse button to use. Defaults to `'left'`.
+    -   `'left'`
+    -   `'right'`
+    -   `'middle'`
+-   `modifiers` (optional): An array of modifier keys to hold during the click (e.g., `['Shift', 'Control']`).
+-   `position` (optional): An object `{ x: number, y: number }` specifying the click coordinates relative to the top-left corner of the element's bounding box.
+-   `force` (optional): If `true`, bypasses Playwright's actionability checks. Use with caution. Defaults to `false`.
+-   `waitFor` (optional): A condition (selector, timeout in ms, 'navigation', 'networkidle') to wait for after the click action completes.
+-   `timeout` (optional): Maximum time in milliseconds for the click action itself (finding the element and performing the click/dblclick). Defaults to 30000ms.
+-   `optional` (optional): If `true`, failure to find or click the element will not halt the flow.
 
-**Example Keyboard Click:**
+**Examples:**
 
 ```typescript
+// Right-click an element
 {
   type: 'click',
-  selector: 'button.submit',
-  triggerType: 'keyboard',
-  waitFor: 1000 // wait after key press
+  selector: '#context-menu-trigger',
+  button: 'right'
+}
+
+// Double-click an item
+{
+  type: 'click',
+  selector: '.list-item',
+  clickMethod: 'double'
+}
+
+// Shift-click a link
+{
+  type: 'click',
+  selector: 'a.special-link',
+  modifiers: ['Shift']
+}
+
+// Force click a potentially obscured button
+{
+  type: 'click',
+  selector: '#tricky-button',
+  force: true
 }
 ```
+
+**Note on `click` vs. `mousemove` with `action: 'click'`:**
+
+-   Use the `click` step for most standard click interactions. It's simpler and leverages Playwright's built-in checks for visibility and actionability.
+-   Use the `mousemove` step with `action: 'click'` when you need fine-grained control over the *mouse movement path* leading up to the click (e.g., for human-like emulation involving complex paths) or when you specifically need the lower-level `mouse.down`/`mouse.up` behavior instead of `elementHandle.click()`.
 
 ### `mousemove`
 
@@ -72,7 +116,7 @@ Moves mouse to element or coordinates with optional actions.
   selector: '#menu', // either selector
   x: 100, y: 200,    // or coordinates
   duration: 1000,     // movement time in ms
-  humanLike: true,    // enable human-like movement
+  humanLike: true,    // enable human-like movement (default: true)
   action: 'move',     // 'move' (default), 'click', 'drag', 'wheel'
   pathPoints: [       // optional intermediate points
     { x: 50, y: 50 },

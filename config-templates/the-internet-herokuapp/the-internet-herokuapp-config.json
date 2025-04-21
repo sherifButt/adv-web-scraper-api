@@ -32,8 +32,8 @@
       "usernameSelector": "#username",
       "passwordSelector": "#password",
       "submitSelector": "button[type='submit']",
-      "usernameValue": "tomsmith",
-      "passwordValue": "SuperSecretPassword!",
+      "usernameValue": "{{username}}",
+      "passwordValue": "{{password}}",
       "waitForNavigation": false,
       "waitFor": "#flash.success",
       "description": "Perform login using known credentials"
@@ -117,7 +117,7 @@
         {
           "type": "input",
           "selector": "#tinymce",
-          "value": "Hello from inside the iframe!",
+          "value": "{{text}}",
           "clearInput": true,
           "description": "Type text inside the iframe editor",
           "optional": true
@@ -191,5 +191,9 @@
     "screenshots": false,
     "screenshotsPath": "./screenshots/herokuapp-test"
   },
-  "variables": {}
+  "variables": {
+    "username": "tomsmith",
+    "password": "SuperSecretPassword!",
+    "text": "Hello from inside the iframe!"
+  }
 }

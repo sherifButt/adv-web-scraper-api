@@ -51,7 +51,8 @@ export class SwitchTabStepHandler extends BaseStepHandler {
           break;
         }
 
-        case 'switchToLast': { // New action implementation
+        case 'switchToLast': {
+          // New action implementation
           logger.debug('Switching to the last opened tab...');
           const pages = browserContext.pages();
           if (pages.length < 2) {

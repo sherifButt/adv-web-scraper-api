@@ -71,19 +71,55 @@ export class ClickStepHandler extends BaseStepHandler implements IStepHandler {
 
     // Now elementToClick is guaranteed to be non-null if we reach here
 
-    if (step.triggerType === 'keyboard') {
-      logger.info(`Triggering spacebar keyboard click on element: ${selector}`);
-      await elementToClick.focus();
+    const clickMethod = step.clickMethod || 'single'; // Default to single click
+    const clickTimeout = step.timeout || 30000;
+
+    if (clickMethod === 'keyboard') {
+      logger.info(`Triggering keyboard (Spacebar) click on element: ${selector}`);
+      await elementToClick.focus(); // Removed timeout argument
       await this.page.keyboard.down('Space');
       await this.page.waitForTimeout(100); // Brief pause for reliability
       await this.page.keyboard.up('Space');
-    } else {
-      // Use Playwright's built-in click on the specific ElementHandle
-      // It handles visibility, actionability checks, and scrolling internally.
-      logger.debug(
-        `Performing Playwright click on the resolved element handle for selector: ${selector}`
+    } else if (clickMethod === 'double') {
+      logger.info(`Performing double click on element: ${selector}`);
+      // Construct options for dblclick (similar subset as click)
+      const dblClickOptions: Parameters<typeof elementToClick.dblclick>[0] = {
+        timeout: clickTimeout,
+        button: step.button, // 'left', 'right', 'middle'
+        modifiers: step.modifiers, // ['Alt', 'Control', 'Meta', 'Shift']
+        position: step.position, // { x, y }
+        force: step.force, // boolean
+      };
+      // Remove undefined properties to avoid passing them to Playwright
+      Object.keys(dblClickOptions).forEach(
+        key =>
+          dblClickOptions[key as keyof typeof dblClickOptions] === undefined &&
+          delete dblClickOptions[key as keyof typeof dblClickOptions]
       );
-      await elementToClick.click({ timeout: step.timeout || 30000 });
+      await elementToClick.dblclick(dblClickOptions);
+    } else {
+      // Default to single click ('single' or unspecified)
+      logger.info(
+        `Performing ${step.button || 'left'} ${clickMethod} click on element: ${selector}`
+      );
+      // Construct options object for Playwright's click
+      const clickOptions: Parameters<typeof elementToClick.click>[0] = {
+        timeout: clickTimeout,
+        button: step.button, // 'left', 'right', 'middle'
+        modifiers: step.modifiers, // ['Alt', 'Control', 'Meta', 'Shift']
+        position: step.position, // { x, y }
+        force: step.force, // boolean
+        // clickCount: 1, // Default for single click, no need to specify unless > 1
+      };
+      // Remove undefined properties to avoid passing them to Playwright
+      Object.keys(clickOptions).forEach(
+        key =>
+          clickOptions[key as keyof typeof clickOptions] === undefined &&
+          delete clickOptions[key as keyof typeof clickOptions]
+      );
+
+      logger.debug(`Performing Playwright click with options: ${JSON.stringify(clickOptions)}`);
+      await elementToClick.click(clickOptions);
     }
 
     // Use inherited handleWaitFor

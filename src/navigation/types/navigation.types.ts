@@ -73,7 +73,14 @@ export interface NavigationStep {
   humanLike?: boolean;
   pathPoints?: Array<{ x: number; y: number } | { selector: string }>;
   action?: string;
-  triggerType?: 'mouse' | 'keyboard';
+  // Properties for ClickStepHandler
+  clickMethod?: 'single' | 'double' | 'keyboard'; // Default: 'single'
+  button?: 'left' | 'right' | 'middle'; // Default: 'left'
+  modifiers?: Array<'Alt' | 'Control' | 'Meta' | 'Shift'>; // Optional modifier keys
+  position?: { x: number; y: number }; // Optional click position within element
+  force?: boolean; // Optional: Force click, bypass actionability checks
+  // Properties for MouseStepHandler (including drag/wheel)
+  triggerType?: 'mouse' | 'keyboard'; // Kept for potential other uses, but clickMethod is preferred for clicks
   dragTo?: any;
   deltaX?: number;
   deltaY?: number;
