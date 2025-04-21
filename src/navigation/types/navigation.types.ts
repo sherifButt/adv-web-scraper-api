@@ -85,6 +85,7 @@ export interface NavigationStep {
   description?: string; // Optional description for logging/debugging
   optional?: boolean; // Allow step to fail without stopping the flow
   usePageScope?: boolean; // Added: Force extraction scope to page, ignoring currentItemHandle
+  waitForPopup?: boolean; // Added: For click steps, wait for a popup/new tab event triggered by the click
 }
 
 /**

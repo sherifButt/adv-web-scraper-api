@@ -103,6 +103,13 @@
       "optional": true,
       "steps": [
         {
+          "type": "wait",
+          "selector": "#tinymce",
+          "state": "visible",
+          "timeout": 10000,
+          "description": "Wait for iframe editor to be visible"
+        },
+        {
           "type": "input",
           "selector": "#tinymce",
           "value": "Hello from inside the iframe!",
@@ -128,27 +135,16 @@
     {
       "type": "click",
       "selector": "#content > div > a",
-      "description": "Click link that opens a new window"
-    },
-    {
-      "type": "wait",
-      "value": 500,
-      "description": "Short wait for new tab event to potentially fire"
-    },
-    {
-      "type": "switchTab",
-      "action": "waitForNew",
-      "contextKey": "newWindowPage",
-      "waitFor": 2000,
-      "description": "Wait for and switch context to the new tab/window"
+      "description": "Click link and wait for new window/tab",
+      "waitForPopup": true,
+      "name": "newWindowPage"
     },
     {
       "type": "assert",
       "selector": "h3",
       "assertionType": "containsText",
       "expectedValue": "New Window",
-      "description": "Assert content on the new tab",
-      "pageContextKey": "newWindowPage"
+      "description": "Assert content on the new tab"
     },
     {
        "type": "switchTab",
@@ -181,7 +177,7 @@
   ],
   "options": {
     "timeout": 20000,
-    "screenshots": true,
+    "screenshots": false,
     "screenshotsPath": "./screenshots/herokuapp-test"
   },
   "variables": {}

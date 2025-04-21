@@ -12,7 +12,7 @@ async function testTheInternetHerokuappConfig() {
     console.log('Starting test of the-internet-herokuapp-config.json');
 
     // Read the configuration file
-    const configPath = './the-internet-herokuapp-config.json';
+    const configPath = 'config-templates/the-internet-herokuapp/the-internet-herokuapp-config.json';
     const configContent = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configContent);
 
