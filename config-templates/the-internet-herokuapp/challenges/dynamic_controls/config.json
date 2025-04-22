@@ -1,0 +1,93 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/dynamic_controls",
+      "description": "Navigate to Dynamic Controls page"
+    },
+    {
+      "type": "click",
+      "selector": "#checkbox-example button",
+      "description": "Click Remove Checkbox button"
+    },
+    {
+      "type": "wait",
+      "selector": "#loading",
+      "state": "hidden",
+      "description": "Wait for loading indicator to disappear (checkbox)"
+    },
+    {
+      "type": "assert",
+      "selector": "#checkbox",
+      "assertionType": "isHidden",
+      "description": "Assert checkbox is gone"
+    },
+    {
+      "type": "click",
+      "selector": "#checkbox-example button",
+      "description": "Click Add Checkbox button"
+    },
+    {
+      "type": "wait",
+      "selector": "#loading",
+      "state": "hidden",
+      "description": "Wait for loading indicator to disappear (checkbox)"
+    },
+    {
+      "type": "assert",
+      "selector": "#checkbox",
+      "assertionType": "exists",
+      "description": "Assert checkbox exists again"
+    },
+    {
+      "type": "assert",
+      "selector": "#input-example input[disabled]",
+      "assertionType": "exists",
+      "description": "Assert input is initially disabled"
+    },
+    {
+      "type": "click",
+      "selector": "#input-example button",
+      "description": "Click Enable Input button"
+    },
+    {
+      "type": "wait",
+      "selector": "#loading",
+      "state": "hidden",
+      "description": "Wait for loading indicator to disappear (input)"
+    },
+    {
+      "type": "assert",
+      "selector": "#input-example input:not([disabled])",
+      "assertionType": "exists",
+      "description": "Assert input is now enabled"
+    },
+    {
+      "type": "input",
+      "selector": "#input-example input",
+      "value": "Test input enabled",
+      "description": "Type into enabled input"
+    },
+    {
+      "type": "click",
+      "selector": "#input-example button",
+      "description": "Click Disable Input button"
+    },
+    {
+      "type": "wait",
+      "selector": "#loading",
+      "state": "hidden",
+      "description": "Wait for loading indicator to disappear (input)"
+    },
+    {
+      "type": "assert",
+      "selector": "#input-example input[disabled]",
+      "assertionType": "exists",
+      "description": "Assert input is disabled again"
+    }
+  ],
+  "options": {
+    "timeout": 20000
+  }
+}

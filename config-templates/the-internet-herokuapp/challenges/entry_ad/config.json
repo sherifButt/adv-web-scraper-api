@@ -1,0 +1,31 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/entry_ad",
+      "description": "Navigate to Entry Ad page"
+    },
+    {
+      "type": "wait",
+      "selector": ".modal",
+      "state": "visible",
+      "timeout": 10000, 
+      "description": "Wait for the entry ad modal to appear"
+    },
+    {
+      "type": "click",
+      "selector": ".modal-footer p", 
+      "description": "Click the close button on the modal"
+    },
+    {
+      "type": "wait",
+      "selector": ".modal",
+      "state": "hidden",
+      "description": "Wait for the modal to close"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

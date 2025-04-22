@@ -1,0 +1,76 @@
+{
+    "startUrl": "https://the-internet.herokuapp.com/",
+    "steps": [
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/dynamic_loading/1",
+            "description": "Navigate to Dynamic Loading Example 1"
+        },
+        {
+            "type": "click",
+            "selector": "#start button",
+            "description": "Click Start button (Example 1)"
+        },
+        {
+            "type": "wait",
+            "selector": "#loading",
+            "state": "hidden",
+            "description": "Wait for loading to disappear (Example 1)"
+        },
+        {
+            "type": "wait",
+            "selector": "#finish",
+            "state": "visible",
+            "description": "Wait for result to be visible (Example 1)"
+        },
+        {
+            "type": "extract",
+            "name": "dynamicLoadResult1",
+            "selector": "#finish",
+            "description": "Extract result text (Example 1)",
+            "fields": {
+                "text": {
+                    "selector": "h4",
+                    "type": "css"
+                }
+            }
+        },
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/dynamic_loading/2",
+            "description": "Navigate to Dynamic Loading Example 2"
+        },
+        {
+            "type": "click",
+            "selector": "#start button",
+            "description": "Click Start button (Example 2)"
+        },
+        {
+            "type": "wait",
+            "selector": "#loading",
+            "state": "hidden",
+            "description": "Wait for loading to disappear (Example 2)"
+        },
+        {
+            "type": "wait",
+            "selector": "#finish",
+            "state": "visible",
+            "description": "Wait for result to appear and be visible (Example 2)"
+        },
+        {
+            "type": "extract",
+            "name": "dynamicLoadResult2",
+            "selector": ".example",
+            "description": "Extract result text (Example 2)",
+            "fields": {
+                "text": {
+                    "selector": "#finish h4",
+                    "type": "css"
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 20000
+    }
+}

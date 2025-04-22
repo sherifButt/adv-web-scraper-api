@@ -9,11 +9,14 @@
     {
       "type": "extract",
       "name": "brokenImagesInfo",
-      "selector": ".example img",
-      "multiple": true,
-      "description": "Extract src attribute from all images",
+      "selector": ".example",
       "fields": {
-        "src": { "attribute": "src" }
+        "src": {
+          "selector": "img",
+          "type": "css",
+          "attribute": "src",
+          "multiple": true
+        }
       }
     }
   ],

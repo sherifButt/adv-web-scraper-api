@@ -1,0 +1,42 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/dropdown",
+      "description": "Navigate to Dropdown page"
+    },
+    {
+      "type": "select",
+      "selector": "#dropdown",
+      "value": "1",
+      "description": "Select Option 1 from dropdown by value"
+    }, 
+   
+    {
+      "type": "assert",
+      "selector": "#dropdown option[selected='selected']",
+      "assertionType": "containsText",
+      "expectedValue": "Option 1",
+      "description": "Assert Option 1 is selected"
+    }, 
+    {
+      "type": "select",
+      "selector": "#dropdown",
+      "value": "Option 2",
+      "description": "Select Option 2 from dropdown by text"
+    },
+   
+    {
+      "type": "assert",
+      "selector": "#dropdown option[selected='selected']",
+      "assertionType": "containsText",
+      "expectedValue": "Option 2",
+      "description": "Assert Option 2 is selected"
+    }
+
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

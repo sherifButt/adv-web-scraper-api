@@ -1,21 +1,65 @@
 {
-  "startUrl": "https://the-internet.herokuapp.com/",
-  "steps": [
-    {
-      "type": "goto",
-      "value": "https://the-internet.herokuapp.com/drag_and_drop",
-      "description": "Navigate to Drag and Drop page"
-    },
-    {
-      "type": "mousemove",
-      "selector": "#column-a",
-      "action": "drag",
-      "dragTo": { "selector": "#column-b" },
-      "duration": 1500,
-      "description": "Drag element A to element B"
+    "startUrl": "https://the-internet.herokuapp.com/",
+    "steps": [
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/drag_and_drop",
+            "description": "Navigate to Drag and Drop page"
+        },
+        {
+            "type": "extract",
+            "name": "dragAndDropSetup",
+            "selector": ".example #columns",
+            "description": "Extract content after drag and drop",
+            "fields": {
+                "columnA": {
+                    "selector": "#column-a header",
+                    "type": "css"
+                },
+                "columnB": {
+                    "selector": "#column-b header",
+                    "type": "css"
+                }
+            }
+        },
+        {
+            "type": "mousemove",
+            "selector": "#column-a",
+            "action": "drag",
+            "dragTo": {
+                "selector": "#column-b"
+            },
+            "duration": 1500,
+            "description": "Drag element A to element B"
+        },
+        {
+            "type": "wait",
+            "value": 200,
+            "description": "Wait for elements to settle"
+        },
+        {
+            "type": "extract",
+            "name": "dragAndDropResult",
+            "selector": ".example #columns",
+            "description": "Extract content after drag and drop",
+            "fields": {
+                "columnA": {
+                    "selector": "#column-a header",
+                    "type": "css"
+                },
+                "columnB": {
+                    "selector": "#column-b header",
+                    "type": "css"
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 15000,
+        "javascript": true,
+        "screenshots": false,
+        "screenshotsPath": "./screenshots",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "debug": true
     }
-  ],
-  "options": {
-    "timeout": 15000
-  }
 }

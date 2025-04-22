@@ -34,8 +34,8 @@
         "sit": { "selector": "td:nth-of-type(4)", "type": "css" },
         "amet": { "selector": "td:nth-of-type(5)", "type": "css" },
         "diceret": { "selector": "td:nth-of-type(6)", "type": "css" },
-        "action_edit_link": { "selector": "td:nth-of-type(7) a[href='#edit']", "attribute": "href" },
-        "action_delete_link": { "selector": "td:nth-of-type(7) a[href='#delete']", "attribute": "href" }
+        "action_edit_link": { "selector": "td:nth-of-type(7) a[href='#edit']","type": "css", "attribute": "href" },
+        "action_delete_link": { "selector": "td:nth-of-type(7) a[href='#delete']","type": "css", "attribute": "href" }
       }
     }
   ],

@@ -1,0 +1,49 @@
+{
+    "startUrl": "https://the-internet.herokuapp.com/",
+    "steps": [
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/exit_intent",
+            "description": "Navigate to Exit Intent page"
+        },
+        {
+            "type": "wait",
+            "value": 500,
+            "description": "Wait briefly after page load"
+        },
+        {
+            "type": "mousemove", 
+            "action": "move",
+            "x": 100,  
+            "y": -50, 
+            "duration": 200, 
+            "pathPoints": [
+              { "x": 10, "y": 10 } 
+            ],
+            "description": "Simulate user leaving page by moving mouse quickly to top of browser"
+          },
+        {
+            "type": "wait",
+            "selector": "#ouibounce-modal",
+            "state": "visible",
+            "timeout": 5000,
+            "optional": true,
+            "description": "Wait for exit intent modal (optional)"
+        },
+        {
+            "type": "condition",
+            "condition": "#ouibounce-modal",
+            "description": "Check if modal appeared",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": ".modal-footer p",
+                    "description": "Click close button on modal"
+                }
+            ]
+        }
+    ],
+    "options": {
+        "timeout": 15000
+    }
+}

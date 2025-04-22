@@ -48,6 +48,7 @@ async function testDragAndDropConfig() {
     // Or close the pool if this is the end of all tests
     // await BrowserPool.getInstance().close();
     logger.info('Drag and Drop config test finished.');
+    process.exit(1);
   }
 }
 

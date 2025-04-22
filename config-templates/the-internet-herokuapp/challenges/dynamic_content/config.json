@@ -1,0 +1,31 @@
+{
+    "startUrl": "https://the-internet.herokuapp.com/",
+    "steps": [
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/dynamic_content",
+            "description": "Navigate to Dynamic Content page"
+        },
+        {
+            "type": "extract",
+            "name": "dynamicContent",
+            "selector": "#content > .row",
+            "multiple": true,
+            "description": "Extract dynamic image src and text content",
+            "fields": {
+                "imageSrc": {
+                    "selector": "img",
+                    "type": "css",
+                    "attribute": "src"
+                },
+                "text": {
+                    "selector": ".large-10",
+                    "type": "css"
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 15000
+    }
+}

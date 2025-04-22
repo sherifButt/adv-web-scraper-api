@@ -115,30 +115,48 @@ export class MouseStepHandler extends BaseStepHandler {
     context: NavigationContext
   ): Promise<void> {
     switch (action) {
+      case 'drag': {
+        // Log the drag operation
+        logger.info(`Starting drag operation`);
+
+        await page.mouse.down();
+        await page.waitForTimeout(100); // Small delay after mousedown
+
+        if (step.dragTo) {
+          try {
+            // Handle dragTo as a string or as an object with a selector property
+            let dragToSelector: string;
+
+            if (typeof step.dragTo === 'string') {
+              dragToSelector = this.resolveValue(step.dragTo, context);
+            } else if (typeof step.dragTo === 'object' && 'selector' in step.dragTo) {
+              dragToSelector = this.resolveValue(step.dragTo.selector, context);
+            } else {
+              throw new Error(`Invalid dragTo format: ${JSON.stringify(step.dragTo)}`);
+            }
+
+            logger.info(`Dragging to element: ${dragToSelector}`);
+            await page.waitForSelector(dragToSelector, { timeout: 5000 });
+            await this.behaviorEmulator.moveMouseToElement(dragToSelector, duration);
+
+            await page.waitForTimeout(100); // Small delay before releasing
+          } catch (error) {
+            // Release mouse if there's an error
+            await page.mouse.up();
+            throw new Error(`Drag operation failed: ${error.message}`);
+          }
+        } else {
+          logger.warn('Drag operation with no target specified');
+        }
+
+        await page.mouse.up();
+        await page.waitForTimeout(300); // Wait for animations
+        break;
+      }
+      // Other cases remain the same...
       case 'click': {
         await page.mouse.down();
         await page.waitForTimeout(50 + Math.random() * 100);
-        await page.mouse.up();
-        break;
-      }
-      case 'drag': {
-        await page.mouse.down();
-        if (step.dragTo) {
-          const dragToValue = this.resolveValue(step.dragTo, context);
-          if (typeof dragToValue === 'string') {
-            await this.behaviorEmulator.moveMouseToElement(dragToValue, duration);
-          } else if (
-            typeof dragToValue === 'object' &&
-            dragToValue.x !== undefined &&
-            dragToValue.y !== undefined
-          ) {
-            await this.behaviorEmulator.moveMouseToCoordinates(
-              dragToValue.x,
-              dragToValue.y,
-              duration
-            );
-          }
-        }
         await page.mouse.up();
         break;
       }
@@ -165,7 +183,7 @@ export class MouseStepHandler extends BaseStepHandler {
       default: {
         // Move action already handled above
         break;
-      } // Add missing closing brace for switch
+      }
     }
   }
 }

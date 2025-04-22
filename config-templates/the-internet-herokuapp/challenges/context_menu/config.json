@@ -16,7 +16,18 @@
       "selector": "#hot-spot",
       "button": "right",
       "description": "Right-click the hot spot to trigger alert"
-    }
+    },
+    {
+      "type": "click",
+      "selector": "#hot-spot",
+      "button": "middle",
+      "description": "left-click the hot spot again to trigger alert"
+    },
+    {
+        "type": "wait",
+        "value": 1000,
+        "description": "Wait for alert to be handled"
+      }
   ],
   "options": {
     "timeout": 15000
