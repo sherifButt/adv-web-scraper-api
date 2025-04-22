@@ -267,6 +267,29 @@ export interface SwitchTabStep extends NavigationStep {
   description?: string; // Optional description for logging
 }
 
+// --- Specific Step Type Interfaces ---
+
+// Playwright's valid modifier keys
+export type KeyboardModifier = 'Alt' | 'Control' | 'Meta' | 'Shift';
+
+// Interface for the 'press' step
+export interface PressStep extends NavigationStep {
+  type: 'press';
+  /** The key to press (e.g., 'Enter', 'Tab', 'A', 'ArrowDown', '$').
+   *  Should match Playwright's key names: https://playwright.dev/docs/api/class-keyboard#keyboard-press
+   */
+  key: string;
+  /** Optional array of modifier keys to hold during the press. */
+  modifiers?: KeyboardModifier[];
+  /** Optional: Specify 'down' or 'up' for holding/releasing keys. Defaults to a full 'press' (down + up). */
+  action?: 'press' | 'down' | 'up';
+  /** Optional delay (ms) between key down and key up for 'press' action. */
+  delay?: number;
+  /** Optional selector to focus before pressing the key. */
+  selector?: string;
+  // Inherits optional, description, timeout, waitFor, etc. from NavigationStep
+}
+
 /**
  * Result object returned by step handlers, potentially indicating a jump or page change.
  */

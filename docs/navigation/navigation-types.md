@@ -350,6 +350,155 @@ Uploads a file to an `<input type="file">` element.
 
 **Security Note:** Be cautious when allowing arbitrary file paths. The implementation includes a basic check (`fs.existsSync`) but consider adding more robust validation based on allowed base directories if the `filePath` can be influenced by external input.
 
+### `press`
+
+Simulates keyboard key presses, including single keys, modifiers, and sequences using Playwright's `keyboard.press`, `keyboard.down`, and `keyboard.up` methods.
+
+```typescript
+{
+  type: 'press',
+  key: 'Enter', // Key to press (e.g., 'A', 'Enter', 'ArrowDown', '$', see Playwright key names)
+  modifiers: ['Shift', 'Meta'], // Optional: ['Alt', 'Control', 'Meta', 'Shift']
+  action: 'press', // Optional: 'press' (default, combines down+up), 'down', 'up'
+  delay: 100, // Optional: Delay (ms) between down/up for 'press' action
+  selector: '#myInput', // Optional: CSS selector to focus before pressing
+  waitFor: '#result', // Optional: Wait condition after pressing
+  description: 'Press Shift+Command+Enter in the input field' // Optional
+}
+```
+
+**Parameters:**
+
+-   `key` (string): The main key to press. Must match a valid Playwright key name (e.g., `'a'`, `'Enter'`, `'ArrowLeft'`, `'F1'`, `'$'`). See [Playwright Keyboard Docs](https://playwright.dev/docs/api/class-keyboard#keyboard-press) for a full list.
+-   `modifiers` (optional, array of strings): An array of modifier keys (`'Alt'`, `'Control'`, `'Meta'`, `'Shift'`) to hold down during a `'press'` action. For `'down'` and `'up'` actions, modifiers should typically be pressed/released using separate `press` steps with `action: 'down'` or `action: 'up'`.
+-   `action` (optional, string): Specifies the exact keyboard action. Defaults to `'press'`.
+    -   `'press'`: Simulates a full key press (down event, then up event). This is the most common action. It correctly handles modifiers specified in the `modifiers` array.
+    -   `'down'`: Simulates pressing a key down and holding it. Use this to start holding a modifier key (like `Shift`) before other presses.
+    -   `'up'`: Simulates releasing a key that was previously held down. Use this to release modifier keys.
+-   `delay` (optional, number): Time in milliseconds to wait between the `down` and `up` actions when `action` is `'press'`. Defaults to 0.
+-   `selector` (optional, string): A CSS selector for an element to focus before the key press action occurs. Useful for ensuring key presses happen in the context of a specific input field or element.
+-   `waitFor` (optional): A condition (selector, timeout in ms, 'navigation', 'networkidle') to wait for after the key press action completes.
+-   `description` (optional): Custom description for logging purposes.
+-   `timeout` (optional): Maximum time in milliseconds for associated waits (like `waitForSelector` if `selector` is used, or the `waitFor` condition). Defaults to 30000ms.
+-   `optional` (optional): If `true`, failure during the step (e.g., element not found for focus) will not halt the flow (default: `false`).
+
+**Functionality:**
+
+1.  If `selector` is provided, waits for the element and focuses it.
+2.  Performs the specified keyboard `action` (`press`, `down`, or `up`) using the `key`.
+3.  For the `'press'` action, it correctly combines the `key` with any specified `modifiers` (e.g., `Shift+A`).
+4.  Handles the optional `delay` for the `'press'` action.
+5.  Handles the optional `waitFor` condition after the action.
+
+**Examples:**
+
+```typescript
+// Press Enter key
+{
+  type: 'press',
+  key: 'Enter'
+}
+
+// Type 'A' (Shift + a)
+{
+  type: 'press',
+  key: 'A', // Playwright handles Shift+a as 'A'
+  // OR explicitly:
+  // key: 'a',
+  // modifiers: ['Shift']
+}
+
+// Press Ctrl+C (Cmd+C on Mac)
+{
+  type: 'press',
+  key: 'C',
+  modifiers: ['Control'] // Playwright maps Control to Meta on macOS automatically for shortcuts
+  // OR explicitly for Mac:
+  // key: 'C',
+  // modifiers: ['Meta']
+}
+
+// Sequence: Hold Shift, press 'a', release Shift
+[
+  { type: 'press', key: 'Shift', action: 'down' },
+  { type: 'press', key: 'a' }, // 'a' is pressed while Shift is down
+  { type: 'press', key: 'Shift', action: 'up' }
+]
+
+// Focus input and press Tab
+{
+  type: 'press',
+  selector: '#username',
+  key: 'Tab'
+}
+```
+**EXAMPLE: :** `Shift + Option + Command + S (Chord Press)`
+
+- This is a standard chord press where multiple modifier keys are held down while a primary key is pressed.
+
+- You would configure this using the key and modifiers properties. Remember that on macOS, Option maps to Alt and Command maps to Meta in Playwright.
+
+The configuration step would look like this:
+```json
+{
+  "type": "press",
+  "key": "S",
+  "modifiers": ["Shift", "Alt", "Meta"],
+  "description": "Press Shift + Option + Command + S"
+}
+```
+**EXAMPLE: :** `Shift + Command + s + d (Sequence Press)`:
+
+- This looks more like a sequence: holding down Shift and Command, pressing s, then pressing d (presumably while still holding the modifiers), and finally releasing the modifiers.
+
+- The press handler, using the action property (down, up, press), allows you to build such sequences step-by-step:
+
+```json
+[
+  {
+    "type": "press",
+    "key": "Shift",
+    "action": "down",
+    "description": "Hold Shift down"
+  },
+  {
+    "type": "press",
+    "key": "Meta", // Command key on macOS
+    "action": "down",
+    "description": "Hold Command down"
+  },
+  {
+    "type": "press",
+    "key": "s",
+    // Modifiers are implicitly active due to 'down' actions above
+    "description": "Press 's' while holding Shift+Command"
+  },
+  {
+    "type": "press",
+    "key": "d",
+    // Modifiers are still active
+    "description": "Press 'd' while holding Shift+Command"
+  },
+  {
+    "type": "press",
+    "key": "Meta", // Release Command
+    "action": "up",
+    "description": "Release Command"
+  },
+  {
+    "type": "press",
+    "key": "Shift", // Release Shift
+    "action": "up",
+    "description": "Release Shift"
+  }
+]
+```
+
+**Note:** While page.keyboard.press() can sometimes handle simple combinations like Shift+A directly in the key property (e.g., key: "Shift+A"), complex chords and sequences are more reliably handled using the modifiers array and the down/up/press actions as shown above. The planned handler focuses on the explicit modifiers and action approach for clarity and robustness.
+
+
+
+
 ## Data Extraction
 
 ### `extract`

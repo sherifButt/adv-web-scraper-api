@@ -6,6 +6,7 @@ import { navigationRoutes } from './navigation.routes.js';
 import { sessionRoutes } from './session.routes.js';
 import { jobRoutes } from './job.routes.js';
 import { aiRoutes } from './ai.routes.js'; // Import AI routes
+import templatesRouter from './templates.routes.js'; // Import Template routes
 
 // Create router
 const router = Router();
@@ -23,5 +24,6 @@ router.use('/navigate', navigationRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/jobs', jobRoutes);
 router.use('/ai', aiRoutes); // Mount AI routes
+router.use('/templates', templatesRouter); // Mount Template routes
 
 export const apiRoutes = router;

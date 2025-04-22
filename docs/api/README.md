@@ -7,6 +7,7 @@ This section provides detailed documentation for the various API endpoints offer
 - **[Queue System API](./queue-system.md)**: Endpoints for managing and monitoring asynchronous jobs (`/api/v1/jobs`).
 - **[Proxy API](./proxy-api.md)**: Endpoints for managing and interacting with the proxy pool (`/api/v1/proxy`).
 - **[AI API](./ai-api.md)**: Endpoints for AI-powered features, such as configuration generation (`/api/v1/ai`).
+- **[Template API](./templates-api.md)**: Endpoints for accessing configuration templates (`/api/v1/templates`).
 - **Navigation API**: Endpoints for executing multi-step browser navigation flows (`/api/v1/navigate`). (Documentation coming soon)
 - **Scraping API**: Endpoints for direct data scraping requests (`/api/v1/scrape`). (Documentation coming soon)
 - **Session API**: Endpoints for managing browser sessions (`/api/v1/sessions`). (Documentation coming soon)

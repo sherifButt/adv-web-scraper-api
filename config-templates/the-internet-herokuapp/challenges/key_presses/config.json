@@ -1,0 +1,31 @@
+{
+    "startUrl": "https://the-internet.herokuapp.com/",
+    "steps": [
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/key_presses",
+            "description": "Navigate to Key Presses page"
+        },
+        {
+            "type": "press",
+            "selector": "#target",
+            "key": "Enter",
+            "description": "Press the Enter key"
+        },
+        {
+            "type": "extract",
+            "name": "keyPressResult",
+            "selector": ".example",
+            "description": "Extract result after key press",
+            "fields": {
+                "name": {
+                    "selector": "#result",
+                    "type": "css"
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 15000
+    }
+}

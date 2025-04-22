@@ -1,0 +1,41 @@
+{
+  "config": {
+    "name": "the-internet-herokuapp-large-dom",
+    "description": "Navigates to the Large & Deep DOM page and extracts data from specific nested elements.",
+    "startUrl": "https://the-internet.herokuapp.com/large",
+    "debug": false,
+    "maxConcurrency": 1,
+    "storage": {
+      "type": "memory"
+    }
+  },
+  "steps": [
+    {
+      "type": "goto",
+      "url": "{{config.startUrl}}",
+      "options": {
+        "waitUntil": "domcontentloaded"
+      }
+    },
+    {
+      "type": "extract",
+      "fields": [
+        {
+          "name": "deepElement1",
+          "selector": "#sibling-10\\.1",
+          "extract": "text",
+          "description": "Extract text from a specific deep element"
+        },
+        {
+          "name": "deepElement2",
+          "selector": "#sibling-10\\.2",
+          "extract": "text",
+          "description": "Extract text from another specific deep element"
+        }
+      ],
+      "options": {
+        "waitForSelector": "#sibling-10\\.1"
+      }
+    }
+  ]
+}

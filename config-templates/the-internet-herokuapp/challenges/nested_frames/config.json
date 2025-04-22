@@ -1,0 +1,53 @@
+{
+    "startUrl": "https://the-internet.herokuapp.com",
+    "steps": [
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/nested_frames",
+            "options": {
+                "waitUntil": "domcontentloaded"
+            }
+        },
+        {
+            "type": "switchToFrame",
+            "frameName": "frame-top",
+            "description": "Switch into the top frame",
+            "steps": [
+                {
+                    "type": "switchToFrame",
+                    "selector": "frame-middle",
+                    "frameName": "frame-middle",
+                    "description": "Switch into the middle frame (nested)",
+                    "steps": [
+                        {
+                            "type": "extract",
+                            "fields": [
+                                {
+                                    "name": "middleFrameContent",
+                                    "selector": "#content",
+                                    "extract": "text"
+                                }
+                            ],
+                            "options": {
+                                "waitForSelector": "#content"
+                            },
+                            "description": "Extract content from the middle frame"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "variables": {
+        "startUrl": "https://the-internet.herokuapp.com"
+    },
+    "options": {
+        "name": "the-internet-herokuapp-nested-frames",
+        "description": "Navigates into nested frames and extracts text from the middle frame.",
+        "debug": false,
+        "maxConcurrency": 1,
+        "storage": {
+            "type": "memory"
+        }
+    }
+}

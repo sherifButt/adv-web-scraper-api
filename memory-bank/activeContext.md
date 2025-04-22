@@ -126,6 +126,16 @@ The project has progressed from planning to implementation. Recent activities in
    - **Decision:** Agreed to remove original monolithic config files (`the-internet-herokuapp-config.json`, `the-internet-herokuapp-full-config.json`, etc.) once restructuring is complete.
    - **Decision:** Agreed to add an API endpoint (`/api/v1/templates`) to serve these structured templates, leveraging the metadata.
 
+7. **Template API Implementation**
+   - Added `TemplateService` (`src/core/templates/template.service.ts`) to scan directories, parse README front matter (`gray-matter`), validate metadata (Zod), and cache results.
+   - Implemented `listTemplates` (with filtering) and `getTemplate` (with config content) methods in the service.
+   - Added `templatesRouter` (`src/api/routes/templates.routes.ts`) with endpoints:
+     - `GET /api/v1/templates` (list templates, filter by site/tag)
+     - `GET /api/v1/templates/:site/:challenge` (get single template details + config)
+   - Mounted the router in `src/api/routes/index.ts`.
+   - Installed `gray-matter` dependency.
+   - Created documentation (`docs/api/templates-api.md`) and updated index files (`docs/api/README.md`, `docs/README.md`).
+
 ## Next Steps
 
 The immediate next steps for the project are:
@@ -150,14 +160,14 @@ The immediate next steps for the project are:
     *   Add more robust schema validation (Zod) for generated configurations.
 
 4.  **API Completion**:
-    *   Add request validation (e.g., using Zod) for all endpoints, including AI generation.
+    *   Add request validation (e.g., using Zod or Joi) for all endpoints, including AI generation and Template API.
     *   Implement consistent response formatting and pagination.
     *   Add rate limiting.
 
 5.  **Testing and Validation**:
     *   Implement unit tests for `QueueService`, `StorageService`, `AiService`, and worker functions.
-    *   Create integration tests for job submission (`/navigate`, `/scrape`, `/ai/generate-config`) and status retrieval (`/jobs/:id`).
-    *   Develop end-to-end tests for representative scraping scenarios, including AI generation.
+    *   Create integration tests for job submission (`/navigate`, `/scrape`, `/ai/generate-config`, `/templates`) and status retrieval (`/jobs/:id`).
+    *   Develop end-to-end tests for representative scraping scenarios, including AI generation and template retrieval.
 
 6.  **Documentation**:
     *   Update `docs/api/queue-system.md` with final details on job status response and result retrieval.
@@ -346,9 +356,9 @@ As implementation progresses, several questions need to be addressed:
     - When should the placeholder costs for `gpt-4.1-mini` be updated? (Requires monitoring OpenAI pricing)
 
 7. **Template API Implementation**
-    - How should the API handle potential errors during README/config parsing? (Log and skip?)
-    - Should the API include the full `config.json` content in the list endpoint, or only in the detail endpoint? (Decided: Only in detail endpoint for now).
-    - What caching strategy is appropriate for the template list? (Future consideration).
+    - **Decision**: Scan directories, parse README front matter (gray-matter), validate metadata (Zod), cache results. List endpoint returns metadata+path, detail endpoint returns metadata+path+config content. Filtering by site/tag supported.
+    - **Status**: Implemented (`TemplateService`, `templates.routes.ts`). Basic caching implemented. Documentation created.
+    - **Refinement Needed**: Consider more robust caching strategy if performance becomes an issue. Add request validation to API routes. Add tests.
 
 ## Current Blockers
 

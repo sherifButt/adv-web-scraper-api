@@ -7,6 +7,9 @@ Welcome to the Advanced Web Scraper API documentation. This documentation provid
 - [Domain Documentation](domains/README.md): Organized by functional domains
 - [API Reference](api/README.md): Detailed API reference for all endpoints.
   - [Queue System API](api/queue-system.md): Understanding asynchronous job handling and status checks.
+  - [Proxy API](api/proxy-api.md): Managing and utilizing proxies.
+  - [AI API](api/ai-api.md): Endpoints for AI-powered features.
+  - [Template API](api/templates-api.md): Accessing configuration templates.
 - [Navigation Module](navigation/README.md): Documentation for multi-step navigation flows.
   - [Navigation Step Types](navigation/navigation-types.md): Details on available step types.
   - [Navigation Examples](navigation/navigation_examples.md): Practical examples of navigation configurations.

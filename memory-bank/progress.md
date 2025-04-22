@@ -39,6 +39,11 @@
 - `/api/v1/jobs/:id` retrieves job status and attempts to retrieve results (from storage or `job.returnvalue`).
 - `/api/v1/jobs/:id` (DELETE) cancels a job.
 - `/api/v1/ai/generate-config` queues AI config generation jobs.
+- `/api/v1/templates` lists available configuration templates (with filtering).
+- `/api/v1/templates/:site/:challenge` retrieves details for a specific template.
+
+### Core Services
+- `TemplateService` (`src/core/templates/template.service.ts`) scans, parses, validates, and serves configuration templates. Includes caching.
 
 ### AI Configuration Generation
 - Backend foundation implemented (types, worker, queue, API endpoint).
@@ -115,14 +120,16 @@
 - [x] Refine AI prompts and test/fix loop in `generate-config-worker`.
 - [ ] Add detailed Zod schema validation for AI output.
 - [ ] Implement unit and integration tests for AI feature.
-   - [ ] Document AI feature (`docs/ai/README.md`, update main README/API docs).
-   - [ ] Document Template API feature (`docs/api/templates.md` or similar).
+   - [x] Document AI feature (`docs/ai/README.md`, update main README/API docs).
+   - [x] Document Template API feature (`docs/api/templates-api.md`).
 
 ## Documentation Updates Needed
 - [x] Add queue system architecture to `systemPatterns.md` (Done previously)
 - [x] Update API documentation (`docs/api/queue-system.md`) for job status response fields and result retrieval logic.
 - [x] Update worker implementation details in `techContext.md` (Reflected AI refactoring and cost tracking).
 - [x] Update AI component descriptions in `systemPatterns.md` and `techContext.md`.
-- [ ] Update `docs/README.md` Table of Contents (Add AI section).
-- [ ] Create `docs/ai/README.md` (or similar) for AI feature documentation.
-- [ ] Update `docs/api/README.md` (or create `docs/api/ai-api.md`) with AI endpoint details.
+- [x] Update `docs/README.md` Table of Contents (Add AI section).
+- [x] Create `docs/ai/README.md` (or similar) for AI feature documentation.
+- [x] Update `docs/api/README.md` (or create `docs/api/ai-api.md`) with AI endpoint details.
+- [x] Create `docs/api/templates-api.md` for Template API documentation.
+- [x] Update `docs/api/README.md` and `docs/README.md` with links to Template API docs.

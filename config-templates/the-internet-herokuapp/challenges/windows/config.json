@@ -1,0 +1,55 @@
+{
+  "config": {
+    "name": "the-internet-herokuapp-multiple-windows",
+    "description": "Navigates to the Multiple Windows page, opens a new window, switches to it, extracts text, and switches back.",
+    "startUrl": "https://the-internet.herokuapp.com/windows",
+    "debug": false,
+    "maxConcurrency": 1,
+    "storage": {
+      "type": "memory"
+    }
+  },
+  "steps": [
+    {
+      "type": "goto",
+      "url": "{{config.startUrl}}",
+      "options": {
+        "waitUntil": "domcontentloaded"
+      }
+    },
+    {
+      "type": "click",
+      "selector": ".example a[href='/windows/new']",
+      "description": "Click link to open new window"
+    },
+    {
+      "type": "wait",
+      "value": 1000,
+      "description": "Wait briefly for new tab to open"
+    },
+    {
+      "type": "switchTab",
+      "tabIndex": 1,
+      "description": "Switch to the new tab (index 1)"
+    },
+    {
+      "type": "extract",
+      "fields": [
+        {
+          "name": "newWindowHeading",
+          "selector": "h3",
+          "extract": "text"
+        }
+      ],
+      "options": {
+        "waitForSelector": "h3"
+      },
+      "description": "Extract heading from new window"
+    },
+    {
+      "type": "switchTab",
+      "tabIndex": 0,
+      "description": "Switch back to the original tab (index 0)"
+    }
+  ]
+}

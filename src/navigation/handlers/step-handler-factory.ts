@@ -22,6 +22,7 @@ import { HandleDialogStepHandler } from './handle-dialog-step-handler.js';
 import { ManageCookiesStepHandler } from './manage-cookies-step-handler.js';
 import { ManageStorageStepHandler } from './manage-storage-step-handler.js';
 import { SwitchTabStepHandler } from './switch-tab-step-handler.js';
+import { PressStepHandler } from './press-step-handler.js'; // Import the new handler
 // Removed unused BehaviorEmulator import
 import { NavigationContext } from '../types/navigation.types.js'; // Import NavigationContext
 
@@ -52,7 +53,8 @@ export class StepHandlerFactory {
       new HandleDialogStepHandler(page),
       new ManageCookiesStepHandler(page),
       new ManageStorageStepHandler(page),
-      new SwitchTabStepHandler(page), // Add the SwitchTab handler instance
+      new SwitchTabStepHandler(page),
+      new PressStepHandler(page), // Add the PressStep handler instance
     ];
   }
 
