@@ -93,6 +93,29 @@ export interface NavigationStep {
   optional?: boolean; // Allow step to fail without stopping the flow
   usePageScope?: boolean; // Added: Force extraction scope to page, ignoring currentItemHandle
   waitForPopup?: boolean; // Added: For click steps, wait for a popup/new tab event triggered by the click
+
+  // New properties for structured mouse/drag/wheel parameters (used in MouseStepHandler refactor)
+  mouseTarget?: {
+    selector?: string;
+    x?: number;
+    y?: number;
+    offsetX?: number; // Optional offset from element center/corner
+    offsetY?: number; // Optional offset from element center/corner
+  }; // Renamed from 'target' - Alternative to top-level selector/x/y for move/click target
+  startPoint?: { x: number; y: number }; // Alternative to first element in pathPoints
+  endPoint?: {
+    selector?: string;
+    x?: number;
+    y?: number;
+    offsetX?: number; // Optional offset from element center/corner
+    offsetY?: number; // Optional offset from element center/corner
+  }; // Alternative to dragTo for drag target
+  delta?: { x?: number; y?: number }; // Alternative to deltaX/deltaY for wheel action
+
+  // Randomization options for mousemove
+  randomizeOffset?: boolean | number; // True for default range, or number for max pixel offset
+  delayBeforeAction?: { min: number; max: number } | number; // Delay in ms before action (click, drag start, wheel)
+  delayAfterAction?: { min: number; max: number } | number; // Delay in ms after action (click, drag end, wheel)
 }
 
 /**

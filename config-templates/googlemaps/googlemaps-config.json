@@ -67,10 +67,10 @@
     },
     {
       "type": "mousemove",
-      "selector": ".m6QErb[role='feed']",
+      "mouseTarget":{"selector": ".m6QErb[role='feed']"},
       "duration": 4000,
       "action": "wheel",
-      "deltaY": 6000,
+      "delta": {"y": 6000},
       "description": "(1/5) Scroll results feed"
     },
     {

@@ -104,70 +104,95 @@ Clicks an element using various methods (single, double, keyboard) and options. 
 **Note on `click` vs. `mousemove` with `action: 'click'`:**
 
 -   Use the `click` step for most standard click interactions. It's simpler and leverages Playwright's built-in checks for visibility and actionability.
--   Use the `mousemove` step with `action: 'click'` when you need fine-grained control over the *mouse movement path* leading up to the click (e.g., for human-like emulation involving complex paths) or when you specifically need the lower-level `mouse.down`/`mouse.up` behavior instead of `elementHandle.click()`.
+-   Use the `mousemove` step with `action: 'click'` when you need fine-grained control over the *mouse movement path* leading up to the click, or when precise offsets, randomization, or delays around the click are required.
 
 ### `mousemove`
 
-Moves mouse to element or coordinates with optional actions.
+Moves the mouse cursor to a target element or specific coordinates, with options for intermediate points and subsequent actions like clicking, dragging, or scrolling the wheel. Uses a structured approach for defining targets and parameters.
+
+**Parameters:**
+
+-   `type`: Must be `'mousemove'`.
+-   `action` (optional): The action to perform after moving. Defaults to `'move'`.
+    -   `'move'`: Just move the cursor.
+    -   `'click'`: Move then perform a simple click (mouse down/up).
+    -   `'drag'`: Move, press mouse down, move again to a target, release mouse up.
+    -   `'wheel'`: Move then scroll the mouse wheel.
+-   `duration` (optional): Time in milliseconds for the mouse movement (initial move, drag movement, or scroll). Defaults vary by action (e.g., 500ms for move/drag, 100ms for scroll).
+-   `humanLike` (optional): If `true` (default), uses Bezier curves for more natural movement. If `false`, moves in a straight line.
+-   `waitFor` (optional): A condition (selector, timeout in ms, 'navigation', 'networkidle') to wait for after the entire step completes.
+-   `timeout` (optional): Maximum time in milliseconds for any internal `waitForSelector` calls (e.g., waiting for the target element). Defaults to 30000ms.
+-   `optional` (optional): If `true`, failure during the step will not halt the flow.
+
+**Targeting:**
+
+-   `mouseTarget`: An object defining the destination. Must contain either:
+    -   `selector` (string): CSS selector for the target element.
+    -   `x` (number) and `y` (number): Target coordinates.
+    -   `offsetX` (number, optional, only with `selector`): Pixel offset horizontally from the element's center.
+    -   `offsetY` (number, optional, only with `selector`): Pixel offset vertically from the element's center.
+
+**Movement Path (Optional):**
+
+-   `startPoint` (optional): An object `{ x: number, y: number }` defining the starting coordinates for the movement (overrides default starting from current position). _Note: Cannot be a selector._
+-   `pathPoints` (optional): An array defining intermediate points for the movement path. Each element can be:
+    -   An object `{ x: number, y: number }`.
+    -   An object `{ selector: string }` (coordinates resolved during execution).
+    _(If `startPoint` is defined, it takes precedence over the first element in `pathPoints` if provided)_
+
+**Action-Specific Parameters:**
+
+-   **For `action: 'drag'`:**
+    -   `endPoint`: An object defining the drag destination. Must contain either:
+        -   `selector` (string): CSS selector for the target element.
+        -   `x` (number) and `y` (number): Target coordinates.
+        -   `offsetX` (number, optional, only with `selector`): Pixel offset horizontally from the element's center.
+        -   `offsetY` (number, optional, only with `selector`): Pixel offset vertically from the element's center.
+
+-   **For `action: 'wheel'`:**
+    -   `delta`: An object `{ x?: number, y?: number }` specifying the scroll amount in pixels. Requires `x` or `y` or both.
+
+**Enhancements (Optional):**
+
+-   `randomizeOffset` (boolean | number): If `true`, applies a small random offset (default up to 5px) when targeting an element via `selector` in `mouseTarget` or `endPoint`. If a number, specifies the maximum random offset in pixels.
+-   `delayBeforeAction` ({ min: number, max: number } | number, optional): Adds a random delay (between min/max ms, or a fixed ms if number) *after* the initial move but *before* the specified `action` (click, drag start, wheel).
+-   `delayAfterAction` ({ min: number, max: number } | number, optional): Adds a random delay *after* the entire `action` (click, drag end, wheel) completes.
+
+**Example:**
 
 ```typescript
 {
   type: 'mousemove',
-  selector: '#menu', // either selector
-  x: 100, y: 200,    // or coordinates
-  duration: 1000,     // movement time in ms
-  humanLike: true,    // enable human-like movement (default: true)
-  action: 'move',     // 'move' (default), 'click', 'drag', 'wheel'
-  pathPoints: [       // optional intermediate points
-    { x: 50, y: 50 },
-    { selector: '#intermediate' }
-  ],
-  // For drag action:
-  dragTo: { x: 200, y: 200 }, // or selector
-  // For wheel action:
-  deltaX: 0, deltaY: 100,     // wheel scroll deltas
-  waitFor: '#tooltip' // optional
+  action: 'drag',
+  mouseTarget: { selector: '#draggable-item', offsetY: -10 }, // Start drag 10px above center
+  endPoint: { x: 300, y: 400 }, // Where to drop it
+  startPoint: { x: 10, y: 10 }, // Start movement from specific coords
+  duration: 1500, // Duration for the drag movement
+  humanLike: true,
+  randomizeOffset: 3, // Randomize start/end points within 3px radius if selectors used
+  delayAfterAction: { min: 100, max: 300 } // Pause 100-300ms after dropping
+}
+
+{
+  type: 'mousemove',
+  action: 'click',
+  mouseTarget: { selector: '#button', randomizeOffset: true }, // Click near button center
+  delayBeforeAction: 50 // Wait 50ms before clicking
+}
+
+{
+  type: 'mousemove',
+  action: 'wheel',
+  mouseTarget: { selector: '#scrollable-div' }, // Move mouse over div first
+  delta: { y: 200 }, // Scroll down by 200px
+  duration: 300 // Duration for the scroll action
 }
 ```
 
-**Advanced Mouse Movement Features:**
+**Note on `click` vs. `mousemove` with `action: 'click'`:**
 
-1. **Path Points**: Define intermediate points for complex movement paths
-2. **Actions**:
-   - `move`: Just move the cursor (default)
-   - `click`: Move then click
-   - `drag`: Move, press down, move to target, release
-   - `wheel`: Move then scroll wheel
-3. **Human-like Movement**: Uses Bezier curves with random variations
-4. **Coordinate Precision**: Exact pixel positioning when needed
-5. **Element Targeting**: Works with both selectors and raw coordinates
-
-**Example Complex Mouse Flow:**
-
-```typescript
-[
-  {
-    type: 'mousemove',
-    x: 100,
-    y: 100,
-    duration: 800,
-    pathPoints: [{ x: 50, y: 50 }, { selector: '#menu-trigger' }],
-  },
-  {
-    type: 'mousemove',
-    selector: '#menu-item',
-    action: 'click',
-    duration: 1200,
-  },
-  {
-    type: 'mousemove',
-    selector: '#slider',
-    action: 'drag',
-    dragTo: { x: 500, y: 300 },
-    duration: 2000,
-  },
-];
-```
+-   Use the dedicated `click` step for most standard click interactions. It's simpler and leverages Playwright's built-in checks for visibility and actionability.
+-   Use the `mousemove` step with `action: 'click'` when you need fine-grained control over the *mouse movement path* leading up to the click, or when precise offsets, randomization, or delays around the click are required.
 
 ### `hover`
 
@@ -860,18 +885,17 @@ Example complex mouse flow:
 [
   {
     type: 'mousemove',
-    x: 100,
-    y: 100,
+    endPoint: { x: 100, y: 100 },
     duration: 800,
   },
   {
     type: 'mousemove',
-    selector: '#menu',
+    mouseTarget: { selector: '#menu'},
     duration: 1200,
   },
   {
     type: 'hover',
-    selector: '#submenu',
+    mouseTarget: { selector: '#submenu'},
     duration: 2000,
   },
 ];

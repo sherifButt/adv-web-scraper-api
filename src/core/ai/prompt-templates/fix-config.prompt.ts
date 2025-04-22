@@ -66,7 +66,7 @@ const googleMapsExample = `{
     { "type": "input", "selector": ".searchboxinput", "value": "{{keyword}} near {{postcode}}", "clearInput": true, "humanInput": true },
     { "type": "click", "selector": "#searchbox-searchbutton" },
     { "type": "wait", "value": 1000 },
-    { "type": "mousemove", "selector": ".m6QErb[role='feed']", "duration": 4000, "action": "wheel", "deltaY": 6000 },
+    { "type": "mousemove", "mouseTarget":{"selector": ".m6QErb[role='feed']"}, "duration": 4000, "action": "wheel", "delta": {"y": 6000 }},
     { "type": "wait", "value": 3000 },
     { "type": "extract", "name": "searchResults", "selector": ".m6QErb[role='feed']", "fields": {
         "listings": { "selector": ".Nv2PK", "type": "css", "multiple": true, "continueOnError": true, "fields": {

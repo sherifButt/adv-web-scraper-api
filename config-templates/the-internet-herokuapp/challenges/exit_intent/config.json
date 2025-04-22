@@ -12,15 +12,11 @@
             "description": "Wait briefly after page load"
         },
         {
-            "type": "mousemove", 
+            "type": "mousemove",
             "action": "move",
-            "x": 100,  
-            "y": -50, 
-            "duration": 200, 
-            "pathPoints": [
-              { "x": 10, "y": 10 } 
-            ],
-            "description": "Simulate user leaving page by moving mouse quickly to top of browser"
+            "startPoint": { "x": 10, "y": 10 },
+            "mouseTarget": { "x": 100, "y": -50 },
+            "duration": 200
           },
         {
             "type": "wait",

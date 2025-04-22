@@ -158,7 +158,7 @@ The configuration defines a navigation flow for the website `https://the-interne
     // Perform a drag-and-drop operation using mousemove.
     {
       "type": "mousemove", // Step type for mouse movements.
-      "selector": "#column-a", // Element to start dragging.
+      "mouseTarget":{"selector": "#column-a"}, // Element to start dragging.
       "action": "drag", // Perform a drag action.
       "dragTo": { "selector": "#column-b" }, // Target element to drop onto.
       "duration": 1500, // Duration of the drag movement in ms.

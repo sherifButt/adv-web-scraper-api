@@ -132,7 +132,7 @@
     },
     {
       "type": "mousemove",
-      "selector": "#column-a",
+      "mouseTarget":{"selector": "#column-a"},
       "action": "drag",
       "dragTo": { "selector": "#column-b" },
       "duration": 1500,

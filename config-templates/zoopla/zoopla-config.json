@@ -50,7 +50,7 @@
       },
       {
         "type": "mouseMove",
-        "selector": "button[data-testid='search-button']",
+        "mouseTarget":{"selector": "button[data-testid='search-button']"},
         "description": "Move mouse to the search button"
       },
       {
