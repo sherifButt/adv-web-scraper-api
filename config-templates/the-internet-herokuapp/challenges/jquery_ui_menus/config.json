@@ -1,0 +1,42 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/jqueryui/menu",
+      "description": "Navigate to JQuery UI Menus page"
+    },
+    {
+      "type": "hover",
+      "selector": "#ui-id-3",
+      "description": "Hover over 'Enabled' menu item"
+    },
+    {
+      "type": "wait",
+      "selector": "#ui-id-4", 
+      "state": "visible",
+      "timeout": 2000,
+      "description": "Wait for 'Downloads' submenu"
+    },
+    {
+      "type": "hover",
+      "selector": "#ui-id-4",
+      "description": "Hover over 'Downloads' submenu item"
+    },
+    {
+      "type": "wait",
+      "selector": "#ui-id-5",
+      "state": "visible",
+      "timeout": 2000,
+      "description": "Wait for file type submenu"
+    },
+    {
+      "type": "click",
+      "selector": "#ui-id-7",
+      "description": "Click 'PDF' download item"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

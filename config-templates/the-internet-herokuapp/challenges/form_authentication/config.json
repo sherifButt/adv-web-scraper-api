@@ -1,0 +1,41 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/login",
+      "description": "Navigate to login page"
+    },
+    {
+      "type": "login",
+      "usernameSelector": "#username",
+      "passwordSelector": "#password",
+      "submitSelector": "button[type='submit']",
+      "usernameValue": "{{username}}", // Using variable
+      "passwordValue": "{{password}}", // Using variable
+      "waitForNavigation": false,
+      "waitFor": "#flash.success",
+      "description": "Perform login using known credentials"
+    },
+    {
+      "type": "assert",
+      "selector": "#flash",
+      "assertionType": "containsText",
+      "expectedValue": "You logged into a secure area!",
+      "description": "Assert successful login message"
+    }
+    // Optional: Add a logout step if needed
+    // {
+    //   "type": "click",
+    //   "selector": "a[href='/logout']",
+    //   "description": "Click logout button"
+    // }
+  ],
+  "options": {
+    "timeout": 15000
+  },
+  "variables": {
+    "username": "tomsmith",
+    "password": "SuperSecretPassword!"
+  }
+}

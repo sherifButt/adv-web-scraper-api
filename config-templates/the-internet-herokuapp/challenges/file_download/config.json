@@ -1,0 +1,23 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/download",
+      "description": "Navigate to File Download page"
+    },
+    {
+      "type": "click",
+      "selector": ".example a:first-of-type",
+      "description": "Click first download link (e.g., some-file.txt)"
+    },
+    {
+      "type": "wait",
+      "value": 3000,
+      "description": "Wait for download to complete"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

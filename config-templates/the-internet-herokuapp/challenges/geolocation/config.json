@@ -1,0 +1,40 @@
+{
+    "startUrl": "https://the-internet.herokuapp.com/",
+    "steps": [
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/geolocation",
+            "description": "Navigate to Geolocation page"
+        },
+        {
+            "type": "click",
+            "selector": "button",
+            "description": "Click button to trigger geolocation"
+        },
+        {
+            "type": "wait",
+            "selector": "#lat-value, #map-link",
+            "timeout": 15000,
+            "description": "Wait for geolocation result or map link"
+        },
+        {
+            "type": "extract",
+            "name": "geoLocation",
+            "description": "Extract latitude and longitude (if available)",
+            "optional": true,
+            "fields": {
+                "latitude": {
+                    "selector": "#lat-value",
+                    "type": "css"
+                },
+                "longitude": {
+                    "selector": "#long-value",
+                    "type": "css"
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 20000
+    }
+}

@@ -1,0 +1,14 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/frames",
+      "description": "Navigate to Frames page"
+    }
+    
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

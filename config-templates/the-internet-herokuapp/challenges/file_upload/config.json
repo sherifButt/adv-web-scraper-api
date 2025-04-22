@@ -1,0 +1,44 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/upload",
+      "description": "Navigate to File Upload page"
+    },
+    {
+      "type": "uploadFile",
+      "selector": "#file-upload",
+      "filePath": "./test-upload.txt",
+      "description": "Select the test file to upload"
+    },
+    {
+      "type": "click",
+      "selector": "#file-submit",
+      "waitFor": "#uploaded-files",
+      "description": "Click the Upload button"
+    },
+    {
+      "type": "assert",
+      "selector": "#uploaded-files",
+      "assertionType": "containsText",
+      "expectedValue": "test-upload.txt",
+      "description": "Assert uploaded file name is displayed"
+    },
+    {
+      "type": "extract",
+      "name": "fileUploadResult",
+      "selector":".example",
+      "description": "Extract content after file upload",
+      "fields": {
+        "uploadedFileName": {
+          "selector": "#uploaded-files",
+          "type": "css"
+        }
+      }
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

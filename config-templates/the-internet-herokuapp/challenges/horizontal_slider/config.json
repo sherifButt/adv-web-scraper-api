@@ -1,0 +1,44 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/horizontal_slider",
+      "description": "Navigate to Horizontal Slider page"
+    },
+    {
+      "type": "click",
+      "selector": "input[type='range']",
+      "description": "Focus the slider"
+    },
+    {
+      "type": "input",
+      "selector": "input[type='range']",
+      "value": "{ArrowRight}",
+      "description": "Press Right Arrow once"
+    },
+    {
+      "type": "assert",
+      "selector": "#range",
+      "assertionType": "containsText",
+      "expectedValue": "0.5",
+      "description": "Assert value is 0.5"
+    },
+    {
+      "type": "input",
+      "selector": "input[type='range']",
+      "value": "{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}",
+      "description": "Press Right Arrow four times"
+    },
+    {
+      "type": "assert",
+      "selector": "#range",
+      "assertionType": "containsText",
+      "expectedValue": "2.5",
+      "description": "Assert value is 2.5"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

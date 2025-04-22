@@ -1,0 +1,24 @@
+{
+    "startUrl": "https://the-internet.herokuapp.com/",
+    "steps": [
+        {
+            "type": "goto",
+            "value": "https://the-internet.herokuapp.com/forgot_password",
+            "description": "Navigate to Forgot Password page"
+        },
+        {
+            "type": "input",
+            "selector": "#email",
+            "value": "test@example.com",
+            "description": "Enter email address"
+        },
+        {
+            "type": "click",
+            "selector": "#form_submit",
+            "description": "Click Retrieve password button"
+        }
+    ],
+    "options": {
+        "timeout": 15000
+    }
+}

@@ -1,0 +1,13 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/javascript_error",
+      "description": "Navigate to JavaScript onload error page"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

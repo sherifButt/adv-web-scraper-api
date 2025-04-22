@@ -49,11 +49,24 @@
 - Job status updates track generation/testing/fixing stages.
 - **Cost tracking implemented**: Worker accumulates cost, stores it with the result, and the job status API returns it.
 - Placeholder costs added for `gpt-4.1-mini`.
-- **Interaction Hints**: Added optional `interactionHints` to API request and integrated into worker, service, and prompt generation to guide AI for dynamic content.
+   - **Interaction Hints**: Added optional `interactionHints` to API request and integrated into worker, service, and prompt generation to guide AI for dynamic content.
+
+### Configuration Templates
+- **Restructured `the-internet-herokuapp`**: Migrated examples into a new `challenges/` subdirectory structure.
+  - Each challenge (`ab_testing`, `add_remove_elements`, `basic_auth`, etc.) has its own folder containing:
+    - `README.md` with YAML front matter metadata (title, path, description, tags, difficulty, related_steps).
+    - `config.json` focused on the specific challenge.
+  - Updated the parent `README.md` to explain the new structure.
+  - **Next:** Complete creating folders/files for remaining challenges, populate index in parent README, remove old monolithic files.
 
 ## What's Left to Build
 
-1. **Worker Processes (Completion)**
+1. **Template Restructuring (`the-internet-herokuapp`)**
+   - Finish creating individual folders, READMEs, and `config.json` files for all remaining challenges.
+   - Populate the Challenge Index in `config-templates/the-internet-herokuapp/README.md`.
+   - Remove old monolithic config files (`the-internet-herokuapp-config.json`, `the-internet-herokuapp-full-config.json`, etc.).
+
+2. **Worker Processes (Completion)**
    - Implement worker process for scraping jobs.
    - Verify storage mechanism is working reliably (pending log review).
    - Refine error handling within workers.
@@ -102,7 +115,8 @@
 - [x] Refine AI prompts and test/fix loop in `generate-config-worker`.
 - [ ] Add detailed Zod schema validation for AI output.
 - [ ] Implement unit and integration tests for AI feature.
-- [ ] Document AI feature (`docs/ai/README.md`, update main README/API docs).
+   - [ ] Document AI feature (`docs/ai/README.md`, update main README/API docs).
+   - [ ] Document Template API feature (`docs/api/templates.md` or similar).
 
 ## Documentation Updates Needed
 - [x] Add queue system architecture to `systemPatterns.md` (Done previously)

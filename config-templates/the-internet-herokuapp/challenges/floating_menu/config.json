@@ -1,0 +1,37 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/floating_menu",
+      "description": "Navigate to Floating Menu page"
+    },
+    {
+      "type": "scroll",
+      "direction": "down",
+      "distance": 1000,
+      "description": "Scroll down the page"
+    },
+    {
+      "type": "assert",
+      "selector": "#menu",
+      "assertionType": "isVisible",
+      "description": "Assert floating menu is still visible after scroll"
+    },
+    {
+      "type": "scroll",
+      "direction": "up",
+      "distance": 500,
+      "description": "Scroll up slightly"
+    },
+    {
+      "type": "assert",
+      "selector": "#menu",
+      "assertionType": "isVisible",
+      "description": "Assert floating menu is still visible after scrolling up"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

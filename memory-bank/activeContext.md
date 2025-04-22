@@ -117,9 +117,23 @@ The project has progressed from planning to implementation. Recent activities in
      - Updated `AiService` methods (`generateConfiguration`, `fixConfiguration`) to accept `interactionHints`.
      - Updated prompt functions (`generateConfigUserPrompt`, `fixConfigUserPrompt`) to incorporate `interactionHints` into the user prompts sent to the LLM.
 
+6. **Configuration Template Restructuring (`the-internet-herokuapp`)**
+   - Initiated restructuring of `the-internet-herokuapp` templates into a challenge-based format within `config-templates/the-internet-herokuapp/challenges/`.
+   - Each challenge subfolder (`ab_testing`, `add_remove_elements`, `basic_auth`, etc.) now contains:
+     - `README.md` with YAML front matter (metadata) and explanation.
+     - `config.json` focused on solving the specific challenge.
+   - Created initial `README.md` in the parent `the-internet-herokuapp` directory explaining the new structure.
+   - **Decision:** Agreed to remove original monolithic config files (`the-internet-herokuapp-config.json`, `the-internet-herokuapp-full-config.json`, etc.) once restructuring is complete.
+   - **Decision:** Agreed to add an API endpoint (`/api/v1/templates`) to serve these structured templates, leveraging the metadata.
+
 ## Next Steps
 
 The immediate next steps for the project are:
+
+1.  **Complete Template Restructuring (`the-internet-herokuapp`)**:
+    *   Finish creating individual folders, READMEs, and `config.json` files for all remaining challenges under `config-templates/the-internet-herokuapp/challenges/`.
+    *   Populate the Challenge Index in `config-templates/the-internet-herokuapp/README.md`.
+    *   Remove the old monolithic config files for this site.
 
 1.  **Verify Job Result Retrieval**:
     *   Analyze logs generated after recent changes to confirm if results are being generated, stored, and retrieved correctly.
@@ -331,9 +345,16 @@ As implementation progresses, several questions need to be addressed:
     - What are the best strategies for evaluating the success of an AI-generated test run? (Needs definition beyond basic checks)
     - When should the placeholder costs for `gpt-4.1-mini` be updated? (Requires monitoring OpenAI pricing)
 
+7. **Template API Implementation**
+    - How should the API handle potential errors during README/config parsing? (Log and skip?)
+    - Should the API include the full `config.json` content in the list endpoint, or only in the detail endpoint? (Decided: Only in detail endpoint for now).
+    - What caching strategy is appropriate for the template list? (Future consideration).
+
 ## Current Blockers
 
 Current implementation challenges include:
+
+1.  **Template Restructuring Completion**: Need to finish creating all individual challenge templates for `the-internet-herokuapp`.
 
 1.  **Job Result Reliability**: Need to confirm via logs that results are consistently generated, stored, and retrieved. The `result: null` issue reported by the user needs root cause analysis based on new logs.
 2.  **Testing Infrastructure**: Lack of tests makes verifying changes difficult and regression-prone. Unit and integration tests are needed urgently.

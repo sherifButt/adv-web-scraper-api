@@ -1,0 +1,55 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/infinite_scroll",
+      "description": "Navigate to Infinite Scroll page"
+    },
+    {
+      "type": "scroll",
+      "direction": "down",
+      "distance": 1000,
+      "description": "Scroll down 1st time"
+    },
+    {
+      "type": "wait",
+      "value": 1000, 
+      "description": "Wait after 1st scroll"
+    },
+    {
+      "type": "scroll",
+      "direction": "down",
+      "distance": 1000,
+      "description": "Scroll down 2nd time"
+    },
+    {
+      "type": "wait",
+      "value": 1000,
+      "description": "Wait after 2nd scroll"
+    },
+    {
+      "type": "scroll",
+      "direction": "down",
+      "distance": 1000,
+      "description": "Scroll down 3rd time"
+    },
+    {
+      "type": "wait",
+      "value": 1000,
+      "description": "Wait after 3rd scroll"
+    },
+    {
+      "type": "extract",
+      "name": "infiniteScrollParagraphs",
+      "selector": ".jscroll-inner .jscroll-added",
+      "multiple": true,
+      "description": "Extract all loaded paragraphs",
+      "fields": {
+        "text": { "type": "css" }
+      }
+    }
+  ],
+  "options": {
+    "timeout": 20000
+}

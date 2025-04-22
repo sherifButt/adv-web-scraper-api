@@ -1,0 +1,19 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/inputs",
+      "description": "Navigate to Inputs page"
+    },
+    {
+      "type": "input",
+      "selector": "input[type='number']",
+      "value": "12345",
+      "description": "Enter numbers into the input field"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

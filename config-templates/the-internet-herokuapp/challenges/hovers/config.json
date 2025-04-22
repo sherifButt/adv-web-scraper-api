@@ -1,0 +1,57 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/hovers",
+      "description": "Navigate to Hovers page"
+    },
+    {
+      "type": "hover",
+      "selector": ".figure:nth-of-type(1)",
+      "description": "Hover over first image"
+    },
+    {
+      "type": "wait",
+      "selector": ".figure:nth-of-type(1) .figcaption",
+      "state": "visible",
+      "timeout": 2000,
+      "description": "Wait for first caption"
+    },
+    {
+      "type": "assert",
+      "selector": ".figure:nth-of-type(1) .figcaption",
+      "assertionType": "isVisible",
+      "description": "Assert first caption is visible"
+    },
+    {
+      "type": "assert",
+      "selector": ".figure:nth-of-type(1) .figcaption h5",
+      "assertionType": "containsText",
+      "expectedValue": "name: user1",
+      "description": "Assert first caption text"
+    },
+    {
+      "type": "hover",
+      "selector": ".figure:nth-of-type(2)",
+      "description": "Hover over second image"
+    },
+    {
+      "type": "wait",
+      "selector": ".figure:nth-of-type(2) .figcaption",
+      "state": "visible",
+      "timeout": 2000,
+      "description": "Wait for second caption"
+    },
+    {
+      "type": "assert",
+      "selector": ".figure:nth-of-type(2) .figcaption",
+      "assertionType": "isVisible",
+      "description": "Assert second caption is visible"
+    }
+    
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}

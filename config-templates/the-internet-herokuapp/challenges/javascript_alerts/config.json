@@ -1,0 +1,99 @@
+{
+  "startUrl": "https://the-internet.herokuapp.com/",
+  "steps": [
+    {
+      "type": "goto",
+      "value": "https://the-internet.herokuapp.com/javascript_alerts",
+      "description": "Navigate to JS Alerts page"
+    },
+    {
+      "type": "handleDialog",
+      "action": "accept",
+      "description": "Set up listener to accept the next alert"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='jsAlert()']",
+      "description": "Click for JS Alert"
+    },
+    {
+      "type": "assert",
+      "selector": "#result",
+      "assertionType": "containsText",
+      "expectedValue": "You successfully clicked an alert",
+      "description": "Assert result after JS Alert"
+    },
+    {
+      "type": "handleDialog",
+      "action": "accept",
+      "description": "Set up listener to accept the next confirm"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='jsConfirm()']",
+      "description": "Click for JS Confirm (Accept)"
+    },
+    {
+      "type": "assert",
+      "selector": "#result",
+      "assertionType": "containsText",
+      "expectedValue": "You clicked: Ok",
+      "description": "Assert result after accepting confirm"
+    },
+    {
+      "type": "handleDialog",
+      "action": "dismiss",
+      "description": "Set up listener to dismiss the next confirm"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='jsConfirm()']",
+      "description": "Click for JS Confirm (Dismiss)"
+    },
+    {
+      "type": "assert",
+      "selector": "#result",
+      "assertionType": "containsText",
+      "expectedValue": "You clicked: Cancel",
+      "description": "Assert result after dismissing confirm"
+    },
+    {
+      "type": "handleDialog",
+      "action": "accept",
+      "promptText": "Hello from Cline!", // Text to enter in the prompt
+      "description": "Set up listener to accept the next prompt with text"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='jsPrompt()']",
+      "description": "Click for JS Prompt (Accept with text)"
+    },
+    {
+      "type": "assert",
+      "selector": "#result",
+      "assertionType": "containsText",
+      "expectedValue": "You entered: Hello from Cline!",
+      "description": "Assert result after accepting prompt with text"
+    },
+    {
+      "type": "handleDialog",
+      "action": "dismiss",
+      "description": "Set up listener to dismiss the next prompt"
+    },
+    {
+      "type": "click",
+      "selector": "button[onclick='jsPrompt()']",
+      "description": "Click for JS Prompt (Dismiss)"
+    },
+    {
+      "type": "assert",
+      "selector": "#result",
+      "assertionType": "containsText",
+      "expectedValue": "You entered: null",
+      "description": "Assert result after dismissing prompt"
+    }
+  ],
+  "options": {
+    "timeout": 15000
+  }
+}
