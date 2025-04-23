@@ -44,6 +44,12 @@ Next steps include implementing storage adapters for different destinations, enh
   - Schema-based validation and type conversion
   - Declarative configuration approach
 
+- **LLM Integration**
+  - OpenRouter adapter for advanced language model capabilities
+  - Support for multiple model providers through OpenRouter
+  - Configurable model selection and parameters
+  - Automatic API key management
+
 ## Configuration Templates
 
 A library of example JSON configurations demonstrating various scraping scenarios and API features is available in the [`config-templates/`](./config-templates/) directory. These templates serve as practical examples and starting points for your own configurations.
@@ -952,3 +958,48 @@ This tool is intended for legitimate web scraping purposes such as data analysis
 5. Respect copyright and data privacy laws
 
 The developers of this tool are not responsible for any misuse or legal consequences resulting from improper use.
+
+### Environment Variables
+
+The following environment variables are required for the API to function properly:
+
+```bash
+# Browser Configuration
+BROWSER_HEADLESS=true
+BROWSER_TIMEOUT=30000
+
+# Proxy Configuration
+PROXY_ENABLED=false
+PROXY_API_KEY=your_proxy_api_key
+
+# LLM Configuration
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_MODEL=openai/gpt-3.5-turbo  # Default model, can be overridden per request
+```
+
+### LLM Configuration
+
+The OpenRouter adapter supports various models through the OpenRouter API. You can configure the default model and other parameters in your environment variables or override them per request:
+
+```typescript
+// Example: Using the OpenRouter adapter
+const llmAdapter = new OpenRouterAdapter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  model: 'openai/gpt-3.5-turbo',  // Optional, defaults to env var
+  temperature: 0.7,              // Optional
+  maxTokens: 1000,               // Optional
+});
+
+// Make a completion request
+const response = await llmAdapter.complete({
+  prompt: 'Your prompt here',
+  model: 'anthropic/claude-2',   // Optional, overrides default
+  temperature: 0.8,              // Optional, overrides default
+});
+```
+
+Supported models include:
+- OpenAI models (gpt-3.5-turbo, gpt-4, etc.)
+- Anthropic models (claude-2, claude-instant)
+- Google models (palm-2)
+- And many others through OpenRouter's unified API

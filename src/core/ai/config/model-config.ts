@@ -5,18 +5,33 @@ export const MODEL_PROVIDER_MAP: { [prefix: string]: string } = {
   'gpt-': 'openai',
   'deepseek-': 'deepseek',
   'claude-': 'anthropic',
-  // Add more prefixes as needed
+  'openrouter/': 'openrouter',
+  'google/': 'openrouter',     // Google models through OpenRouter
+  'anthropic/': 'openrouter',  // Anthropic models through OpenRouter
+  'openai/': 'openrouter',     // OpenAI models through OpenRouter
+  'mistral/': 'openrouter',    // Mistral models through OpenRouter
+  // Add more OpenRouter-supported providers as needed
 };
 
 // Function to determine the provider from a model name
 export function getProviderFromModel(modelName: string): string | null {
+  // Check for OpenRouter provider prefixes first
+  const openRouterPrefixes = ['openrouter/', 'google/', 'anthropic/', 'openai/', 'mistral/'];
+  for (const prefix of openRouterPrefixes) {
+    if (modelName.startsWith(prefix)) {
+      return 'openrouter';
+    }
+  }
+  
+  // Check other prefixes
   for (const prefix in MODEL_PROVIDER_MAP) {
     if (modelName.startsWith(prefix)) {
       return MODEL_PROVIDER_MAP[prefix];
     }
   }
+  
   logger.warn(`Could not determine provider for model: ${modelName}`);
-  return null; // Or handle unknown models differently
+  return null;
 }
 
 // Model cost definitions (moved from ai-generation.types.ts)
@@ -62,6 +77,20 @@ export const MODEL_COSTS = {
   'claude-3-5-sonnet-20240620': {
     input: 3 / 1_000_000, // $3 / 1M input tokens
     output: 15 / 1_000_000, // $15 / 1M output tokens
+  },
+  // OpenRouter models (using actual model names)
+  'openrouter/google/gemini-2.5-pro-exp-03-25:free': {
+    input: 0.0001 / 1000,  // Example cost, adjust based on actual pricing
+    output: 0.0002 / 1000,
+  },
+  'openrouter/openai/gpt-4.1-mini': {
+    input: 0.00015 / 1000,
+    output: 0.0006 / 1000,
+  },
+  // OpenRouter models
+  'google/gemini-2.5-pro-preview-03-25': {
+    input: 0.0001 / 1000,  // Example cost, adjust based on actual pricing
+    output: 0.0002 / 1000,
   },
   // Add other models like Opus, Haiku if needed
 };

@@ -32,20 +32,28 @@ export class AiService {
       { name: 'openai', key: config.ai?.openai?.apiKey || process.env.OPENAI_API_KEY },
       { name: 'deepseek', key: config.ai?.deepseek?.apiKey || process.env.DEEPSEEK_API_KEY },
       { name: 'anthropic', key: config.ai?.anthropic?.apiKey || process.env.ANTHROPIC_API_KEY },
-      // Add other providers here as needed
+      { name: 'openrouter', key: config.ai?.openRouter?.apiKey || process.env.OPENROUTER_API_KEY },
     ];
 
+    // Debug log the OpenRouter API key value (without exposing the actual key)
+    const openRouterKey = providers.find(p => p.name === 'openrouter')?.key;
+    logger.debug(`OpenRouter API key present: ${!!openRouterKey}`);
+    logger.debug(`OpenRouter API key length: ${openRouterKey?.length || 0}`);
+
     providers.forEach(({ name, key }) => {
+      logger.debug(`Checking ${name} provider configuration...`);
       if (key) {
+        logger.debug(`${name} API key found, attempting to create adapter...`);
         if (!this.adapters.has(name)) {
           const adapter = AdapterFactory.create(name, key);
           if (adapter) {
             this.adapters.set(name, adapter);
-            logger.info(`Initialized ${name} adapter`);
+            logger.info(`Successfully initialized ${name} adapter`);
           } else {
-            // Factory already logs the error, maybe add a specific warning here?
-            logger.warn(`${name} adapter could not be created.`);
+            logger.warn(`${name} adapter could not be created. Check adapter implementation.`);
           }
+        } else {
+          logger.debug(`${name} adapter already exists, skipping initialization.`);
         }
       } else {
         logger.warn(`${name} API key not found. ${name} models will be unavailable.`);
@@ -56,6 +64,8 @@ export class AiService {
       logger.error(
         'CRITICAL: No AI adapters initialized - All AI features disabled. Check API key configurations.'
       );
+    } else {
+      logger.info(`Successfully initialized ${this.adapters.size} AI adapters: ${Array.from(this.adapters.keys()).join(', ')}`);
     }
   }
 

@@ -69,7 +69,7 @@ interface ProxyConfig {
   }[];
   testUrl: string;
   healthCheckInterval: number;
-  useForHtmlFetch?: boolean; // Added: Use proxy for initial HTML fetch in AI worker?
+  useForHtmlFetch?: boolean;
 }
 
 interface LoggingConfig {
@@ -77,6 +77,7 @@ interface LoggingConfig {
   file: string | null;
 }
 
+// Updated AiConfig interface to include openRouter as optional
 interface AiConfig {
   openai?: {
     apiKey: string;
@@ -85,10 +86,13 @@ interface AiConfig {
     apiKey: string;
   };
   anthropic?: {
-    // Added Anthropic config
     apiKey: string;
   };
-} // Removed extra newline before this brace
+  openRouter?: {
+    // Make openRouter optional here as well
+    apiKey: string;
+  };
+}
 
 interface Config {
   environment: string;
@@ -100,7 +104,7 @@ interface Config {
   captcha: CaptchaConfig;
   proxy: ProxyConfig;
   logging: LoggingConfig;
-  ai?: AiConfig; // Add optional AI config
+  ai?: AiConfig; // ai itself is optional
   jobs: {
     retentionPeriodDays: number;
     cleanupIntervalHours: number;
@@ -114,7 +118,7 @@ export const config: Config = {
     host: process.env.HOST || 'localhost',
   },
   rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
   },
   mongodb: {
@@ -148,7 +152,7 @@ export const config: Config = {
       },
     },
     session: {
-      ttl: parseInt(process.env.SESSION_TTL || '86400000', 10), // Default 24 hours
+      ttl: parseInt(process.env.SESSION_TTL || '86400000', 10),
       enabled: process.env.SESSION_ENABLED !== 'false',
     },
   },
@@ -163,30 +167,31 @@ export const config: Config = {
         apiKey: process.env.ANTICAPTCHA_API_KEY || null,
       },
     },
-    solveTimeout: 120000, // 2 minutes
+    solveTimeout: 120000,
   },
   proxy: {
     enabled: true,
     sources: [
       {
         type: 'file',
-        path: './proxies.json', // Updated path to use JSON file
+        path: './proxies.json',
       },
       {
         type: 'api',
         url: process.env.PROXY_API_URL,
         apiKey: process.env.PROXY_API_KEY || null,
-        refreshInterval: 3600000, // 1 hour
+        refreshInterval: 3600000,
       },
     ],
     testUrl: 'https://httpbin.org/ip',
-    healthCheckInterval: 300000, // 5 minutes
-    useForHtmlFetch: process.env.PROXY_USE_FOR_HTML_FETCH === 'true', // Default to false
+    healthCheckInterval: 300000,
+    useForHtmlFetch: process.env.PROXY_USE_FOR_HTML_FETCH === 'true',
   },
   logging: {
     level: process.env.LOG_LEVEL || 'info',
     file: process.env.LOG_FILE || null,
   },
+  // Correctly structured ai block
   ai: {
     openai: {
       apiKey: process.env.OPENAI_API_KEY || '',
@@ -195,12 +200,18 @@ export const config: Config = {
       apiKey: process.env.DEEPSEEK_API_KEY || '',
     },
     anthropic: {
-      // Added Anthropic config
       apiKey: process.env.ANTHROPIC_API_KEY || '',
     },
+    openRouter: {
+      // openRouter inside the ai block
+      apiKey: process.env.OPENROUTER_API_KEY || '',
+    },
   },
+  // Correctly placed jobs block
   jobs: {
     retentionPeriodDays: parseInt(process.env.JOB_RETENTION_DAYS || '10', 10),
     cleanupIntervalHours: parseInt(process.env.JOB_CLEANUP_INTERVAL_HOURS || '24', 10),
-  }, // Removed extra newline before this brace
+  },
 };
+
+export default config;

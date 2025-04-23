@@ -1,0 +1,76 @@
+{
+    "startUrl": "https://www.gold-price-today.com",
+    "steps": [
+        {
+            "type": "condition",
+            "condition": ".fc-consent-root .fc-footer-buttons-container",
+            "description": "Check if terms and conditions acceptance button or link is present",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": "button.fc-button.fc-cta-consent.fc-primary-button",
+                    "description": "Click to accept terms and conditions if present",
+                    "timeout": 5000,
+                    "continueOnError": true
+                },
+                {
+                    "type": "wait",
+                    "value": 1000
+                }
+            ],
+            "result": true
+        },
+        {
+            "type": "wait",
+            "value": 2000,
+            "description": "Wait for page to stabilize after accepting terms"
+        },
+        {
+            "type": "click",
+            "selector": "#countries > ul > li:nth-child(1) > a",
+            "description": "Click on link 'اسعار الذهب اليوم فى مصر' to go to Egypt gold prices page",
+            "timeout": 10000
+        },
+        {
+            "type": "wait",
+            "waitForSelector": "table",
+            "timeout": 15000,
+            "description": "Wait for any table to load for further filtering"
+        },
+        {
+            "type": "click",
+            "selector": "#dismiss-button",
+            "description": "Click on link 'اسعار الذهب اليوم فى مصر' to go to Egypt gold prices page",
+            "timeout": 10000
+        },
+        {
+            "type": "extract",
+            "name": "egyptGoldPrices",
+            "selector": "#right > table:nth-child(4)",
+            "description": "Extract the table titled متوسط اسعار الذهب اليوم بمحلات الصاغة في مصر بدون مصنعية",
+            "multiple": false,
+            "fields": {
+                "rows": {
+                    "selector": "tbody tr",
+                    "type": "css",
+                    "multiple": true,
+                    "fields": {
+                        "columns": {
+                            "selector": "td",
+                            "type": "css",
+                            "multiple": true
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 45000,
+        "javascript": true,
+        "waitForSelector": "body",
+        "screenshots": false,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "debug": true
+    }
+}

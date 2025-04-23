@@ -92,3 +92,5 @@ export const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {
   },
   interactionHints: [], // Add default empty array for the new required property
 };
+
+export type AIProvider = 'openai' | 'deepseek' | 'anthropic' | 'openrouter';
