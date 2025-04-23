@@ -101,6 +101,10 @@ interface Config {
   proxy: ProxyConfig;
   logging: LoggingConfig;
   ai?: AiConfig; // Add optional AI config
+  jobs: {
+    retentionPeriodDays: number;
+    cleanupIntervalHours: number;
+  };
 }
 
 export const config: Config = {
@@ -194,5 +198,9 @@ export const config: Config = {
       // Added Anthropic config
       apiKey: process.env.ANTHROPIC_API_KEY || '',
     },
+  },
+  jobs: {
+    retentionPeriodDays: parseInt(process.env.JOB_RETENTION_DAYS || '10', 10),
+    cleanupIntervalHours: parseInt(process.env.JOB_CLEANUP_INTERVAL_HOURS || '24', 10),
   }, // Removed extra newline before this brace
 };

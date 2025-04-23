@@ -6,6 +6,7 @@ import { config } from './config/index.js';
 import { errorHandler } from './api/middleware/error.middleware.js';
 import { logger } from './utils/logger.js';
 import { apiRoutes } from './api/routes/index.js';
+import { JobCleanupService } from './core/queue/job-cleanup-service.js';
 
 // Create Express app
 const app = express();
@@ -55,5 +56,9 @@ app.use(errorHandler);
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
 });
+
+// Start the JobCleanupService
+const jobCleanupService = JobCleanupService.getInstance();
+jobCleanupService.start();
 
 export default app;

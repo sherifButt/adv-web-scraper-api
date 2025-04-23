@@ -14,7 +14,9 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "lib": ["ES2022", "DOM"],
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"],
