@@ -1,9 +1,9 @@
 ---
 title: Form Authentication (Login)
-path: form_authentication/config.json
+path: config.json
 description: Demonstrates logging into a secure area using username/password fields and a submit button. Uses the dedicated `login` step type.
 tags: ["Navigation", "Forms", "Login", "Authentication", "Input", "Click", "Assert"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "login", "assert"]
 ---
 

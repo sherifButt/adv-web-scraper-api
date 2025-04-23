@@ -1,9 +1,9 @@
 ---
 title: JQuery UI Menus
-path: jquery_ui_menus/config.json
+path: config.json
 description: Demonstrates interacting with a JQuery UI menu involving multiple hover actions to reveal submenus and download a file.
 tags: ["Navigation", "Menu", "Hover", "Click", "Wait", "JQuery UI"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "hover", "wait", "click"]
 ---
 

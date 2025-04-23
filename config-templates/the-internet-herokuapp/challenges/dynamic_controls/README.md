@@ -1,9 +1,9 @@
 ---
 title: Dynamic Controls
-path: dynamic_controls/config.json
+path: config.json
 description: Demonstrates interacting with controls (checkbox, input field) that can be dynamically enabled/disabled or added/removed. Uses `wait` for elements to become interactable.
 tags: ["Navigation", "Dynamic Elements", "Forms", "Checkbox", "Input", "Wait", "Click", "Assert"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "click", "wait", "input", "assert"]
 ---
 

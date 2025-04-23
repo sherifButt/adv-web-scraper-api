@@ -1,9 +1,9 @@
 ---
 title: Basic Authentication
-path: basic_auth/config.json
+path: config.json
 description: Demonstrates handling HTTP Basic Authentication by embedding credentials in the URL and extracting the success message.
 tags: ["Navigation", "Authentication", "HTTP Basic Auth", "Goto", "Wait", "Extract"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "wait", "extract"]
 ---
 

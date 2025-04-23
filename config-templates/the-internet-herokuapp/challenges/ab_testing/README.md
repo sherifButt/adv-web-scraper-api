@@ -1,9 +1,9 @@
 ---
 title: A/B Testing
-path: ab_testing/config.json
+path: config.json
 description: Navigates to the A/B testing page and extracts the displayed heading text, which varies between visits.
 tags: ["Navigation", "A/B Testing", "Extraction"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "extract"]
 ---
 

@@ -1,9 +1,9 @@
 ---
 title: Dynamic Loading
-path: dynamic_loading/config.json
+path: config.json
 description: Demonstrates waiting for dynamically loaded content to appear after clicking a button. Covers two examples on the page.
 tags: ["Navigation", "Dynamic Content", "Wait", "Click", "Assert", "Extraction"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "click", "wait", "assert", "extract"]
 ---
 

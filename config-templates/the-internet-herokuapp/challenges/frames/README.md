@@ -1,9 +1,9 @@
 ---
 title: Frames
-path: frames/config.json
+path: config.json
 description: Navigates to a page demonstrating different frame types (nested and iframe), linking to more specific examples.
 tags: ["Navigation", "Frames", "iFrames", "Nested Frames"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto"]
 ---
 

@@ -1,9 +1,9 @@
 ---
 title: Horizontal Slider
-path: horizontal_slider/config.json
+path: config.json
 description: Demonstrates interacting with a horizontal slider using keyboard arrow keys (via `input` step) and asserting the displayed value.
 tags: ["Navigation", "Forms", "Slider", "Input", "Keyboard Simulation", "Assert"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "click", "input", "assert"]
 ---
 

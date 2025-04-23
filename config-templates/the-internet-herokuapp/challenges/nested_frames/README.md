@@ -1,10 +1,10 @@
 ---
 title: "Nested Frames"
-path: "/nested_frames"
+path: config.json
 description: "Demonstrates interacting with content within nested iframes."
 tags: ["interaction", "frames", "iframes"]
-difficulty: "medium"
-related_steps: ["switchToFrame", "extract"]
+difficulty: Intermediate
+related_steps: ["goto", "switchToFrame", "extract"]
 ---
 
 ## Nested Frames Challenge

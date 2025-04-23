@@ -1,9 +1,9 @@
 ---
 title: Digest Authentication
-path: digest_auth/config.json
+path: config.json
 description: Attempts to navigate to a page protected by HTTP Digest Authentication. Currently marked as optional as direct handling is not supported by the `goto` step.
 tags: ["Navigation", "Authentication", "HTTP Digest Auth", "Goto", "Optional Step"]
-difficulty: Hard
+difficulty: Advanced
 related_steps: ["goto"]
 ---
 

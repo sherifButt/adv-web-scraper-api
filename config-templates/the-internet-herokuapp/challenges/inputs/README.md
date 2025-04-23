@@ -1,9 +1,9 @@
 ---
 title: Inputs
-path: inputs/config.json
+path: config.json
 description: Demonstrates entering numeric input into a number-specific input field.
 tags: ["Navigation", "Forms", "Input", "Number Input"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "input"]
 ---
 

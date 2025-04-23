@@ -1,9 +1,9 @@
 ---
 title: Drag and Drop
-path: drag_and_drop/config.json
+path: config.json
 description: Demonstrates performing a drag-and-drop operation using the `mousemove` step with the `drag` action.
 tags: ["Navigation", "Drag and Drop", "Mouse Interaction", "mousemove"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "mousemove"]
 ---
 

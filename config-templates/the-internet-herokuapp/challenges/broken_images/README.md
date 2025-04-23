@@ -1,9 +1,9 @@
 ---
 title: Broken Images
-path: broken_images/config.json
+path: config.json
 description: Navigates to a page with broken images and extracts the `src` attribute of all images, demonstrating handling of potentially missing resources.
 tags: ["Navigation", "Images", "Extraction", "Error Handling"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "extract"]
 ---
 

@@ -1,9 +1,9 @@
 ---
 title: Exit Intent
-path: exit_intent/config.json
+path: config.json
 description: Navigates to a page that triggers a modal when the mouse moves towards the top of the viewport (exit intent). Demonstrates waiting for and closing the modal.
 tags: ["Navigation", "Exit Intent", "Modal", "Popup", "Mouse Interaction", "Wait", "Click"]
-difficulty: Hard
+difficulty: Advanced
 related_steps: ["goto", "mousemove", "wait", "click"]
 ---
 

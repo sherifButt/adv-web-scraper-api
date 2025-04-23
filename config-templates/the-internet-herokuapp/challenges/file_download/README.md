@@ -1,9 +1,9 @@
 ---
 title: File Download
-path: file_download/config.json
+path: config.json
 description: Demonstrates navigating to the file download page and clicking a download link. Note that the actual download handling happens outside the scope of this config.
 tags: ["Navigation", "File Download", "Click"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "click"]
 ---
 

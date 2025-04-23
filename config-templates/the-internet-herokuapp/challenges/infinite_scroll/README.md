@@ -1,9 +1,9 @@
 ---
 title: Infinite Scroll
-path: infinite_scroll/config.json
+path: config.json
 description: Demonstrates handling an infinite scroll page by repeatedly scrolling down and extracting the newly loaded content.
 tags: ["Navigation", "Scrolling", "Infinite Scroll", "Dynamic Content", "Extraction", "Loop"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "scroll", "extract", "wait"]
 ---
 

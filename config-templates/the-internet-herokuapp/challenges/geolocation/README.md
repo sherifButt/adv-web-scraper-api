@@ -1,9 +1,9 @@
 ---
 title: Geolocation
-path: geolocation/config.json
+path: config.json
 description: Navigates to a page with a button to trigger the browser's Geolocation API. Clicks the button and extracts the resulting latitude/longitude. Requires browser permissions.
 tags: ["Navigation", "Geolocation", "Browser API", "Click", "Wait", "Extract"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "click", "wait", "extract"]
 ---
 

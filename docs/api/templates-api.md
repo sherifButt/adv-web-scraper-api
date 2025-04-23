@@ -16,31 +16,37 @@ Retrieves a list of available configuration templates, optionally filtered by si
 - **URL**: `/api/v1/templates`
 - **Method**: `GET`
 - **Query Parameters**:
-    - `site` (optional, string): Filter templates by the site name (e.g., `the-internet-herokuapp`).
-    - `tag` (optional, string): Filter templates by a specific tag (case-insensitive).
+  - `site` (optional, string): Filter templates by the site name (e.g., `the-internet-herokuapp`).
+  - `tag` (optional, string): Filter templates by a specific tag (case-insensitive).
+  - `difficulty` (optional, string): Filter templates by difficulty level (e.g., `Beginner`, `Intermediate`, `Advanced`, `Expert`).
+  - `related_step` (optional, string): Filter templates by a specific related step (e.g., `goto`, `extract`, `click`).
+  - `page` (optional, number): The page number to retrieve (1-based).
+  - `limit` (optional, number): The maximum number of templates to return per page.
 - **Success Response**:
-    - **Code**: `200 OK`
-    - **Content**: `Array<TemplateSummary>`
-      ```json
-      [
-        {
-          "site": "the-internet-herokuapp",
-          "challenge": "basic_auth",
-          "metadata": {
-            "title": "Basic Authentication",
-            "path": "config.json", // Path relative to challenge dir
-            "description": "Demonstrates handling HTTP Basic Authentication...",
-            "tags": ["Navigation", "Authentication", "HTTP Basic Auth"],
-            "difficulty": "Beginner",
-            "related_steps": ["goto", "wait", "extract"]
-          },
-          "configPath": "config-templates/the-internet-herokuapp/challenges/basic_auth/config.json" // Path relative to project root
+  - **Code**: `200 OK`
+  - **Content**: `Array<TemplateSummary>`
+  
+  ```json
+    [
+      {
+        "site": "the-internet-herokuapp",
+        "challenge": "basic_auth",
+        "metadata": {
+          "title": "Basic Authentication",
+          "path": "config.json", // Path relative to challenge dir
+          "description": "Demonstrates handling HTTP Basic Authentication...",
+          "tags": ["Navigation", "Authentication", "HTTP Basic Auth"],
+          "difficulty": "Beginner",
+          "related_steps": ["goto", "wait", "extract"]
         },
-        // ... more templates
-      ]
-      ```
+        "configPath": "config-templates/the-internet-herokuapp/challenges/basic_auth/config.json" // Path relative to project root
+      }
+      // ... more templates
+    ]
+    ```
+
 - **Error Response**:
-    - **Code**: `500 Internal Server Error` (If scanning fails)
+  - **Code**: `500 Internal Server Error` (If scanning fails)
 
 ### Get Single Template Details
 
@@ -49,42 +55,44 @@ Retrieves the full details for a specific template, including the content of its
 - **URL**: `/api/v1/templates/:site/:challenge`
 - **Method**: `GET`
 - **URL Parameters**:
-    - `site` (required, string): The name of the site directory.
-    - `challenge` (required, string): The name of the challenge directory.
+  - `site` (required, string): The name of the site directory.
+  - `challenge` (required, string): The name of the challenge directory.
 - **Success Response**:
-    - **Code**: `200 OK`
-    - **Content**: `DetailedTemplate`
-      ```json
-      {
-        "site": "the-internet-herokuapp",
-        "challenge": "basic_auth",
-        "metadata": {
-          "title": "Basic Authentication",
-          "path": "config.json",
-          "description": "Demonstrates handling HTTP Basic Authentication...",
-          "tags": ["Navigation", "Authentication", "HTTP Basic Auth"],
-          "difficulty": "Beginner",
-          "related_steps": ["goto", "wait", "extract"]
-        },
-        "configPath": "config-templates/the-internet-herokuapp/challenges/basic_auth/config.json",
-        "configContent": {
-          // Parsed content of the config.json file
-          "steps": [
-            { "type": "goto", "url": "https://the-internet.herokuapp.com/basic_auth" },
-            { "type": "wait", "selector": "body" },
-            {
-              "type": "extract",
-              "fields": {
-                "message": { "selector": ".example p" }
-              }
+  - **Code**: `200 OK`
+  - **Content**: `DetailedTemplate`
+  
+    ```json
+    {
+      "site": "the-internet-herokuapp",
+      "challenge": "basic_auth",
+      "metadata": {
+        "title": "Basic Authentication",
+        "path": "config.json",
+        "description": "Demonstrates handling HTTP Basic Authentication...",
+        "tags": ["Navigation", "Authentication", "HTTP Basic Auth"],
+        "difficulty": "Beginner",
+        "related_steps": ["goto", "wait", "extract"]
+      },
+      "configPath": "config-templates/the-internet-herokuapp/challenges/basic_auth/config.json",
+      "configContent": {
+        // Parsed content of the config.json file
+        "steps": [
+          { "type": "goto", "url": "https://the-internet.herokuapp.com/basic_auth" },
+          { "type": "wait", "selector": "body" },
+          {
+            "type": "extract",
+            "fields": {
+              "message": { "selector": ".example p" }
             }
-          ]
-        }
+          }
+        ]
       }
-      ```
+    }
+    ```
+
 - **Error Response**:
-    - **Code**: `404 Not Found` (If the specified template doesn't exist or its config file is missing/invalid)
-    - **Code**: `500 Internal Server Error` (If reading/parsing fails unexpectedly)
+  - **Code**: `404 Not Found` (If the specified template doesn't exist or its config file is missing/invalid)
+  - **Code**: `500 Internal Server Error` (If reading/parsing fails unexpectedly)
 
 ## Metadata Schema (`README.md` Front Matter)
 
@@ -99,7 +107,6 @@ tags: string[] (required) - An array of relevant tags (e.g., ["Login", "Paginati
 difficulty: string (optional) - Estimated difficulty ('Beginner', 'Intermediate', 'Advanced', 'Expert').
 related_steps: string[] (optional) - Array of relevant step types used in the config (e.g., ["goto", "click", "extract"]).
 ---
-
 Markdown content explaining the challenge and the template follows here...
 ```
 

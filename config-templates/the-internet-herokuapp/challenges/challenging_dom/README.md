@@ -1,9 +1,9 @@
 ---
 title: Challenging DOM
-path: challenging_dom/config.json
+path: config.json
 description: Navigates to a page with elements that change ID on refresh, demonstrating interaction with elements based on stable attributes or structure. Extracts table data.
 tags: ["Navigation", "DOM Manipulation", "Dynamic Elements", "Click", "Extraction", "Tables"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "click", "extract"]
 ---
 

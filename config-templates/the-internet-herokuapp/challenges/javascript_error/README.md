@@ -1,9 +1,9 @@
 ---
 title: JavaScript onload event error
-path: javascript_error/config.json
+path: config.json
 description: Navigates to a page that intentionally throws a JavaScript error on load. Demonstrates simple navigation.
 tags: ["Navigation", "JavaScript Error", "Error Handling"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto"]
 ---
 

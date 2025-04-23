@@ -1,8 +1,10 @@
+// src/core/queue/queue-service.ts
+
 import { Queue, Worker, QueueEvents, Job } from 'bullmq';
 import { redisConnection } from '../config/redis.js';
 import { logger } from '../../utils/logger.js';
 import { processNavigationJob } from './navigation-worker.js';
-import { processGenerateConfigJob } from './generate-config-worker.js'; // Import the new worker process
+import { processGenerateConfigJob } from './generate-config-worker.js';
 
 export class QueueService {
   private queues: Record<string, Queue> = {};
@@ -29,6 +31,7 @@ export class QueueService {
     });
 
     this.createQueue('proxy-rotation');
+
     this.createQueue('navigation-jobs', {
       defaultJobOptions: {
         attempts: 3,
@@ -132,6 +135,11 @@ export class QueueService {
     ]);
   }
 
+  // Get a specific queue by name
+  public getQueueByName(name: string): Queue | undefined {
+    return this.queues[name];
+  }
+
   public async getJobFromAnyQueue(jobId: string): Promise<Job | null> {
     for (const queue of Object.values(this.queues)) {
       const job = await queue.getJob(jobId);
@@ -140,12 +148,53 @@ export class QueueService {
     return null;
   }
 
-  public async getAllJobs(): Promise<Array<{ queue: string; jobs: Job[] }>> {
+  // Helper to convert Job to a plain serializable object
+  private serializeJob(job: Job): any {
+    // Extract only the necessary properties from the job
+    const serializedJob = {
+      id: job.id,
+      name: job.name,
+      data: job.data, // Typically omitted in API responses to reduce size
+      opts: job.opts,
+      progress: job.progress,
+      returnvalue: job.returnvalue,
+      stacktrace: job.stacktrace,
+      delay: job.delay,
+      priority: job.opts?.priority || 0,
+      attemptsStarted: job.attemptsStarted,
+      attemptsMade: job.attemptsMade,
+      timestamp: job.timestamp,
+      queueName: job.queueName,
+      finishedOn: job.finishedOn,
+      processedOn: job.processedOn,
+      failedReason: job.failedReason,
+    };
+
+    return serializedJob;
+  }
+
+  public async getAllJobs(): Promise<Array<{ queue: string; jobs: any[] }>> {
     const results = [];
+
     for (const [name, queue] of Object.entries(this.queues)) {
-      const jobs = await queue.getJobs(['waiting', 'active', 'completed', 'failed', 'delayed']);
-      results.push({ queue: name, jobs });
+      try {
+        const jobs = await queue.getJobs(['waiting', 'active', 'completed', 'failed', 'delayed']);
+
+        // Create a serializable version of each job
+        const serializedJobs = jobs.map(job => this.serializeJob(job));
+
+        results.push({ queue: name, jobs: serializedJobs });
+      } catch (error) {
+        logger.error(
+          `Error getting jobs from queue ${name}: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+        // Continue with other queues even if one fails
+        results.push({ queue: name, jobs: [] });
+      }
     }
+
     return results;
   }
 

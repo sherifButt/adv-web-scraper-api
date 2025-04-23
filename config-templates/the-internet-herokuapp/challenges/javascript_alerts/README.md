@@ -1,9 +1,9 @@
 ---
 title: JavaScript Alerts
-path: javascript_alerts/config.json
+path: config.json
 description: Demonstrates handling different types of JavaScript dialogs (alert, confirm, prompt) using the `handleDialog` step.
 tags: ["Navigation", "JavaScript Alert", "Dialog Handling", "Click", "Assert"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "handleDialog", "click", "assert"]
 ---
 

@@ -1,10 +1,10 @@
 ---
-title: "Key Presses"
-path: "/key_presses"
+title: Key Presses
+path: config.json
 description: "Detects and displays key presses made by the user."
 tags: ["interaction", "keyboard"]
-difficulty: "easy"
-related_steps: ["press", "extract"]
+difficulty: Beginner
+related_steps: ["goto", "press", "extract"]
 ---
 
 ## Key Presses Challenge

@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import matter from 'gray-matter';
 import { z } from 'zod';
-import { logger } from '../../utils/logger.js'; // Added .js extension
+import { logger } from '../../utils/logger.js';
 
 // Define the Zod schema for template metadata validation
 const TemplateMetadataSchema = z.object({
@@ -20,24 +20,46 @@ export const TemplateSchema = z.object({
   challenge: z.string(),
   metadata: TemplateMetadataSchema,
   configPath: z.string(),
+  configContent: z.record(z.unknown()).optional(),
 });
 
 // Define the structure for the detailed template object (including config content)
 export const DetailedTemplateSchema = TemplateSchema.extend({
-  configContent: z.record(z.unknown()), // Represents the parsed JSON content
+  configContent: z.record(z.unknown()),
 });
 
 export type TemplateMetadata = z.infer<typeof TemplateMetadataSchema>;
 export type Template = z.infer<typeof TemplateSchema>;
 export type DetailedTemplate = z.infer<typeof DetailedTemplateSchema>;
 
-// Define filter types for listTemplates
+// Define pagination options
+export interface PaginationOptions {
+  page?: number; // Current page (1-based index)
+  limit?: number; // Number of items per page
+}
+
+// Define filter types for listTemplates with pagination
 export interface ListTemplateFilters {
   site?: string;
   tag?: string;
+  difficulty?: string;
+  related_step?: string;
+}
+
+// Define the paginated response structure
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    total: number; // Total number of items
+    page: number; // Current page
+    limit: number; // Items per page
+    totalPages: number; // Total number of pages
+  };
 }
 
 const TEMPLATES_DIR = 'config-templates';
+const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 100;
 
 export class TemplateService {
   private static instance: TemplateService;
@@ -57,58 +79,73 @@ export class TemplateService {
   }
 
   /**
-   * Lists available templates, optionally filtering by site or tag.
+   * Lists available templates, optionally filtering and paginating results.
    * Uses a simple time-based cache.
    */
-  public async listTemplates(filters: ListTemplateFilters = {}): Promise<Template[]> {
+  public async listTemplates(
+    filters: ListTemplateFilters = {},
+    pagination?: PaginationOptions
+  ): Promise<PaginatedResponse<Template>> {
     const now = Date.now();
-    if (
-      this.templatesCache && // Fixed formatting
-      this.cacheTimestamp &&
-      now - this.cacheTimestamp < this.CACHE_TTL
-    ) {
+    let allTemplates: Template[] = [];
+
+    // Use cache if valid
+    if (this.templatesCache && this.cacheTimestamp && now - this.cacheTimestamp < this.CACHE_TTL) {
       logger.debug('Returning cached templates');
-      return this.filterTemplates(this.templatesCache, filters);
+      allTemplates = this.templatesCache;
+    } else {
+      // Cache expired or empty, scan templates directory
+      logger.debug('Cache expired or empty, scanning templates directory...');
+      allTemplates = await this.scanTemplates();
+      this.templatesCache = allTemplates;
+      this.cacheTimestamp = now;
+      logger.info(`Successfully scanned and cached ${allTemplates.length} templates.`);
     }
 
-    logger.debug('Cache expired or empty, scanning templates directory...');
+    // Apply filters
+    const filteredTemplates = this.filterTemplates(allTemplates, filters);
+
+    // Apply pagination
+    return this.paginateResults(filteredTemplates, pagination);
+  }
+
+  /**
+   * Scan directory structure for templates.
+   */
+  private async scanTemplates(): Promise<Template[]> {
     const allTemplates: Template[] = [];
     const templatesDir = path.resolve(TEMPLATES_DIR);
 
     try {
       const siteDirs = await fs.readdir(templatesDir, { withFileTypes: true });
-
       for (const siteDir of siteDirs) {
         if (siteDir.isDirectory()) {
           const siteName = siteDir.name;
           const challengesPath = path.join(templatesDir, siteName, 'challenges');
-
           try {
             const challengeDirs = await fs.readdir(challengesPath, { withFileTypes: true });
-
             for (const challengeDir of challengeDirs) {
               if (challengeDir.isDirectory()) {
                 const challengeName = challengeDir.name;
                 const challengePath = path.join(challengesPath, challengeName);
                 const readmePath = path.join(challengePath, 'README.md');
-
                 try {
                   const readmeContent = await fs.readFile(readmePath, 'utf-8');
-                  const { data: metadata, content: _ } = matter(readmeContent); // Use gray-matter
+                  const { data: metadata, content: _ } = matter(readmeContent);
 
                   // Validate metadata
                   const validationResult = TemplateMetadataSchema.safeParse(metadata);
                   if (!validationResult.success) {
                     logger.warn(
                       `Invalid metadata in ${readmePath}: ${validationResult.error.message}`
-                    ); // Removed trailing comma
+                    );
                     continue; // Skip this template
                   }
 
                   const validatedMetadata = validationResult.data;
-                  const configFileName = validatedMetadata.path; // Get config file name from metadata
+                  const configFileName = validatedMetadata.path;
                   const relativeConfigPath = path.join(
-                    TEMPLATES_DIR, // Fixed formatting
+                    TEMPLATES_DIR,
                     siteName,
                     'challenges',
                     challengeName,
@@ -121,21 +158,32 @@ export class TemplateService {
                     await fs.access(absoluteConfigPath);
                   } catch (configAccessError) {
                     logger.warn(
-                      `Config file specified in metadata not found: ${absoluteConfigPath} (referenced in ${readmePath})` // Removed trailing comma
+                      `Config file specified in metadata not found: ${absoluteConfigPath} (referenced in ${readmePath})`
                     );
                     continue; // Skip this template
                   }
 
+                  // Try reading the config file content
+                  let configContent: Record<string, unknown> | null = null;
+                  try {
+                    const configContentStr = await fs.readFile(absoluteConfigPath, 'utf-8');
+                    configContent = JSON.parse(configContentStr);
+                  } catch (configReadError: any) {
+                    logger.warn(
+                      `Could not read or parse config file ${absoluteConfigPath} for template ${siteName}/${challengeName}: ${configReadError.message}`
+                    );
+                    // Include template without content
+                  }
+
                   allTemplates.push({
-                    // Fixed formatting
-                    site: siteName, // Removed trailing comma
+                    site: siteName,
                     challenge: challengeName,
                     metadata: validatedMetadata,
-                    configPath: relativeConfigPath, // Relative path from project root // Removed trailing comma
+                    configPath: relativeConfigPath,
+                    configContent: configContent ?? undefined,
                   });
                 } catch (readmeError: any) {
                   if (readmeError.code !== 'ENOENT') {
-                    // Log errors other than file not found
                     logger.warn(
                       `Error reading or parsing README.md in ${challengePath}: ${readmeError.message}`
                     );
@@ -147,7 +195,6 @@ export class TemplateService {
           } catch (challengeReadError: any) {
             if (challengeReadError.code !== 'ENOENT') {
               logger.warn(
-                // Fixed formatting
                 `Error reading challenges directory for site ${siteName}: ${challengeReadError.message}`
               );
             }
@@ -155,15 +202,9 @@ export class TemplateService {
           }
         }
       }
-
-      this.templatesCache = allTemplates;
-      this.cacheTimestamp = now;
-      logger.info(`Successfully scanned and cached ${allTemplates.length} templates.`);
-      return this.filterTemplates(allTemplates, filters);
+      return allTemplates;
     } catch (error: any) {
       logger.error(`Error scanning templates directory ${templatesDir}: ${error.message}`);
-      this.templatesCache = null; // Invalidate cache on error
-      this.cacheTimestamp = null;
       return []; // Return empty array on top-level error
     }
   }
@@ -172,9 +213,9 @@ export class TemplateService {
    * Retrieves details for a single template, including its config content.
    */
   public async getTemplate(site: string, challenge: string): Promise<DetailedTemplate | null> {
-    // Leverage listTemplates to find the base template data (ensures consistency and uses cache)
-    const templates = await this.listTemplates({ site });
-    const template = templates.find(t => t.challenge === challenge);
+    // Leverage cached templates to find the base template data
+    const templatesResponse = await this.listTemplates({ site });
+    const template = templatesResponse.data.find(t => t.challenge === challenge);
 
     if (!template) {
       logger.warn(`Template not found for site=${site}, challenge=${challenge}`);
@@ -186,20 +227,13 @@ export class TemplateService {
     try {
       const configContentStr = await fs.readFile(absoluteConfigPath, 'utf-8');
       const configContent = JSON.parse(configContentStr);
-
       const detailedTemplate: DetailedTemplate = {
         ...template,
         configContent,
       };
-
-      // Optional: Validate configContent against a base schema if needed in the future
-      // const detailedValidation = DetailedTemplateSchema.safeParse(detailedTemplate);
-      // if (!detailedValidation.success) { ... }
-
       return detailedTemplate;
     } catch (error: any) {
       logger.error(
-        // Fixed formatting
         `Error reading or parsing config file ${absoluteConfigPath} for template ${site}/${challenge}: ${error.message}`
       );
       return null; // Return null if config file is missing or invalid JSON
@@ -223,7 +257,54 @@ export class TemplateService {
       );
     }
 
+    if (filters.difficulty) {
+      filteredTemplates = filteredTemplates.filter(
+        t => t.metadata.difficulty === filters.difficulty
+      );
+    }
+
+    if (filters.related_step) {
+      const relatedStep = filters.related_step;
+      filteredTemplates = filteredTemplates.filter(t => {
+        // Safely handle potentially undefined related_steps array
+        const relatedSteps = t.metadata.related_steps || [];
+        return relatedSteps.includes(relatedStep);
+      });
+    }
+
     return filteredTemplates;
+  }
+
+  /**
+   * Helper function to paginate results.
+   */
+  private paginateResults(
+    templates: Template[],
+    options?: PaginationOptions
+  ): PaginatedResponse<Template> {
+    const total = templates.length;
+
+    // Set default pagination values or use provided values
+    const page = Math.max(1, options?.page || 1); // Ensure minimum page is 1
+    const limit = Math.min(MAX_PAGE_SIZE, options?.limit || DEFAULT_PAGE_SIZE); // Cap at MAX_PAGE_SIZE
+
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const safePageIndex = Math.min(page, totalPages);
+    const startIndex = (safePageIndex - 1) * limit;
+    const endIndex = Math.min(startIndex + limit, total);
+
+    // Get the slice of data for the current page
+    const paginatedData = templates.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      pagination: {
+        total,
+        page: safePageIndex,
+        limit,
+        totalPages,
+      },
+    };
   }
 
   /**

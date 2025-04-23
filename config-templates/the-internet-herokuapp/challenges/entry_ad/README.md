@@ -1,9 +1,9 @@
 ---
 title: Entry Ad
-path: entry_ad/config.json
+path: config.json
 description: Handles a modal window (entry ad) that appears shortly after page load. Waits for the modal and clicks the close button.
 tags: ["Navigation", "Modal", "Popup", "Wait", "Click"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "wait", "click"]
 ---
 

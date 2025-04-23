@@ -1,9 +1,9 @@
 ---
 title: Dynamic Content
-path: dynamic_content/config.json
+path: config.json
 description: Navigates to a page where content (text and images) changes on each refresh. Extracts the dynamic content present on load.
 tags: ["Navigation", "Dynamic Content", "Extraction"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "extract"]
 ---
 

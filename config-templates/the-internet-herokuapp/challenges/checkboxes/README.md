@@ -1,9 +1,9 @@
 ---
 title: Checkboxes
-path: checkboxes/config.json
+path: config.json
 description: Navigates to a page with checkboxes and demonstrates clicking them. Includes optional assertion steps (commented out) for checking state.
 tags: ["Navigation", "Forms", "Checkboxes", "Click", "Assert"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "click", "assert"]
 ---
 

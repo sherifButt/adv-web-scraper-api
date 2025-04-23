@@ -1,9 +1,9 @@
 ---
 title: File Upload
-path: file_upload/config.json
+path: config.json
 description: Demonstrates uploading a file using an input element and asserting the uploaded file name appears on the page.
 tags: ["Navigation", "Forms", "File Upload", "Input", "Click", "Assert"]
-difficulty: Medium
+difficulty: Intermediate
 related_steps: ["goto", "uploadFile", "click", "assert"]
 ---
 

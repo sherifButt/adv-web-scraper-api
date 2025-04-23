@@ -1,9 +1,9 @@
 ---
 title: Forgot Password
-path: forgot_password/config.json
+path: config.json
 description: Demonstrates filling an email field and submitting a form, simulating a password recovery request.
 tags: ["Navigation", "Forms", "Input", "Click"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "input", "click"]
 ---
 

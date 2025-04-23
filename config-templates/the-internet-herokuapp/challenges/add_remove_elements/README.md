@@ -1,9 +1,9 @@
 ---
 title: Add/Remove Elements
-path: add_remove_elements/config.json
+path: config.json
 description: Tests adding an element to the page via a button click, asserting its existence, clicking the new element to remove it, and asserting its removal.
 tags: ["DOM Manipulation", "Click", "Assert", "Dynamic Elements"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "click", "assert"]
 ---
 

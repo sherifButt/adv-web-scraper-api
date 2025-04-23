@@ -1,6 +1,6 @@
 // Test script for the googlemaps-config.json configuration
 import { chromium } from 'playwright';
-import { NavigationEngine } from '../../src/navigation/navigation-engine.js';
+import { NavigationEngine } from '../../../../src/navigation/navigation-engine.js';
 import fs from 'fs';
 
 async function testGooglemapsConfig() {

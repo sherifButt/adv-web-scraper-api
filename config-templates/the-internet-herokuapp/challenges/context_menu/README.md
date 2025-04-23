@@ -1,9 +1,9 @@
 ---
 title: Context Menu
-path: context_menu/config.json
+path: config.json
 description: Demonstrates triggering a context menu (right-click) and handling the resulting JavaScript alert.
 tags: ["Navigation", "Context Menu", "Right Click", "JavaScript Alert", "Dialog Handling"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "handleDialog", "click"]
 ---
 

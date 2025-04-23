@@ -1,9 +1,9 @@
 ---
 title: Dropdown List
-path: dropdown/config.json
+path: config.json
 description: Demonstrates selecting options from a standard HTML dropdown list using both value attribute and visible text, and asserting the selection.
 tags: ["Navigation", "Forms", "Dropdown", "Select", "Assert"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "select", "assert"]
 ---
 

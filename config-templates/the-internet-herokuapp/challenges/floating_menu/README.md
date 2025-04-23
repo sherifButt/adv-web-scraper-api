@@ -1,9 +1,9 @@
 ---
 title: Floating Menu
-path: floating_menu/config.json
+path: config.json
 description: Demonstrates scrolling the page and asserting that a floating menu remains visible.
 tags: ["Navigation", "Scrolling", "Assert", "Visibility"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "scroll", "assert"]
 ---
 

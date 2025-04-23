@@ -1,10 +1,10 @@
 ---
 title: "Large & Deep DOM"
-path: "/large"
+path: config.json
 description: "Contains a very large and deeply nested DOM structure."
 tags: ["performance", "dom", "selectors"]
-difficulty: "medium"
-related_steps: ["extract", "scroll"]
+difficulty: Intermediate
+related_steps: ["goto", "extract"]
 ---
 
 ## Large & Deep DOM Challenge

@@ -1,9 +1,9 @@
 ---
 title: Hovers
-path: hovers/config.json
+path: config.json
 description: Demonstrates hovering over elements to reveal hidden information and asserting that the information becomes visible.
 tags: ["Navigation", "Hover", "Mouse Interaction", "Wait", "Assert", "Visibility"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "hover", "wait", "assert"]
 ---
 

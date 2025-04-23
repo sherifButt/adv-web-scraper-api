@@ -1,10 +1,10 @@
 ---
 title: "Multiple Windows"
-path: "/windows"
+path: config.json
 description: "Demonstrates opening a new browser window."
 tags: ["interaction", "windows", "tabs"]
-difficulty: "medium"
-related_steps: ["click", "switchTab", "extract"]
+difficulty: Intermediate
+related_steps: ["goto", "click", "switchTab", "extract"]
 ---
 
 ## Multiple Windows Challenge

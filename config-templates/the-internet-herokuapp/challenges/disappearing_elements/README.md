@@ -1,9 +1,9 @@
 ---
 title: Disappearing Elements
-path: disappearing_elements/config.json
+path: config.json
 description: Navigates to a page where elements (menu items) might not be present on initial load or after refresh. Demonstrates extracting available elements.
 tags: ["Navigation", "Dynamic Elements", "Extraction", "Optional Elements"]
-difficulty: Easy
+difficulty: Beginner
 related_steps: ["goto", "extract"]
 ---
 
