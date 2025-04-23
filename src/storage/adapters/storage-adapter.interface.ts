@@ -3,8 +3,8 @@
 import { ExtractionResult } from '../../types/extraction.types.js';
 import { SessionData } from '../../core/session/session-manager.js'; // Import SessionData if needed for union type
 
-// Define a generic type for stored data, ensuring it has an ID
-export type StorableData = Record<string, any> & { id: string }; // Export the type
+// Define a generic type for stored data, ensuring it has an ID and optionally a queue name
+export type StorableData = Record<string, any> & { id: string; queueName?: string }; // Export the type
 
 /**
  * Interface for storage adapters

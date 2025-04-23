@@ -1,6 +1,7 @@
 // src/core/queue/queue-service.ts
 
 import { Queue, Worker, QueueEvents, Job } from 'bullmq';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid
 import { redisConnection } from '../config/redis.js';
 import { logger } from '../../utils/logger.js';
 import { processNavigationJob } from './navigation-worker.js';
@@ -89,19 +90,27 @@ export class QueueService {
 
   public async addJob(queueName: string, jobName: string, data: any, options?: any) {
     const queue = this.queues[queueName] || this.createQueue(queueName);
+    const jobOptions = { ...options }; // Clone options to avoid modifying the original object
 
-    // Ensure job ID is unique
-    if (options?.jobId) {
-      const existingJob = await queue.getJob(options.jobId);
-      if (existingJob) {
-        throw new Error(`Job ID ${options.jobId} already exists in queue ${queueName}`);
-      }
-    } else {
-      // Force UUID generation if no ID provided
-      options = { ...options, jobId: undefined };
+    // Generate a UUID if jobId is not provided
+    if (!jobOptions?.jobId) {
+      jobOptions.jobId = uuidv4();
+      logger.info(
+        `Generated unique Job ID ${jobOptions.jobId} for job ${jobName} in queue ${queueName}`
+      );
     }
 
-    return queue.add(jobName, data, options);
+    // Check for duplicates using the potentially generated or provided jobId
+    const existingJob = await queue.getJob(jobOptions.jobId);
+    if (existingJob) {
+      logger.warn(`Job ID ${jobOptions.jobId} already exists in queue ${queueName}. Skipping add.`);
+      // Optionally throw an error or return the existing job
+      // throw new Error(`Job ID ${jobOptions.jobId} already exists in queue ${queueName}`);
+      return existingJob; // Return existing job instead of throwing error
+    }
+
+    logger.info(`Adding job ${jobName} to queue ${queueName} with ID ${jobOptions.jobId}`);
+    return queue.add(jobName, data, jobOptions);
   }
 
   // Allow processor to return any Promise result

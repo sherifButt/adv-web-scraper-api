@@ -61,15 +61,18 @@ export async function processNavigationJob(job: Job) {
     logger.debug(`Navigation result for job ${job.id}:`, JSON.stringify(result, null, 2)); // Log the result object (stringified)
     logger.debug(`Storing navigation results for job ${job.id}`);
     if (!job.id) {
+      // This check might be redundant now with UUID generation, but kept for safety
       logger.error('Job ID is missing, cannot store results.');
     } else {
       try {
+        // Add queueName to the stored data
         await StorageService.getInstance().store({
           ...result,
-          id: job.id, // job.id should be defined here
+          id: job.id, // This will be the UUID
+          queueName: job.queueName, // Add the queue name
           timestamp: new Date().toISOString(),
         });
-        logger.debug(`Successfully stored results for job ${job.id}`);
+        logger.debug(`Successfully stored results for job ${job.id} from queue ${job.queueName}`);
       } catch (storageError) {
         logger.error(
           `Failed to store results for job ${job.id}: ${

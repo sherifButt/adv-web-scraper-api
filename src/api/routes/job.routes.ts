@@ -264,6 +264,7 @@ router.get('/:id', async (req, res) => {
     const responseData = {
       id: job.id,
       name: job.name,
+      queueName: job.queueName, // Add queueName from the job object
       status: jobState,
       progress: job.progress,
       result: resultData,
@@ -271,7 +272,7 @@ router.get('/:id', async (req, res) => {
       createdAt: job.timestamp,
       completedAt: job.finishedOn,
       failedReason: job.failedReason,
-      numberInQueue: job.numberInQueue,
+      numberInQueue: job.numberInQueue, // This might be null if not active/waiting
     };
 
     // Add numberInQueue for active/waiting jobs

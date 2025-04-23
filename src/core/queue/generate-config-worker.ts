@@ -242,6 +242,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         logger.info(`Job ${jobId}: Storing final configuration (no test).`);
         await storageService.store({
           id: jobId,
+          queueName: job.queueName, // Add queue name
           ...currentConfig,
           estimatedCost: state.estimatedCost, // Store cost
         });
@@ -349,6 +350,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         logger.info(`Job ${jobId}: Storing final configuration after successful test.`);
         await storageService.store({
           id: jobId,
+          queueName: job.queueName, // Add queue name
           ...currentConfig,
           estimatedCost: state.estimatedCost, // Store cost
         });
