@@ -55,6 +55,7 @@ export class StorageService {
   private backupAdapterType?: StorageAdapterType;
   private backupAdapterOptions?: StorageAdapterOptions;
   private useBackup: boolean;
+  private isInitialized = false;
 
   /**
    * Create a new storage service
@@ -82,6 +83,7 @@ export class StorageService {
   public static getInstance(options: StorageServiceOptions = {}): StorageService {
     if (!StorageService.instance) {
       StorageService.instance = new StorageService(options);
+      StorageService.instance.initialize();
     }
     return StorageService.instance;
   }
@@ -90,6 +92,10 @@ export class StorageService {
    * Initialize the storage service
    */
   public async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+
     try {
       // Initialize primary adapter
       this.primaryAdapter = await this.storageFactory.getAdapter(
@@ -106,6 +112,8 @@ export class StorageService {
         );
         logger.info(`Backup storage adapter initialized: ${this.backupAdapterType}`);
       }
+
+      this.isInitialized = true;
     } catch (error: any) {
       logger.error(`Error initializing storage service: ${error.message}`);
       throw error;
