@@ -31,7 +31,7 @@ WORKDIR /usr/src/app
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm ci && npm list typescript
+RUN npm ci
 
 # Install Playwright browsers
 RUN npx playwright install --with-deps chromium firefox webkit
@@ -39,8 +39,10 @@ RUN npx playwright install --with-deps chromium firefox webkit
 # Copy application code
 COPY . .
 
-# Create dist directory and build TypeScript code with debugging
-RUN mkdir -p dist && npm run build || (echo "Build failed, showing errors:" && cat tsconfig.tsbuildinfo && exit 1)
+# Create dist directory and build TypeScript code
+RUN mkdir -p dist && \
+    npm run build && \
+    ls -la dist/
 
 # Create necessary directories
 RUN mkdir -p logs screenshots browser-data
