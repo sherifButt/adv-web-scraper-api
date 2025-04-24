@@ -153,7 +153,7 @@
             <h3>AI-Powered Configuration</h3>
             <p>
               Generate complex scraping configurations from just a URL and natural language prompt.
-              Supports multiple LLM providers through OpenRouter, including GPT-4, Claude, and Gemini.
+              Supports multiple LLM providers through OpenRouter, including GPT-4, Claude, and Gemini. (For the moment it works on single page websites only, with static content. dynamic content is in the works.)
               <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
                 >Learn more</a
               >.
@@ -529,57 +529,6 @@ curl YOUR_API_URL/api/v1/jobs/YOUR_JOB_ID
             (`/api/v1/templates`) to use as starting points for your own configurations.
           </p>
         </details>
-      </section>
-
-      <section id="ai-integration">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>LLM Integration</h2>
-          <p>Powerful language model support through OpenRouter:</p>
-        </div>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-          "
-        >
-          <article>
-            <h2><i class="ph-light ph-cube"></i></h2>
-            <h3>Multiple Model Support</h3>
-            <p>
-              Access to a wide range of models including GPT-4, Claude, Gemini, and more through a unified OpenRouter interface.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-currency-circle-dollar"></i></h2>
-            <h3>Cost Tracking</h3>
-            <p>
-              Built-in token usage tracking and cost estimation for each model, helping you manage your AI budget effectively.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-sliders"></i></h2>
-            <h3>Flexible Configuration</h3>
-            <p>
-              Customize model parameters like temperature and max tokens, with support for provider-specific options.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-shield-check"></i></h2>
-            <h3>Secure API Keys</h3>
-            <p>
-              Secure management of API keys through environment variables, with support for multiple providers.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section id="ai-details">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>AI Configuration Details</h2>
-          <p>Learn more about the AI Configuration feature:</p>
-        </div>
-
         <details>
           <summary>What models are supported for AI Configuration Generation?</summary>
           <p>
@@ -593,7 +542,20 @@ curl YOUR_API_URL/api/v1/jobs/YOUR_JOB_ID
             You can specify your preferred model in the request options, and the system will automatically route to the appropriate provider. See the <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI API documentation</a> for more details.
           </p>
         </details>
+        <details>
+          <summary>What LLM integration features are available?</summary>
+          <p>
+            The API offers powerful language model integration through OpenRouter:
+            <ul>
+              <li><strong>Multiple Model Support:</strong> Access to a wide range of models including GPT-4, Claude, Gemini, and more through a unified OpenRouter interface.</li>
+              <li><strong>Cost Tracking:</strong> Built-in token usage tracking and cost estimation for each model, helping you manage your AI budget effectively.</li>
+              <li><strong>Flexible Configuration:</strong> Customize model parameters like temperature and max tokens, with support for provider-specific options.</li>
+              <li><strong>Secure API Keys:</strong> Secure management of API keys through environment variables, with support for multiple providers.</li>
+            </ul>
+          </p>
+        </details>
       </section>
+
     </main>
 
     <footer>
