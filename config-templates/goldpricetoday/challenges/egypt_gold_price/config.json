@@ -1,76 +1,96 @@
 {
+    "id": "3cfb639f-7bff-4534-97ed-173d3674258b",
+    "queueName": "config-generation-jobs",
     "startUrl": "https://www.gold-price-today.com",
     "steps": [
         {
+            "type": "wait",
+            "waitForSelector": "body",
+            "timeout": 10000,
+            "description": "Wait for the main body to load"
+        },
+        {
             "type": "condition",
-            "condition": ".fc-consent-root .fc-footer-buttons-container",
-            "description": "Check if terms and conditions acceptance button or link is present",
+            "condition": "div.fc-consent-root button.fc-button.fc-cta-consent",
+            "description": "Check if consent dialog is visible",
             "thenSteps": [
                 {
                     "type": "click",
-                    "selector": "button.fc-button.fc-cta-consent.fc-primary-button",
-                    "description": "Click to accept terms and conditions if present",
-                    "timeout": 5000,
-                    "continueOnError": true
-                },
-                {
-                    "type": "wait",
-                    "value": 1000
+                    "selector": "div.fc-consent-root button.fc-button.fc-cta-consent",
+                    "description": "Click the accept button on the consent dialog",
+                    "waitFor": 1000
                 }
             ],
+            "elseSteps": [],
+            "continueOnError": true,
             "result": true
         },
         {
             "type": "wait",
-            "value": 2000,
-            "description": "Wait for page to stabilize after accepting terms"
+            "value": 1500,
+            "description": "Wait a bit after handling potential consent dialog"
         },
         {
             "type": "click",
-            "selector": "#countries > ul > li:nth-child(1) > a",
-            "description": "Click on link 'اسعار الذهب اليوم فى مصر' to go to Egypt gold prices page",
-            "timeout": 10000
+            "selector": "a[href='https://egypt.gold-price-today.com/']",
+            "description": "Click the link for 'اسعار الذهب اليوم فى مصر'"
         },
         {
             "type": "wait",
-            "waitForSelector": "table",
+            "waitForNavigation": true,
             "timeout": 15000,
-            "description": "Wait for any table to load for further filtering"
+            "description": "Wait for navigation to the Egypt gold price page"
         },
         {
-            "type": "click",
-            "selector": "#dismiss-button",
-            "description": "Click on link 'اسعار الذهب اليوم فى مصر' to go to Egypt gold prices page",
-            "timeout": 10000
+            "type": "wait",
+            "waitForSelector": "#right table",
+            "timeout": 10000,
+            "description": "Wait for the main price table to appear on the Egypt page"
         },
         {
             "type": "extract",
             "name": "egyptGoldPrices",
-            "selector": "#right > table:nth-child(4)",
-            "description": "Extract the table titled متوسط اسعار الذهب اليوم بمحلات الصاغة في مصر بدون مصنعية",
-            "multiple": false,
+            "selector": "#right table",
+            "description": "Extract data from the table 'متوسط اسعار الذهب اليوم بمحلات الصاغة في مصر بدون مصنعية'",
             "fields": {
+                "title": {
+                    "selector": "caption",
+                    "type": "css",
+                    "description": "Extract the table title (using the preceding h2)"
+                },
                 "rows": {
                     "selector": "tbody tr",
                     "type": "css",
                     "multiple": true,
+                    "continueOnError": true,
                     "fields": {
-                        "columns": {
-                            "selector": "td",
+                        "unit": {
+                            "selector": "td:nth-child(1)",
                             "type": "css",
-                            "multiple": true
+                            "continueOnError": true
+                        },
+                        "price_egp": {
+                            "selector": "td:nth-child(2)",
+                            "type": "css",
+                            "continueOnError": true
+                        },
+                        "price_usd": {
+                            "selector": "td:nth-child(3)",
+                            "type": "css",
+                            "continueOnError": true
                         }
                     }
                 }
             }
         }
     ],
+    "variables": {},
     "options": {
-        "timeout": 45000,
+        "timeout": 60000,
         "javascript": true,
-        "waitForSelector": "body",
         "screenshots": false,
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "debug": true
-    }
+        "debug": false,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    },
+    "estimatedCost": 0.0013542
 }

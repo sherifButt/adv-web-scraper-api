@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function testDragAndDropConfig() {
+async function testConfig() {
   try {
     console.log('Starting test of config.json');
 
@@ -52,9 +52,9 @@ async function testDragAndDropConfig() {
 
     // Basic validation (checks if flow completed without errors)
     if (result.status === 'completed') {
-      console.log('SUCCESS: Drag and Drop test completed successfully.');
+      console.log('SUCCESS: Test completed successfully.');
     } else {
-      console.error('FAILURE: Drag and Drop test did not complete successfully.');
+      console.error('FAILURE: Test did not complete successfully.');
       console.error('Detailed Result:', result);
     }
 
@@ -70,7 +70,7 @@ async function testDragAndDropConfig() {
 }
 
 // Run the test
-testDragAndDropConfig()
+testConfig()
   .then(() => {
     console.log('Test completed successfully');
     process.exit(0);

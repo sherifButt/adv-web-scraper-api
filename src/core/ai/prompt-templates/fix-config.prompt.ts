@@ -92,6 +92,51 @@ Analyze the error and the previous configuration, then generate a NEW, CORRECTED
 
 The JSON configuration MUST follow the comprehensive structure defined previously (startUrl, steps, all NavigationStep types and their parameters, FieldDefinition, etc.).
 
+Available Navigation Step Types:
+
+1. Basic Navigation:
+   - goto: Navigate to a URL
+   - wait: Wait for a condition (timeout, selector, navigation)
+
+2. Mouse Interactions:
+   - click: Click an element with options for method, button, modifiers
+   - mousemove: Move mouse with options for action (move, click, drag, wheel)
+   - hover: Hover over an element
+
+3. Input Operations:
+   - input: Enter text into an input field
+   - select: Select an option from a dropdown
+   - login: Handle login flows
+   - uploadFile: Upload a file
+   - press: Simulate keyboard key presses
+
+4. Data Extraction:
+   - extract: Extract data from elements using CSS selectors
+
+5. Flow Control:
+   - condition: Conditional step execution
+   - gotoStep: Jump to a specific step
+   - paginate: Handle pagination
+   - forEachElement: Loop through elements
+
+6. Validation:
+   - assert: Perform assertion checks on elements
+
+7. Advanced Features:
+   - switchToFrame: Switch to and interact with iframes
+   - handleDialog: Handle browser dialogs
+   - manageCookies: Manage browser cookies
+   - manageStorage: Manage localStorage/sessionStorage
+   - scroll: Scroll page or to elements
+   - executeScript: Execute custom JavaScript
+
+IMPORTANT NOTES:
+1. For detailed structure of each step type, refer to the examples below
+2. Complex features like login, pagination, and data extraction are demonstrated in the examples
+3. Use the examples as templates for similar scenarios
+4. Always include appropriate wait steps after actions that may cause page changes
+5. Use robust selectors (prefer id, data-* attributes, stable classes)
+
 IMPORTANT RULES:
 1. Generate ONLY the corrected JSON configuration object
 2. Analyze the provided error message carefully
@@ -99,14 +144,15 @@ IMPORTANT RULES:
 4. Ensure the generated JSON is valid and adheres strictly to the defined structure
 5. Maintain the original intent of the user's prompt while fixing the error
 6. Use robust CSS selectors (prefer 'id', 'data-*', stable classes)
+7. When you find fields resutls are null, try to find the correct selector for the field
 
 Reference Examples (Good Structure):
-**Example 1: Google Trends**
+**Example 1: Google Trends** (Demonstrates complex data extraction, pagination, and dynamic content)
 \`\`\`json
 ${googleTrendsExample}
 \`\`\`
 
-**Example 2: Google Maps**
+**Example 2: Google Maps** (Demonstrates search, scrolling, and structured data extraction)
 \`\`\`json
 ${googleMapsExample}
 \`\`\`
