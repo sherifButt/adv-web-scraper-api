@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Queue, Job } from 'bullmq';
+import { Queue, Job, JobState, JobProgress } from 'bullmq';
 import { redisConnection } from '../../core/config/redis.js';
 import { StorageService } from '../../storage/storage-service.js';
 import { QueueService } from '../../core/queue/queue-service.js';
@@ -261,10 +261,24 @@ router.get('/:id', async (req, res) => {
       }
     }
 
-    const responseData = {
+    interface JobResponseData {
+      id: string | undefined;
+      name: string;
+      queueName: string;
+      status: "unknown" | JobState;
+      progress: JobProgress;
+      result: any;
+      estimatedCost: any;
+      createdAt: number;
+      completedAt: number | undefined;
+      failedReason: string;
+      numberInQueue?: number;
+    }
+
+    const responseData: JobResponseData = {
       id: job.id,
       name: job.name,
-      queueName: job.queueName, // Add queueName from the job object
+      queueName: job.queueName,
       status: jobState,
       progress: job.progress,
       result: resultData,
@@ -277,7 +291,7 @@ router.get('/:id', async (req, res) => {
     // Add numberInQueue for active/waiting jobs
     // Always include it for active/waiting jobs, even if it's 0
     if (jobState === 'waiting' || jobState === 'active') {
-      responseData['numberInQueue'] = numberInQueue !== null ? numberInQueue : 0;
+      responseData.numberInQueue = numberInQueue !== null ? numberInQueue : 0;
     }
 
     return res.status(200).json({
