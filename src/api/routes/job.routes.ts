@@ -272,7 +272,6 @@ router.get('/:id', async (req, res) => {
       createdAt: job.timestamp,
       completedAt: job.finishedOn,
       failedReason: job.failedReason,
-      numberInQueue: job.numberInQueue, // This might be null if not active/waiting
     };
 
     // Add numberInQueue for active/waiting jobs
