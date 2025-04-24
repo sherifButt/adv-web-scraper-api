@@ -213,6 +213,80 @@
         </div>
       </section>
 
+      <section id="api">
+        <div style="text-align: center; margin: 60px auto">
+          <h2>API Reference</h2>
+          <p>Explore the core functionalities of the API:</p>
+        </div>
+        <ul>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
+              ><code>POST /api/v1/ai/generate-config</code></a
+            >
+            - Generate scraping configurations using AI.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/README.html"
+              ><code>POST /api/v1/navigate</code></a
+            >
+            - Execute complex browser navigation flows.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/README.html"
+              ><code>POST /api/v1/scrape</code></a
+            >
+            - Perform direct scraping tasks (worker implementation pending).
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html"
+              ><code>GET /api/v1/jobs/:id</code></a
+            >
+            - Check the status and retrieve results of asynchronous jobs.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html"
+              ><code>GET /api/v1/proxy/...</code></a
+            >
+            - Manage and utilize proxies.
+          </li>
+          <li>
+            <a
+              href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html"
+              ><code>GET /api/v1/session/...</code></a
+            >
+            - Manage persistent browser sessions.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
+              ><code>GET /api/v1/templates</code></a
+            >
+            - List available configuration templates.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
+              ><code>GET /api/v1/templates/:site/:challenge</code></a
+            >
+            - Get details for a specific template.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/README.html"
+              ><code>POST /api/v1/captcha/...</code></a
+            >
+            - Interact with the CAPTCHA solving system.
+          </li>
+          <li>
+            <a href="/health"><code>GET /health</code></a> - Perform a system health check.
+          </li>
+        </ul>
+        <p>
+          See the full
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/README.html"
+            >API Reference</a
+          >
+          for details.
+        </p>
+      </section>
+
       <section id="use-cases">
         <div style="text-align: center; margin: 60px auto">
           <h2>What Can I Do With It?</h2>
@@ -317,79 +391,7 @@
         </details>
       </section>
 
-      <section id="api">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>API Reference</h2>
-          <p>Explore the core functionalities of the API:</p>
-        </div>
-        <ul>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
-              ><code>POST /api/v1/ai/generate-config</code></a
-            >
-            - Generate scraping configurations using AI.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/README.html"
-              ><code>POST /api/v1/navigate</code></a
-            >
-            - Execute complex browser navigation flows.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/README.html"
-              ><code>POST /api/v1/scrape</code></a
-            >
-            - Perform direct scraping tasks (worker implementation pending).
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html"
-              ><code>GET /api/v1/jobs/:id</code></a
-            >
-            - Check the status and retrieve results of asynchronous jobs.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html"
-              ><code>GET /api/v1/proxy/...</code></a
-            >
-            - Manage and utilize proxies.
-          </li>
-          <li>
-            <a
-              href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html"
-              ><code>GET /api/v1/session/...</code></a
-            >
-            - Manage persistent browser sessions.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
-              ><code>GET /api/v1/templates</code></a
-            >
-            - List available configuration templates.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
-              ><code>GET /api/v1/templates/:site/:challenge</code></a
-            >
-            - Get details for a specific template.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/README.html"
-              ><code>POST /api/v1/captcha/...</code></a
-            >
-            - Interact with the CAPTCHA solving system.
-          </li>
-          <li>
-            <a href="/health"><code>GET /health</code></a> - Perform a system health check.
-          </li>
-        </ul>
-        <p>
-          See the full
-          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/README.html"
-            >API Reference</a
-          >
-          for details.
-        </p>
-      </section>
+
 
       <section id="quickstart">
         <div style="text-align: center; margin: 60px auto">
