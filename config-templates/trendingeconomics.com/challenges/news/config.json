@@ -3,20 +3,20 @@
     "steps": [
         {
             "type": "wait",
-            "waitForSelector": "body",
-            "timeout": 20000,
-            "description": "Wait for the page body to load"
+            "selector": "body",
+            "timeout": 5000,
+            "description": "Wait for initial page load"
         },
         {
             "type": "condition",
-            "condition": "button.fc-button.fc-cta-consent",
-            "description": "Check if the consent button is visible",
+            "condition": "button.fc-button.fc-cta-consent.fc-primary-button",
+            "description": "Check if consent dialog is visible",
             "thenSteps": [
                 {
                     "type": "click",
-                    "selector": "button.fc-button.fc-cta-consent",
-                    "description": "Click the Consent button",
-                    "waitFor": 1500
+                    "selector": "button.fc-button.fc-cta-consent.fc-primary-button",
+                    "description": "Click the consent button on the terms and conditions dialog",
+                    "waitFor": 2000
                 }
             ],
             "continueOnError": true,
@@ -24,9 +24,9 @@
         },
         {
             "type": "wait",
-            "waitForSelector": "div.card-header:text('News')",
-            "timeout": 10000,
-            "description": "Wait for the News card to be present"
+            "selector": "div.card-header:text('News')",
+            "timeout": 5000,
+            "description": "Wait for the News section to be visible"
         },
         {
             "type": "extract",
@@ -54,10 +54,9 @@
         }
     ],
     "options": {
-        "timeout": 60000,
-        "javascript": true,
-        "screenshots": false,
-        "debug": false,
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+        "timeout": 30000,
+        "waitForNavigation": true,
+        "waitUntil": "networkidle2",
+        "debug": true
     }
 }

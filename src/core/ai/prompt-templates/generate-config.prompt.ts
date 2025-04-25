@@ -128,7 +128,7 @@ const googleMapsExample = `{
   "steps": [
     { "type": "condition", "condition": "[aria-haspopup='menu']", "thenSteps": [{ "type": "click", "selector": "[aria-haspopup='menu']" }] },
     { "type": "condition", "condition": "[data-lc='en']", "thenSteps": [{ "type": "click", "selector": "[data-lc='en']" }] },
-    { "type": "scroll", "distance": 500 },
+    { "type": "scroll", "direction": "down", "distance": 500 },
     { "type": "condition", "condition": "button[aria-label='Accept all']", "thenSteps": [{ "type": "click", "selector": "button[aria-label='Accept all']" }] },
     { "type": "wait", "value": 500 },
     { "type": "input", "selector": ".searchboxinput", "value": "{{keyword}} near {{postcode}}", "clearInput": true, "humanInput": true },
@@ -335,7 +335,55 @@ The JSON configuration MUST follow this structure:
   "options": { /* Optional scraping options like timeout, userAgent, debug, etc. */ }
 }
 
-Available Navigation Step Types:
+## SELECTOR BEST PRACTICES:
+
+1. **Use Simple, Robust Selectors**:
+   - Prefer simpler selectors over complex ones (e.g., \`div.card-header:text('News')\` instead of \`div.card div.card-header:text('News')\`)
+   - Avoid overly specific parent-child relationships unless absolutely necessary
+   - Test all selectors before finalizing your configuration
+
+2. **Selector Strategies**:
+   - Prioritize selectors in this order:
+     * id attributes (\`#main-content\`)
+     * data-* attributes (\`[data-test-id="price"]\`)
+     * Unique class combinations (\`.product-card.premium\`)
+     * Text content for specific elements (\`:text('Add to Cart')\`) - use with caution
+
+3. **Handling Dynamic Content**:
+   - Always include adequate wait steps before extracting data
+   - Use appropriate timeouts based on expected page load times
+   - Consider conditional steps to handle variable page structures
+
+4. **Effective Text Matching**:
+   - For text selectors, use \`:text()\` for exact matches - ONLY if the scraping tool supports it
+   - Avoid \`:contains()\` completely as it's not standard CSS and often fails
+   - Be aware of potential whitespace issues in text matching
+
+## COMMON SELECTOR PITFALLS TO AVOID:
+
+1. **Overly Specific Paths**: Avoid deep nesting like \`div.container div.row div.column div.card div.header\`. Use direct targeting instead.
+
+2. **Rigid Parent-Child Relationships**: Selectors like \`div.card div.card-header\` are more fragile than simply \`div.card-header\`.
+
+3. **Assuming Fixed Positions**: Don't rely on \`:nth-child()\` or \`:first-of-type\` unless you're certain the structure won't change.
+
+4. **Ignoring Text Content**: For unique elements, appropriate text selectors can be more reliable than complex class hierarchies - but use standard CSS where possible.
+
+5. **Not Accounting for Dynamic Changes**: Always include appropriate wait steps after actions that trigger DOM changes.
+
+6. **Pseudo-Class Compatibility Issues**: Many pseudo-classes aren't universally supported:
+   - \`:has()\` is a newer CSS feature not supported in all environments
+   - \`:contains()\` is jQuery-specific, not standard CSS and fails in browser engines
+   - \`:text()\` is a custom extension in some scraping tools
+   - Combinations like \`:has(div:contains('Text'))\` are especially problematic
+   - Never use \`:contains()\` with non-Latin text (Arabic, Chinese, etc.) as it will reliably fail
+
+7. **Foreign Language Content**: When working with non-Latin text (Arabic, Chinese, etc.):
+   - Avoid text-based selectors entirely
+   - Use class, id, or positional selectors instead
+   - Test carefully with real browser context
+
+## Available Navigation Step Types:
 
 1. Basic Navigation:
    - goto: Navigate to a URL
@@ -379,14 +427,14 @@ Available Navigation Step Types:
    - scroll: Scroll page or to elements
    - executeScript: Execute custom JavaScript
 
-ADVANCED EXTRACTION EXAMPLES:
+## ADVANCED EXTRACTION EXAMPLES:
 
 1. Extract and clean numeric values:
 \`\`\`json
 "price": {
   "selector": ".price-tag",
   "type": "regex",
-  "pattern": "[\\\\d,.]+",
+  "pattern": "[\\d,.]+",
   "dataType": "number",
   "description": "Extract numeric values from price tags"
 }
@@ -403,77 +451,86 @@ ADVANCED EXTRACTION EXAMPLES:
 \`\`\`json
 {
 "type": "condition",
-"condition": "div.fc-consent-root button.fc-button.fc-cta-consent",
+"condition": "button.fc-button.fc-cta-consent.fc-primary-button",
 "description": "Check if consent dialog is visible",
 "thenSteps": [
     {
         "type": "click",
-        "selector": "div.fc-consent-root button.fc-button.fc-cta-consent",
+        "selector": "button.fc-button.fc-cta-consent.fc-primary-button",
         "description": "Click the accept button on the consent dialog",
         "waitFor": 1000
     }
 ],
-"elseSteps": [],
 "continueOnError": true,
-"result": true
+"result": false
 }
 \`\`\`
 
 4. Extract list of elements with fields:
 \`\`\`json
 {
-            "type": "extract",
-            "name": "newsData",
-            "selector": "div.card-header:text('News') + div",
-            "description": "Extract news items from the right sidebar News box",
+    "type": "extract",
+    "name": "newsData",
+    "selector": "div.card-header:text('News') + div",
+    "description": "Extract news items from the right sidebar News box",
+    "fields": {
+        "newsItems": {
+            "selector": "a",
+            "type": "css",
+            "multiple": true,
             "fields": {
-                "newsItems": {
-                    "selector": "a",
+                "title": {
+                    "selector": "self",
+                    "type": "css"
+                },
+                "url": {
+                    "selector": "self",
                     "type": "css",
-                    "multiple": true,
-                    "fields": {
-                        "title": {
-                            "selector": "self",
-                            "type": "css"
-                        },
-                        "url": {
-                            "selector": "self",
-                            "type": "css",
-                            "attribute": "href"
-                        }
-                    }
+                    "attribute": "href"
                 }
             }
         }
+    }
+}
 \`\`\`
 
-IMPORTANT NOTES:
-1. For detailed structure of each step type, refer to the examples below
+5. Examples of problematic vs better selectors:
+
+\`\`\`json
+// PROBLEMATIC - likely to fail due to unsupported pseudo-classes
+"selector": "div.card:has(div.card-header:contains('News'))"
+
+// BETTER - use direct targeting with standard selectors
+"selector": "div.card-header:text('News') + div"
+
+// ALTERNATIVE - use adjacent sibling selector when appropriate
+"selector": "div.card-header + div.card-body"
+
+// PROBLEMATIC - will fail, especially with non-Latin text  
+"selector": "caption:contains('News Board')"
+
+// BETTER - use tag + attribute selectors
+"selector": "caption[class='gold-table-caption']"
+
+// ALTERNATIVE - use position-based selectors  
+"selector": "table.gold-prices caption"
+
+// PROBLEMATIC - likely to fail
+"selector": "a:not(:contains('More'))"
+
+// BETTER - use standard CSS only
+"selector": "a"
+
+// If filtering is needed, use post-processing or more specific selectors
+\`\`\`
+
+## IMPORTANT NOTES:
+1. For detailed structure of each step type, refer to the examples
 2. Complex features like login, pagination, and data extraction are demonstrated in the examples
 3. Use the examples as templates for similar scenarios
 4. Always include appropriate wait steps after actions that may cause page changes
 5. Use robust selectors (prefer id, data-* attributes, stable classes)
-
-Here are a few examples of well-structured configuration JSON objects:
-
-**Example 1: Google Trends** (Demonstrates complex data extraction, pagination, and dynamic content)
-\`\`\`json
-${googleTrendsExample}
-\`\`\`
-
-**Example 2: Gold Price** (Demonstrates advanced data extraction with regex, post-processing, and data type conversion)
-\`\`\`json
-${goldPriceExample}
-\`\`\`
-
-**Example 3: Google Maps** (Demonstrates search, scrolling, and structured data extraction)
-\`\`\`json
-${googleMapsExample}
-\`\`\`
-
-**Example 4: Rightmove Property Search** (Demonstrates form filling, filtering, and property data extraction)
-\`\`\`json
-${rightmoveExample}
+6. Test your configuration against the actual website to verify selector accuracy
 \`\`\`
 `;
 

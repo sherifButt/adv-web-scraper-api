@@ -139,8 +139,48 @@ export class ExtractStepHandler extends BaseStepHandler {
       } else if (step.source === 'html' && selector) {
         // Case: Extracting inner HTML
         context[name] = await this.extractHtml(selector, scope);
+      } else if (step.type === 'regex' && selector) {
+        // Case: Extracting based on regex from a specific element's HTML
+        logger.debug(`Extracting regex from element: ${selector}`);
+        let elementHtml: string | null = null;
+        try {
+          const element = await scope.$(selector);
+          if (element) {
+            elementHtml = await element.evaluate(el => (el as Element).outerHTML);
+            await element.dispose(); // Dispose handle after getting HTML
+          } else {
+            logger.warn(`Element not found for regex extraction selector: ${selector}`);
+          }
+        } catch (err: any) {
+          logger.error(`Error finding element or getting HTML for regex selector ${selector}: ${err.message}`);
+          // Rethrow or handle based on continueOnError in the next block
+          elementHtml = null; // Ensure html is null if element fetch failed
+        }
+        
+        // Perform extraction using the strategy
+        try {
+          if (elementHtml !== null) {
+            context[name] = await this.regexStrategy.extract(null, step as RegexSelectorConfig, {
+              htmlContent: elementHtml,
+            });
+          } else {
+            // If element wasn't found or HTML fetch failed
+            if ((step as any).continueOnError) {
+              context[name] = (step as any).defaultValue !== undefined ? (step as any).defaultValue : null;
+            } else {
+              throw new Error(`Element not found for selector: ${selector}`);
+            }
+          }
+        } catch (extractError: any) {
+          logger.error(`Regex extraction failed for selector ${selector}: ${extractError.message}`);
+          if ((step as any).continueOnError) {
+            context[name] = (step as any).defaultValue !== undefined ? (step as any).defaultValue : null;
+          } else {
+            throw extractError; // Rethrow critical extraction error
+          }
+        }
       } else if (selector) {
-        // Case: Extracting single text/attribute
+        // Case: Extracting single text/attribute (Default to CSS)
         context[name] = await this.extractText(selector, scope, step as CssSelectorConfig);
       } else {
         logger.warn(`Invalid extraction step configuration: No selector or fields provided.`);
@@ -242,15 +282,43 @@ export class ExtractStepHandler extends BaseStepHandler {
           }
         } else if (subFieldDef.type === SelectorType.REGEX) {
           // Handle Regex extraction
-          if (elementHtml === null) {
-            elementHtml = await element.evaluate(el => (el as Element).outerHTML);
+          const regexConfig = subFieldDef as RegexSelectorConfig;
+          let targetText: string | null = null;
+
+          // Check if a selector is provided in the field definition itself
+          if (subFieldDef.selector) {
+            logger.debug(`[extractFieldsFromElement] Regex field "${subFieldName}" targeting child selector: "${subFieldDef.selector}"`);
+            const childElement = await element.$(subFieldDef.selector);
+            if (childElement) {
+              targetText = await childElement.evaluate(el => el.textContent);
+              await childElement.dispose();
+              logger.debug(`[extractFieldsFromElement] Found child element for regex, text content length: ${targetText?.length ?? 0}`);
+            } else {
+              logger.warn(`[extractFieldsFromElement] Child element not found for regex selector: "${subFieldDef.selector}" within parent ${parentSelectorInfo}`);
+              targetText = null;
+            }
+          } else {
+            logger.debug(`[extractFieldsFromElement] Regex field "${subFieldName}" has no child selector, applying to parent element's outerHTML.`);
+            if (elementHtml === null) {
+              elementHtml = await element.evaluate(el => (el as Element).outerHTML);
+            }
+            targetText = elementHtml;
           }
 
-          item[subFieldName] = await this.regexStrategy.extract(null, subFieldDef, {
-            htmlContent: elementHtml,
-          });
-
-          logger.debug(`[extractFieldsFromElement] Extracted regex for "${subFieldName}"`);
+          // Perform extraction using the strategy
+          if (targetText !== null) {
+            item[subFieldName] = await this.regexStrategy.extract(null, regexConfig, {
+              htmlContent: targetText,
+            });
+            logger.debug(`[extractFieldsFromElement] Extracted regex value for "${subFieldName}"`);
+          } else {
+             logger.warn(`[extractFieldsFromElement] No target text found for regex field "${subFieldName}".`);
+             if (subFieldDef.continueOnError) {
+                 item[subFieldName] = subFieldDef.defaultValue !== undefined ? subFieldDef.defaultValue : null;
+             } else {
+                 throw new Error(`Child element not found for regex selector: "${subFieldDef.selector}" for field "${subFieldName}"`);
+             }
+          }
         } else {
           logger.warn(
             `Unsupported selector type "${subFieldDef.type}" for field "${subFieldName}"`

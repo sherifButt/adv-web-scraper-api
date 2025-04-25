@@ -508,14 +508,63 @@ Extracts data from elements.
 ```typescript
 {
   type: 'extract',
-  selector: '.product',
+  selector: '.product', // Can be omitted if running within forEachElement context
   name: 'products', // stored in context
+  multiple: true, // Optional: Extract from multiple elements matching selector
   fields: {
     title: { selector: '.title', type: 'css' },
-    price: { selector: '.price', type: 'css' }
-  }
+    price: { selector: '.price', type: 'css' },
+    // Example using "self": Get the element's own text
+    productText: { selector: 'self', type: 'css' },
+    // Example using "self": Get an attribute from the element itself
+    productId: { selector: 'self', type: 'css', attribute: 'data-product-id' }
+  },
+  continueOnError: false, // Optional: Continue if an error occurs (default: false)
+  defaultValue: null, // Optional: Default value if extraction fails and continueOnError is true
+  usePageScope: false // Optional: Force using page scope even if inside forEachElement (default: false)
 }
 ```
+example:
+```json
+  "type": "extract",
+            "name": "newsData",
+            "selector": "div.card-header:text('News') + div",
+            "description": "Extract news items from the right sidebar News box",
+            "fields": {
+                "newsItems": {
+                    "selector": "a",
+                    "type": "css",
+                    "multiple": true,
+                    "fields": {
+                        "title": {
+                            "selector": "self",
+                            "type": "css"
+                        },
+                        "url": {
+                            "selector": "self",
+                            "type": "css",
+                            "attribute": "href"
+                        }
+                    }
+                }
+            }
+        }
+```
+
+**Parameters:**
+
+-   `selector`: CSS selector for the parent element(s) containing the data. Can often be omitted when this step runs inside `forEachElement` if extracting from the current element.
+-   `name`: The key under which the extracted data will be stored in the navigation context.
+-   `multiple` (optional, boolean): If `true` and `selector` is provided, extracts data from *all* elements matching the `selector`. The result stored in `context[name]` will be an array. If `false` or omitted, extracts from the first matching element. Requires `fields` to define the structure of each item in the array.
+-   `fields` (optional, object): Defines the structure of the data to be extracted. Keys are the names of the data points, values are `SelectorConfig` objects.
+    -   **Using `selector: "self"`**: Within the `fields` definition, if the `selector` is set to the string `"self"`, it refers to the *current element* being processed (either the single element matched by the parent `selector`, or the current element in a `forEachElement` loop). This is useful for extracting the text content or attributes directly from the element itself.
+    -   `SelectorConfig`: Can be a CSS or Regex selector configuration (see `Extraction Types` documentation).
+-   `type` (string, optional, if `fields` is *not* used): Specifies the type of basic extraction if not using `fields`. Can be `'css'` (default) or `'regex'`. Used with `attribute` for CSS or `pattern`/`group` for Regex.
+-   `attribute` (string, optional, if `fields` is *not* used): The attribute name to extract if using basic CSS extraction.
+-   `source` (string, optional, if `fields` is *not* used): If set to `'html'`, extracts the `innerHTML` of the matched element(s).
+-   `continueOnError` (boolean, optional): If `true`, the step will not throw an error if the main selector doesn't find an element or if a sub-field extraction fails. Defaults to `false`.
+-   `defaultValue` (any, optional): The value to store if `continueOnError` is `true` and an error occurs during extraction. Defaults to `null`.
+-   `usePageScope` (boolean, optional): If `true`, all selectors (the main `selector` and those within `fields`) are evaluated from the page's top-level scope, even if the `extract` step is nested within a `forEachElement` step. Defaults to `false`, meaning selectors are evaluated relative to the current element scope when inside `forEachElement`.
 
 ## Flow Control
 
@@ -760,7 +809,7 @@ Allows for adding, deleting, clearing, or retrieving browser cookies for the cur
     -   `httpOnly` (boolean, optional): HTTP-only flag.
     -   `secure` (boolean, optional): Secure flag.
     -   `sameSite` ('Strict' | 'Lax' | 'None', optional): SameSite attribute.
--   `name` (string, optional): The name of the cookie to target for `delete` or filter by for `get`/`clear`. Required for `delete`.
+-   `name` (string, optional): The name of the cookie to target for `delete` or filter by for `get`/`clear`.
 -   `domain` (string, optional): Filter cookies by domain for `delete`, `clear`, or `get`.
 -   `path` (string, optional): Filter cookies by path for `delete`, `clear`, or `get`.
 -   `contextKey` (string, optional, for `action: 'get'`): The key under which the retrieved cookies array will be stored in the navigation context. Defaults to `'retrievedCookies'`.

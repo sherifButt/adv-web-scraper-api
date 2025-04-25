@@ -1,0 +1,98 @@
+{
+    "startUrl": "https://egypt.gold-price-today.com",
+    "steps": [
+        {
+            "type": "wait",
+            "timeout": 5000,
+            "description": "Wait for page to fully load"
+        },
+        {
+            "type": "condition",
+            "condition": "button.fc-button.fc-cta-consent.fc-primary-button",
+            "description": "Check if consent dialog is visible",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": "button.fc-button.fc-cta-consent.fc-primary-button",
+                    "description": "Click the accept button on the consent dialog",
+                    "waitFor": 1000
+                }
+            ],
+            "continueOnError": true,
+            "result": true
+        },
+        {
+            "type": "extract",
+            "name": "secondTableData",
+            "selector": "table.prices-table:nth-of-type(2)",
+            "description": "Extract data from the second gold price table with caption 'متوسط سعر بيع الذهب في الأيام السابقة في مصر بالجنيه المصري'",
+            "fields": {
+                "caption": {
+                    "selector": "caption",
+                    "type": "css"
+                },
+                "days": {
+                    "selector": "tbody tr",
+                    "type": "css",
+                    "multiple": true,
+                    "fields": {
+                        "day": {
+                            "selector": "th",
+                            "type": "css"
+                        },
+                        "gold24": {
+                            "selector": "td:nth-child(2)",
+                            "type": "regex",
+                            "pattern": "([\\d,.]+)",
+                            "group": 1,
+                            "dataType": "number"
+                        },
+                        "gold22": {
+                            "selector": "td:nth-child(3)",
+                            "type": "regex",
+                            "pattern": "([\\d,.]+)",
+                            "group": 1,
+                            "dataType": "number"
+                        },
+                        "gold21": {
+                            "selector": "td:nth-child(4)",
+                            "type": "regex",
+                            "pattern": "([\\d,.]+)",
+                            "group": 1,
+                            "dataType": "number"
+                        },
+                        "gold18": {
+                            "selector": "td:nth-child(5)",
+                            "type": "regex",
+                            "pattern": "([\\d,.]+)",
+                            "group": 1,
+                            "dataType": "number"
+                        },
+                        "ounce": {
+                            "selector": "td:nth-child(6)",
+                            "type": "regex",
+                            "pattern": "([\\d,.]+)",
+                            "group": 1,
+                            "dataType": "number"
+                        },
+                        "indicator": {
+                            "selector": "td:nth-child(7)",
+                            "type": "css"
+                        }
+                    }
+                },
+                "footer": {
+                    "selector": "tfoot tr td",
+                    "type": "css",
+                    "optional": true
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 30000,
+        "waitForNavigation": true,
+        "waitUntil": "networkidle0",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+}
