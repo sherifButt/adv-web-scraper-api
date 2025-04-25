@@ -361,18 +361,49 @@ export class ExtractStepHandler extends BaseStepHandler {
     const attr = config.attribute;
 
     try {
-      return await scope.$eval(
-        selector,
-        (el, attr) => (attr ? el.getAttribute(attr) || '' : el.textContent?.trim() || ''),
-        attr
-      );
+      // --- Handle "self" selector --- 
+      if (selector === 'self') {
+         // Use a more robust type guard to check if scope is ElementHandle
+         // Check for a method unique to ElementHandle, e.g., 'evaluateHandle' or use instanceof if possible
+         // For simplicity, let's check if it's NOT a Page by checking for a Page-specific method like 'goto'
+        if (typeof (scope as any).goto === 'function') { // Check if it behaves like a Page
+          logger.warn(`'self' selector cannot be used with Page scope directly. Requires an element scope.`);
+          if (config.continueOnError) {
+              return config.defaultValue !== undefined ? String(config.defaultValue) : null;
+          }
+          throw new Error("'self' selector used incorrectly with Page scope.");
+        } else {
+            // Type assertion to help TypeScript understand scope is ElementHandle here
+            const elementScope = scope as ElementHandle;
+            return await elementScope.evaluate(
+                (el: Element, attrValue?: string) => // Add types for el and attrValue
+                attrValue ? el.getAttribute(attrValue) || '' : el.textContent?.trim() || '',
+                attr // Pass attr as the argument to the callback
+            );
+        }
+      } else {
+        // --- Handle standard selectors --- 
+        return await scope.$eval(
+          selector,
+          (el: Element, attrValue?: string) => // Add types for el and attrValue
+            attrValue ? el.getAttribute(attrValue) || '' : el.textContent?.trim() || '',
+          attr // Pass attr as the argument to the callback
+        );
+      }
     } catch (error: any) {
-      logger.warn(`Failed to extract text/attribute with selector "${selector}": ${error.message}`);
+      // Log slightly differently based on selector type for clarity
+      const failureType = selector === 'self' ? 'evaluate self' : 'find/evaluate selector';
+      logger.warn(
+        `Failed to ${failureType} "${selector}": ${error.message?.split('\n')[0]}` // Log concise error
+      );
 
       if (config.continueOnError) {
-        return config.defaultValue !== undefined ? config.defaultValue : null;
+        return config.defaultValue !== undefined ? String(config.defaultValue) : null;
       } else {
-        throw new Error(`Critical extraction failure for selector "${selector}": ${error.message}`);
+        // Re-throw a more specific error for critical failures
+        throw new Error(
+          `Critical extraction failure for selector "${selector}": ${error.message}`
+        );
       }
     }
   }

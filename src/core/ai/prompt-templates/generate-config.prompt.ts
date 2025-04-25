@@ -419,6 +419,34 @@ ADVANCED EXTRACTION EXAMPLES:
 }
 \`\`\`
 
+4. Extract list of elements with fields:
+\`\`\`json
+{
+            "type": "extract",
+            "name": "newsData",
+            "selector": "div.card-header:text('News') + div",
+            "description": "Extract news items from the right sidebar News box",
+            "fields": {
+                "newsItems": {
+                    "selector": "a",
+                    "type": "css",
+                    "multiple": true,
+                    "fields": {
+                        "title": {
+                            "selector": "self",
+                            "type": "css"
+                        },
+                        "url": {
+                            "selector": "self",
+                            "type": "css",
+                            "attribute": "href"
+                        }
+                    }
+                }
+            }
+        }
+\`\`\`
+
 IMPORTANT NOTES:
 1. For detailed structure of each step type, refer to the examples below
 2. Complex features like login, pagination, and data extraction are demonstrated in the examples

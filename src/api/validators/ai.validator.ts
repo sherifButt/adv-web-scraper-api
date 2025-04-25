@@ -22,20 +22,27 @@ const generateConfigOptionsSchema = Joi.object({
 
 // Schema for the POST /api/v1/ai/generate-config request body
 export const generateConfigSchema = Joi.object({
-  url: Joi.string().uri().required().messages({
-    'string.base': `"url" should be a type of 'text'`,
-    'string.empty': `"url" cannot be an empty field`,
-    'string.uri': `"url" must be a valid URI`,
-    'any.required': `"url" is a required field`,
+  // --- Conditional URL Validation ---
+  url: Joi.when('previousJobId', {
+    is: Joi.exist(), // Check if previousJobId is provided
+    then: Joi.string().uri().optional().allow('', null), // URL is optional if previousJobId exists (allow empty/null just in case)
+    otherwise: Joi.string().uri().required().messages({ // URL is required otherwise
+        'string.base': `"url" should be a type of 'text'`,
+        'string.empty': `"url" cannot be an empty field`,
+        'string.uri': `"url" must be a valid URI`,
+        'any.required': `"url" is required when not refining a previous job`,
+    })
   }),
   prompt: Joi.string().required().min(10).messages({
     'string.base': `"prompt" should be a type of 'text'`,
     'string.empty': `"prompt" cannot be an empty field`,
     'string.min': `"prompt" should have a minimum length of {#limit}`,
-    'any.required': `"prompt" is a required field`,
+    'any.required': `"prompt" is a required field (used for initial prompt or refinement feedback)`,
   }),
   // --- Refinement Fields ---
-  previousJobId: Joi.string().optional(),
+  // can be empty if not refining a previous job
+  previousJobId: Joi.string().allow('', null).optional(),
+  
   fetchHtmlForRefinement: Joi.boolean().optional().default(false),
   // --- End Refinement Fields ---
   options: generateConfigOptionsSchema,

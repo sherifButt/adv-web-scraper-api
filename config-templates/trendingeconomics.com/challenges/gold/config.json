@@ -1,70 +1,79 @@
 {
-    "id": "ae2b6d60-b40e-4b57-8134-8fcc8385c095",
-    "queueName": "config-generation-jobs",
     "startUrl": "https://tradingeconomics.com/commodity/gold",
     "steps": [
         {
             "type": "wait",
-            "waitForSelector": "table.table.table-hover",
-            "timeout": 30000,
-            "description": "Wait for the main data table to load. NOTE: This site may present CAPTCHA/WAF challenges that prevent loading."
+            "waitForSelector": "body",
+            "timeout": 15000,
+            "description": "Wait for the body element to be present. NOTE: This site frequently uses CAPTCHA/Human Verification ('Let's confirm you are human') which cannot be bypassed by this configuration. If CAPTCHA appears, subsequent steps will fail."
         },
         {
             "type": "condition",
-            "condition": "button#onetrust-accept-btn-handler",
-            "description": "Check if cookie consent banner exists",
+            "condition": "div.fc-consent-root button.fc-button.fc-cta-consent",
+            "description": "Check if the cookie consent banner is visible",
             "thenSteps": [
                 {
                     "type": "click",
-                    "selector": "button#onetrust-accept-btn-handler",
-                    "description": "Click the Accept button on the cookie banner"
-                },
-                {
-                    "type": "wait",
-                    "value": 1500,
-                    "description": "Wait for banner to disappear"
+                    "selector": "div.fc-consent-root button.fc-button.fc-cta-consent",
+                    "description": "Click the 'Accept all' button on the cookie consent banner",
+                    "waitFor": 1500
                 }
             ],
+            "elseSteps": [],
             "continueOnError": true,
             "result": false
         },
         {
+            "type": "wait",
+            "value": 2000,
+            "description": "Wait a bit after potential consent click for page to settle."
+        },
+        {
+            "type": "wait",
+            "waitForSelector": "table.table.table-hover.table-striped.table-heatmap",
+            "timeout": 30000,
+            "description": "Wait for the main commodity price table to load. If this fails, CAPTCHA was likely encountered."
+        },
+        {
             "type": "extract",
             "name": "goldPriceData",
-            "selector": "table.table.table-hover:first-of-type",
-            "description": "Extract data from the first table on the page",
+            "selector": "table.table.table-hover.table-striped.table-heatmap",
+            "description": "Extract data from the first main table (Gold price summary)",
             "fields": {
                 "rows": {
                     "selector": "tbody tr",
                     "type": "css",
                     "multiple": true,
                     "fields": {
-                        "price": {
-                            "selector": "td:nth-of-type(1)",
-                            "type": "regex",
-                            "pattern": "[\\d,.]+",
-                            "dataType": "number",
-                            "description": "Extract the price value"
-                        },
-                        "day": {
-                            "selector": "td:nth-of-type(2)",
+                        "commodity_name": {
+                            "selector": "td:nth-of-type(1) a",
                             "type": "css",
-                            "description": "Extract the daily change"
+                            "description": "Extract Commodity Name (e.g., Gold) from link (raw text)"
                         },
-                        "month": {
+                        "price": {
                             "selector": "td:nth-of-type(3)",
                             "type": "css",
-                            "description": "Extract the monthly change"
+                            "description": "Extract Price (raw text, as is)"
                         },
-                        "year": {
+                        "day_change_percent": {
                             "selector": "td:nth-of-type(4)",
                             "type": "css",
-                            "description": "Extract the yearly change"
+                            "description": "Extract Day change percentage (raw text, as is)"
                         },
-                        "Date": {
+                        "month_change_percent": {
                             "selector": "td:nth-of-type(5)",
                             "type": "css",
-                            "description": "Extract the date"
+                            "description": "Extract Month change percentage (raw text, as is)"
+                        },
+                        "year_change_percent": {
+                            "selector": "td:nth-of-type(6)",
+                            "type": "css",
+                            "description": "Extract Year change percentage (raw text, as is)"
+                        },
+                        "date": {
+                            "selector": "td:nth-of-type(7)",
+                            "type": "css",
+                            "description": "Extract Date (raw text, as is)"
                         }
                     }
                 }
@@ -74,8 +83,8 @@
     "options": {
         "timeout": 60000,
         "javascript": true,
+        "screenshots": false,
         "debug": false,
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
-    },
-    "estimatedCost": 0.0010806000000000001
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    }
 }

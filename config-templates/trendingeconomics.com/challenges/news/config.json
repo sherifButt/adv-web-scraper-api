@@ -1,0 +1,63 @@
+{
+    "startUrl": "https://tradingeconomics.com/commodity/gold",
+    "steps": [
+        {
+            "type": "wait",
+            "waitForSelector": "body",
+            "timeout": 20000,
+            "description": "Wait for the page body to load"
+        },
+        {
+            "type": "condition",
+            "condition": "button.fc-button.fc-cta-consent",
+            "description": "Check if the consent button is visible",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": "button.fc-button.fc-cta-consent",
+                    "description": "Click the Consent button",
+                    "waitFor": 1500
+                }
+            ],
+            "continueOnError": true,
+            "result": false
+        },
+        {
+            "type": "wait",
+            "waitForSelector": "div.card-header:text('News')",
+            "timeout": 10000,
+            "description": "Wait for the News card to be present"
+        },
+        {
+            "type": "extract",
+            "name": "newsData",
+            "selector": "div.card-header:text('News') + div",
+            "description": "Extract news items from the right sidebar News box",
+            "fields": {
+                "newsItems": {
+                    "selector": "a",
+                    "type": "css",
+                    "multiple": true,
+                    "fields": {
+                        "title": {
+                            "selector": "self",
+                            "type": "css"
+                        },
+                        "url": {
+                            "selector": "self",
+                            "type": "css",
+                            "attribute": "href"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 60000,
+        "javascript": true,
+        "screenshots": false,
+        "debug": false,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+    }
+}
