@@ -95,25 +95,29 @@ export class AiService {
   }
 
   /**
-   * Attempts to fix a previously generated configuration based on errors.
+   * Attempts to fix a previously generated configuration based on errors or user feedback.
    */
   public async fixConfiguration(
     url: string,
     originalPrompt: string,
     previousConfig: any,
-    errorLog: string | null,
+    errorLog: string | null, // Error from automated test, or null if refinement starts from user feedback
     options: Required<GenerateConfigOptions>,
     jobId?: string,
-    interactionHints?: string[] // Add interactionHints parameter
+    interactionHints?: string[],
+    htmlContent?: string, // Optional fresh HTML context
+    userFeedback?: string // Optional user feedback for refinement
   ): Promise<AiModelResponse> {
     const systemPrompt = FIX_CONFIG_SYSTEM_PROMPT;
-    // Pass interactionHints to the prompt function
+    // Pass all relevant context to the prompt function
     const userPrompt = fixConfigUserPrompt(
       url,
       originalPrompt,
       previousConfig,
       errorLog,
-      interactionHints
+      interactionHints,
+      htmlContent, // Pass HTML content
+      userFeedback // Pass user feedback
     );
     return this.callAiModel(systemPrompt, userPrompt, options, jobId);
   }

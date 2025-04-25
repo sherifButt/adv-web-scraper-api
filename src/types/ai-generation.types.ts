@@ -26,6 +26,9 @@ export interface GenerateConfigState {
   lastConfig: any | null;
   lastError: string | null;
   testResult: any | null;
+  isRefinement?: boolean;
+  userFeedback?: string;
+  fetchHtmlForRefinement?: boolean;
 }
 
 export interface GenerateConfigResult {
@@ -94,3 +97,18 @@ export const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {
 };
 
 export type AIProvider = 'openai' | 'deepseek' | 'anthropic' | 'openrouter';
+
+// --- Explicit Type for Stored AI Job Results ---
+export interface StoredScrapingConfig {
+    id: string;
+    queueName?: string;
+    url: string;
+    originalPrompt?: string; // Ensure this is stored
+    config: any; // The generated JSON configuration
+    options?: GenerateConfigOptions; // Store the options used
+    estimatedCost?: number;
+    status?: 'completed' | 'failed' | string; // Allow other statuses if needed
+    errorMessage?: string;
+    // Add other fields that might be stored by StorageService.store
+    [key: string]: any; // Allow other fields for flexibility
+}

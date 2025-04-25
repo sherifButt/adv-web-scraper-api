@@ -212,41 +212,64 @@ export const fixConfigUserPrompt = (
   originalPrompt: string,
   previousConfig: any,
   errorLog: string | null,
-  interactionHints?: string[] // Add interactionHints parameter
+  interactionHints?: string[],
+  htmlContent?: string, // Optional HTML content
+  userFeedback?: string // Optional user feedback
 ) => {
   const errorLogContent = errorLog ?? 'No specific error log was provided';
-  
+  const feedbackContent = userFeedback ?? 'No specific user feedback provided.';
+
   // Check if error log contains HTML context - better structure it for the AI
   let formattedErrorLog = errorLogContent;
   if (errorLogContent.includes('Current Page HTML Context:')) {
-    // Split the error message and HTML context for better readability
     const [errorPart, htmlPart] = errorLogContent.split('Current Page HTML Context:');
-    formattedErrorLog = `${errorPart.trim()}\n\n--- CURRENT PAGE HTML CONTEXT ---\n${htmlPart.trim()}`;
+    formattedErrorLog = `${errorPart.trim()}\n\n--- CURRENT PAGE HTML CONTEXT (from error log) ---\n${htmlPart.trim()}`;
   }
-  
-  let userPrompt = `The following scraping configuration failed during testing. Please fix it based on the error provided.
+
+  // --- Build the prompt string --- 
+  let userPrompt = `The following scraping configuration needs correction or refinement based on the provided context.
 
 Original URL: ${url}
 Original Prompt: ${originalPrompt}
 
-Previous Failed Configuration:
+Previous Configuration to Fix/Refine:
 \`\`\`json
 ${JSON.stringify(previousConfig, null, 2)}
 \`\`\`
 
-Error/Log from Test Run:
+Error/Log from Last Test Run (if any):
 \`\`\`
 ${formattedErrorLog}
+\`\`\`
+
+User Feedback/Refinement Instructions (if any):
+\`\`\`
+${feedbackContent}
 \`\`\``;
+
+  // Conditionally add fresh HTML context if provided
+  if (htmlContent) {
+    const maxLength = 15000; // Match truncation from generate prompt
+    const truncatedHtml =
+      htmlContent.length > maxLength ? htmlContent.substring(0, maxLength) + '...' : htmlContent;
+    userPrompt += `\n\nRelevant Fresh HTML Context (if provided for refinement):
+\`\`\`html
+${truncatedHtml}
+\`\`\``;
+  } else {
+    userPrompt += `\n\n(No fresh HTML context was provided for this fix/refinement task)`;
+  }
 
   // Append interaction hints if provided
   if (interactionHints && interactionHints.length > 0) {
-    userPrompt += `\n\nUser Interaction Hints (Consider these when fixing the configuration, especially for dynamic content):`;
-    interactionHints.forEach(hint => {
+    userPrompt += `\n\nUser Interaction Hints (Consider these when fixing/refining the configuration):`;
+    interactionHints.forEach((hint) => {
       userPrompt += `\n- ${hint}`;
     });
   }
 
-  userPrompt += `\n\nGenerate the corrected JSON configuration:`;
+  userPrompt += `\n\nPlease analyze the previous configuration, the error/log, the user feedback, and any provided HTML context. 
+Generate the corrected/refined JSON configuration:`;
+
   return userPrompt;
 };

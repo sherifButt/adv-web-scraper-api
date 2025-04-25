@@ -34,6 +34,10 @@ export const generateConfigSchema = Joi.object({
     'string.min': `"prompt" should have a minimum length of {#limit}`,
     'any.required': `"prompt" is a required field`,
   }),
+  // --- Refinement Fields ---
+  previousJobId: Joi.string().optional(),
+  fetchHtmlForRefinement: Joi.boolean().optional().default(false),
+  // --- End Refinement Fields ---
   options: generateConfigOptionsSchema,
 });
 

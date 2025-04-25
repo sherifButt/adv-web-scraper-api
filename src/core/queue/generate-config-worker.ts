@@ -132,60 +132,133 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
   if (!job.id) {
     throw new Error('Job ID is required but was not provided');
   }
-  const { url, prompt, options: reqOptions }: GenerateConfigRequest = job.data;
+  // --- Extract potential refinement flags from job data ---
+  const {
+    url,
+    prompt,
+    options: reqOptions,
+    initialState,
+    isRefinement,
+    fetchHtmlForRefinement,
+    refinesJobId,
+  }: GenerateConfigRequest & {
+    initialState?: Partial<GenerateConfigState> & { userFeedback?: string };
+    isRefinement?: boolean;
+    fetchHtmlForRefinement?: boolean;
+    refinesJobId?: string;
+  } = job.data;
+
   const jobId = job.id;
-  logger.info(`Job ${jobId}: Starting AI config generation for URL: ${url}`);
+  logger.info(
+    `Job ${jobId}: Starting AI config ${
+      isRefinement ? `refinement (based on ${refinesJobId})` : 'generation'
+    } for URL: ${url}`
+  );
 
   const aiService = AiService.getInstance();
   const storageService = StorageService.getInstance();
 
+  // --- Initialize Options (Merge default, request, and potentially refinement state) ---
   const options: Required<GenerateConfigOptions> = {
     ...DEFAULT_OPTIONS,
-    ...reqOptions,
+    ...reqOptions, // Options from the request take precedence
     browserOptions: {
       ...DEFAULT_OPTIONS.browserOptions,
-      ...reqOptions?.browserOptions,
+      ...(reqOptions?.browserOptions),
     },
+    // Ensure interactionHints are arrays and merged if needed (or just use new ones)
+    interactionHints: reqOptions?.interactionHints ?? DEFAULT_OPTIONS.interactionHints,
   };
 
-  const state: GenerateConfigState = {
-    status: 'processing',
-    progress: 0,
-    message: 'Initializing config generation',
-    url,
-    prompt,
-    options,
-    iteration: 0,
-    tokensUsed: 0,
-    estimatedCost: 0,
-    currentStatus: 'Initializing',
-    lastConfig: null,
-    lastError: null,
-    testResult: null,
-  };
+  // --- Initialize State (Handle both initial generation and refinement) ---
+  let state: GenerateConfigState;
+
+  if (isRefinement && initialState) {
+    // --- Refinement State Initialization ---
+    state = {
+      status: 'processing',
+      progress: 0, // Reset progress for refinement job
+      message: `Initializing refinement based on job ${refinesJobId}`,
+      url: url, // URL comes from the original job data passed in
+      prompt: prompt, // Original prompt comes from original job data passed in
+      options: options, // Use newly merged options
+      iteration: 0, // Start at 0, loop will increment to 1
+      tokensUsed: initialState.tokensUsed ?? 0, // Carry over or reset? Resetting seems cleaner.
+      estimatedCost: initialState.estimatedCost ?? 0, // Resetting seems cleaner.
+      currentStatus: 'Initializing Refinement',
+      lastConfig: initialState.lastConfig ?? null, // Crucial: start with the previous config
+      lastError: initialState.lastError ?? null, // Carry over potential previous error context
+      userFeedback: initialState.userFeedback, // The refinement instruction
+      fetchHtmlForRefinement: fetchHtmlForRefinement ?? false, // Store the flag
+      testResult: null, // Reset test result for refinement attempt
+      isRefinement: true, // Mark state as refinement
+    };
+     if (!state.lastConfig) {
+         throw new Error(`Job ${jobId}: Refinement job started without a 'lastConfig' in initialState.`);
+     }
+     if (!state.userFeedback) {
+         logger.warn(`Job ${jobId}: Refinement job started without 'userFeedback' in initialState.`);
+         // Proceed, but AI might not have specific instructions
+     }
+  } else {
+    // --- Initial Generation State Initialization ---
+    state = {
+      status: 'processing',
+      progress: 0,
+      message: 'Initializing config generation',
+      url, // URL from the request
+      prompt, // Prompt from the request
+      options, // Options from the request merged with defaults
+      iteration: 0, // Start at 0
+      tokensUsed: 0,
+      estimatedCost: 0,
+      currentStatus: 'Initializing',
+      lastConfig: null,
+      lastError: null,
+      userFeedback: undefined, // No user feedback initially
+      fetchHtmlForRefinement: undefined, // Not applicable
+      testResult: null,
+      isRefinement: false, // Mark state as initial generation
+    };
+  }
 
   await updateJobStatus(job, state);
 
+  // --- Main Generation/Refinement Loop ---
   while (state.iteration < state.options.maxIterations) {
-    state.iteration++;
-    state.currentStatus =
-      state.iteration === 1
-        ? 'Generating Initial Config'
-        : `Preparing Fix Iteration ${state.iteration}`;
+    state.iteration++; // Increment iteration at the start
+
+    // Update status based on whether it's the first pass of initial/refinement or a subsequent fix
+     if (state.iteration === 1) {
+        state.currentStatus = state.isRefinement
+            ? 'Preparing Refinement Config'
+            : 'Generating Initial Config';
+     } else {
+        state.currentStatus = `Preparing Fix Iteration ${state.iteration}`;
+     }
     await updateJobStatus(job, state);
+
 
     let aiResponse: AiModelResponse;
     let fetchedHtmlContent: string | undefined;
 
     try {
-      if (state.iteration === 1) {
-        state.currentStatus = 'Fetching Initial HTML';
+      // --- Conditional HTML Fetching ---
+      const shouldFetchHtml =
+        (!state.isRefinement && state.iteration === 1) || // Always fetch on first iteration of initial generation
+        (state.isRefinement && state.iteration === 1 && state.fetchHtmlForRefinement); // Fetch on first iteration of refinement IF flag is true
+
+      if (shouldFetchHtml) {
+        state.currentStatus = 'Fetching HTML';
         await updateJobStatus(job, state);
-        logger.info(`Job ${jobId}: Fetching HTML content for ${state.url}`);
+        logger.info(
+          `Job ${jobId}: Fetching HTML content for ${state.url} (Iteration ${state.iteration}, RefinementFetch: ${state.fetchHtmlForRefinement})`
+        );
         let browser: any = null;
         let page: Page | null = null;
         try {
-          const browserOptions: BrowserOptions = { headless: true };
+          // --- [Start of Reusable HTML Fetch Logic] ---
+          const browserOptions: BrowserOptions = { headless: true }; // Use state.options? No, keep fetch simple for now.
           if (globalConfig.proxy.enabled && globalConfig.proxy.useForHtmlFetch) {
             const proxyManager = ProxyManager.getInstance();
             const proxyInfo: ProxyInfo | null = await proxyManager.getProxy();
@@ -207,54 +280,80 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
             const rawHtml = await page.content();
             fetchedHtmlContent = cleanHtml(rawHtml);
             logger.info(
-              `Job ${jobId}: Successfully fetched and cleaned HTML (${fetchedHtmlContent.length} chars).`
+              `Job ${jobId}: Successfully fetched and cleaned HTML (${
+                fetchedHtmlContent?.length ?? 0
+              } chars).`
             );
           } else {
             throw new Error(`Job ${jobId}: Failed to create page for HTML fetching.`);
           }
+          // --- [End of Reusable HTML Fetch Logic] ---
         } catch (fetchError: any) {
           logger.warn(
             `Job ${jobId}: Failed to fetch or clean HTML: ${fetchError.message}. Proceeding without HTML context.`
           );
-          state.lastError = `HTML fetch failed: ${fetchError.message}`;
+          // Don't assign error to state.lastError here, as it might overwrite a real config error later
           fetchedHtmlContent = undefined;
         } finally {
           if (page) await page.close();
           if (browser) await BrowserPool.getInstance().releaseBrowser(browser);
         }
-        state.currentStatus = 'Generating Initial Config';
-        await updateJobStatus(job, state);
+      } else {
+         logger.info(`Job ${jobId}: Skipping HTML fetch for this iteration.`);
+         fetchedHtmlContent = undefined;
       }
 
-      logger.info(`Job ${jobId}: Calling AI Service (Iteration ${state.iteration})`);
-      if (state.iteration === 1) {
+      // --- Determine AI Call Type and Parameters ---
+      state.currentStatus =
+        state.iteration === 1 && !state.isRefinement
+          ? 'Generating Initial Config'
+          : state.iteration === 1 && state.isRefinement
+          ? 'Generating Refined Config'
+          : `Generating Fix (Iteration ${state.iteration})`;
+      await updateJobStatus(job, state);
+      logger.info(`Job ${jobId}: Calling AI Service (${state.currentStatus})`);
+
+
+      if (!state.isRefinement && state.iteration === 1) {
+        // --- Initial Generation Call ---
         aiResponse = await aiService.generateConfiguration(
           state.url,
-          state.prompt,
+          state.prompt, // Use the original prompt
           state.options,
           fetchedHtmlContent,
           jobId,
-          state.options.interactionHints // Pass interaction hints
+          state.options.interactionHints
         );
       } else {
+        // --- Fix / Refinement Call ---
+        // Ensure we have a config to fix/refine
         if (!state.lastConfig) {
           throw new Error(
-            `Job ${jobId}: Cannot perform fix iteration ${state.iteration} without a previous configuration state.`
+            `Job ${jobId}: Cannot perform fix/refinement iteration ${state.iteration} without a previous configuration state.`
           );
         }
-        const errorForFix =
-          state.lastError ?? 'Test failed or validation passed but requires refinement.';
+
+        // Determine the primary error/reason for this call
+        // Prioritize user feedback if this is the first refinement iteration
+        // Otherwise, use the last error from testing.
+        const errorForFix = (state.isRefinement && state.iteration === 1)
+            ? null // Let userFeedback be the primary driver, pass error separately if needed
+            : state.lastError ?? 'Test failed or validation passed but requires refinement.'; // Existing logic for subsequent fixes
+
         aiResponse = await aiService.fixConfiguration(
           state.url,
-          state.prompt,
-          state.lastConfig,
-          errorForFix,
+          state.prompt, // Always pass the original prompt for context
+          state.lastConfig, // The config to be fixed/refined
+          errorForFix, // Error log from testing (or null if initial refinement)
           state.options,
           jobId,
-          state.options.interactionHints // Pass interaction hints
+          state.options.interactionHints,
+          fetchedHtmlContent, // Pass HTML if fetched
+          state.userFeedback // Pass explicit user feedback for refinement
         );
       }
 
+      // --- Process AI Response (Common Logic) ---
       logger.info(
         `Job ${jobId}: Received AI Response. Tokens: ${
           aiResponse.tokensUsed
@@ -267,37 +366,47 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
 
       logger.debug(`Job ${jobId}: Raw AI config:`, aiResponse.config);
       const validationResult = ScrapingConfigSchema.safeParse(aiResponse.config);
+
       if (!validationResult.success) {
+         // ... (existing validation failure logic remains the same) ...
         const errorMsg = `AI response failed schema validation: ${validationResult.error.errors
           .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
           .join(', ')}`;
         logger.warn(`Job ${jobId}: ${errorMsg}`);
         state.lastError = errorMsg;
-        state.lastConfig = aiResponse.config;
+        state.lastConfig = aiResponse.config; // Store the invalid config for potential next fix attempt
         state.currentStatus = `Validation Failed (Iteration ${state.iteration})`;
         await updateJobStatus(job, state);
-        continue;
+        continue; // Skip testing and go to next iteration
       }
 
       logger.info(`Job ${jobId}: AI response schema validation PASSED.`);
       const currentConfig = validationResult.data as {
         startUrl: string;
-        steps: any[];
+        steps: NavigationStep[]; // Use NavigationStep[] type
         variables?: Record<string, any>;
         options?: Record<string, any>;
       };
-      state.lastConfig = currentConfig;
-      state.lastError = null;
+      state.lastConfig = currentConfig; // Store the valid config
+      state.lastError = null; // Clear last error after successful validation
+      state.userFeedback = undefined; // Clear user feedback after it's been used in a fixConfiguration call
 
+
+      // --- Testing Phase (Common Logic, if enabled) ---
       if (!state.options.testConfig) {
+         // ... (existing no-test logic remains the same) ...
         logger.info(`Job ${jobId}: Skipping test phase as testConfig is false.`);
         state.currentStatus = 'Completed (No Test)';
         await updateJobStatus(job, state);
         logger.info(`Job ${jobId}: Storing final configuration (no test).`);
+        // Ensure originalPrompt is stored
         await storageService.store({
           id: jobId,
           queueName: job.queueName, // Add queue name
-          ...currentConfig,
+          originalPrompt: state.prompt, // Store original prompt
+          url: state.url,
+          config: currentConfig, // Store the validated config object
+          options: state.options, // Store effective options used
           estimatedCost: state.estimatedCost, // Store cost
         });
         return {
@@ -312,6 +421,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         };
       }
 
+      // --- Execute Test ---
       state.currentStatus = `Testing Config (Iteration ${state.iteration})`;
       await updateJobStatus(job, state);
       logger.info(`Job ${jobId}: Starting configuration test (Iteration ${state.iteration}).`);
@@ -322,6 +432,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       let page: Page | null = null;
 
       try {
+        // ... [Existing Test Setup Logic - Browser Pool, Proxy, Page Creation] ...
         const browserOptions: BrowserOptions = {
           headless: state.options.browserOptions.headless,
         };
@@ -342,18 +453,19 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         if (!page) {
           throw new Error(`Job ${jobId}: Failed to create page for testing.`);
         }
+
         logger.info(`Job ${jobId}: Executing navigation flow for test.`);
         const navigationEngine = new NavigationEngine(page, currentConfig.options || {});
         const testNavResult: NavigationResult = await navigationEngine.executeFlow(
-          currentConfig.startUrl ?? state.url,
-          currentConfig.steps as NavigationStep[],
+          currentConfig.startUrl ?? state.url, // Use startUrl from config if present
+          currentConfig.steps, // Pass validated steps
           currentConfig.variables || {}
         );
         logger.debug(`Job ${jobId}: Test navigation result:`, testNavResult);
 
-        // Refined Test Evaluation
+        // --- Refined Test Evaluation ---
         if (testNavResult.status === 'completed' && !testNavResult.error) {
-          // Check if any data was actually extracted in the result object
+          // ... (existing 'hasExtractedData' check remains the same) ...
           const hasExtractedData =
             testNavResult.result && Object.keys(testNavResult.result).length > 0;
 
@@ -364,18 +476,17 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
               `Job ${jobId}: Test PASSED (Iteration ${state.iteration}) - Data extracted.`
             );
           } else {
-            // Test completed without errors, but no data was extracted. This is a failure scenario for fixing.
-            testPassed = false;
-            testErrorLog =
-              'Test completed successfully, but no data was extracted by the configuration.';
-            state.testResult = testNavResult.result; // Store empty result for context if needed
-            logger.warn(
-              `Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testErrorLog}`
-            );
+             testPassed = false;
+             testErrorLog =
+               'Test completed successfully, but no data was extracted by the configuration.';
+             state.testResult = testNavResult.result; // Store empty result for context if needed
+             logger.warn(
+               `Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testErrorLog}`
+             );
           }
         } else {
-          // Test failed during navigation (e.g., selector not found, timeout)
-          testPassed = false;
+          // ... (existing test failure logging with selector analysis and HTML context) ...
+           testPassed = false;
           // Prioritize the error message from the navigation result if available
           testErrorLog = `Navigation test failed: ${
             testNavResult.error ?? 'Unknown navigation error during execution.'
@@ -384,14 +495,14 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           // Enhanced error logging with more context
           if (testNavResult.error && testNavResult.error.includes("selector")) {
             // Extract the failing selector from the error message using regex
-            const selectorMatch = testNavResult.error.match(/(['"])([^'"]+)\1/);
+            const selectorMatch = testNavResult.error.match(/(['"])([^'"]+)\\1/);
             const failingSelector = selectorMatch ? selectorMatch[2] : null;
             
             // Add selector analysis if we could identify the selector
             if (failingSelector) {
               try {
                 const selectorAnalysis = await analyzeDomForSelector(page, failingSelector);
-                testErrorLog += `\n\nSelector Analysis:\n${selectorAnalysis}`;
+                testErrorLog += `\\n\\nSelector Analysis:\\n${selectorAnalysis}`;
               } catch (analysisError: any) {
                 logger.warn(`Job ${jobId}: Failed to analyze selector: ${analysisError.message}`);
               }
@@ -400,9 +511,10 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
             // For selector errors, add page HTML context around the problematic area
             try {
               const pageHtml = await page.content();
-              const minifiedHtml = pageHtml.replace(/\s+/g, ' ').trim();
-              const shortenedHtml = minifiedHtml.length > 2000 ? minifiedHtml.substring(0, 2000) + "..." : minifiedHtml;
-              testErrorLog += `\n\nCurrent Page HTML Context:\n${shortenedHtml}\n\nTry using alternative selectors that exist in the actual page structure.`;
+              const minifiedHtml = pageHtml.replace(/\\s+/g, ' ').trim();
+              // Limit HTML context size in logs
+              const shortenedHtml = minifiedHtml.length > 3000 ? minifiedHtml.substring(0, 3000) + "..." : minifiedHtml;
+              testErrorLog += `\\n\\nCurrent Page HTML Context (truncated):\\n${shortenedHtml}\\n\\nTry using alternative selectors that exist in the actual page structure.`;
             } catch (htmlError: any) {
               logger.warn(`Job ${jobId}: Failed to get HTML context: ${htmlError.message}`);
             }
@@ -411,15 +523,15 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           // Add step context information - use a safer approach by checking the object structure
           if (testNavResult && typeof testNavResult === 'object') {
             const stepInfo = JSON.stringify(testNavResult, null, 2).substring(0, 500); // Limit to 500 chars
-            testErrorLog += `\n\nNavigation result context:\n${stepInfo}${stepInfo.length >= 500 ? '...' : ''}`;
+            testErrorLog += `\\n\\nNavigation result context:\\n${stepInfo}${stepInfo.length >= 500 ? '...' : ''}`;
           }
           
-          state.lastError = testErrorLog;
+          state.lastError = testErrorLog; // Store error for the next potential fix iteration
           state.testResult = testNavResult.result; // Store partial result if any
           logger.warn(`Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testNavResult.error}`);
         }
       } catch (execError: any) {
-        // Catch errors from the overall executeFlow call (e.g., browser crash, setup issues)
+         // ... (existing catch block for test execution errors) ...
         testPassed = false;
         testErrorLog = `Test execution crashed: ${execError.message}`;
         state.testResult = null; // No reliable result available
@@ -429,19 +541,25 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           execError
         );
       } finally {
+        // ... (existing finally block to close page/browser) ...
         if (page) await page.close();
         if (browser) await BrowserPool.getInstance().releaseBrowser(browser);
       }
 
+      // --- Post-Test Logic ---
       if (testPassed) {
         state.currentStatus = 'Completed';
         await updateJobStatus(job, state);
         logger.info(`Job ${jobId}: Storing final configuration after successful test.`);
+         // Ensure originalPrompt is stored
         await storageService.store({
           id: jobId,
-          queueName: job.queueName, // Add queue name
-          ...currentConfig,
-          estimatedCost: state.estimatedCost, // Store cost
+          queueName: job.queueName,
+          originalPrompt: state.prompt, // Store original prompt
+          url: state.url,
+          config: currentConfig,
+          options: state.options,
+          estimatedCost: state.estimatedCost,
         });
         return {
           id: jobId,
@@ -449,31 +567,36 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           status: 'completed',
           config: currentConfig,
           tokensUsed: state.tokensUsed,
-          estimatedCost: state.estimatedCost, // Return cost
+          estimatedCost: state.estimatedCost,
           iterations: state.iteration,
           timestamp: new Date().toISOString(),
         };
       } else {
+        // Test failed, prepare for next iteration (if maxIterations not reached)
         state.lastError = testErrorLog || 'Unknown test failure';
         state.currentStatus = `Test Failed (Iteration ${state.iteration})`;
         logger.warn(
           `Job ${jobId}: Test failed. Preparing for fix iteration ${state.iteration + 1}. Error: ${
-            state.lastError
-          }`
+            state.lastError?.substring(0, 500) // Log truncated error
+          }...`
         );
         await updateJobStatus(job, state);
+        // Loop continues...
       }
     } catch (error: any) {
+      // --- Catch errors within the main loop (e.g., AI call failure, validation error not caught) ---
       logger.error(
         `Job ${jobId}: Unhandled error in generation/validation loop (Iteration ${state.iteration}): ${error.message}`,
         { error }
       );
-      state.lastError = error.message;
+      state.lastError = error.message; // Store the error
       state.currentStatus = `Error Occurred (Iteration ${state.iteration})`;
       await updateJobStatus(job, state);
+      // Loop continues, will likely use this error in the next fix attempt
     }
-  } // End of while loop
+  } // --- End of while loop ---
 
+  // --- Max Iterations Reached ---
   logger.error(
     `Job ${jobId}: Failed to generate working config after ${state.options.maxIterations} iterations.`
   );
@@ -481,10 +604,26 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
   state.message = `Failed after ${state.options.maxIterations} attempts. Last error: ${
     state.lastError ?? 'Unknown'
   }`;
+  state.status = 'failed'; // Final status
   await updateJobStatus(job, state);
 
+   // Store the final failed state? Optional, but might be useful for debugging.
+   // Store the last generated config even if it failed the final test.
+   await storageService.store({
+     id: jobId,
+     queueName: job.queueName,
+     originalPrompt: state.prompt,
+     url: state.url,
+     config: state.lastConfig, // Store the last config attempted
+     options: state.options,
+     estimatedCost: state.estimatedCost,
+     status: 'failed', // Explicitly store failed status
+     errorMessage: state.lastError, // Store the final error message
+   });
+
+
   throw new Error(
-    `Failed to generate working config after ${
+    `Failed to generate working config for job ${jobId} after ${
       state.options.maxIterations
     } iterations. Last error: ${state.lastError ?? 'Unknown error'}`
   );
