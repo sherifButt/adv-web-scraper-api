@@ -1,0 +1,81 @@
+{
+    "id": "ae2b6d60-b40e-4b57-8134-8fcc8385c095",
+    "queueName": "config-generation-jobs",
+    "startUrl": "https://tradingeconomics.com/commodity/gold",
+    "steps": [
+        {
+            "type": "wait",
+            "waitForSelector": "table.table.table-hover",
+            "timeout": 30000,
+            "description": "Wait for the main data table to load. NOTE: This site may present CAPTCHA/WAF challenges that prevent loading."
+        },
+        {
+            "type": "condition",
+            "condition": "button#onetrust-accept-btn-handler",
+            "description": "Check if cookie consent banner exists",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": "button#onetrust-accept-btn-handler",
+                    "description": "Click the Accept button on the cookie banner"
+                },
+                {
+                    "type": "wait",
+                    "value": 1500,
+                    "description": "Wait for banner to disappear"
+                }
+            ],
+            "continueOnError": true,
+            "result": false
+        },
+        {
+            "type": "extract",
+            "name": "goldPriceData",
+            "selector": "table.table.table-hover:first-of-type",
+            "description": "Extract data from the first table on the page",
+            "fields": {
+                "rows": {
+                    "selector": "tbody tr",
+                    "type": "css",
+                    "multiple": true,
+                    "fields": {
+                        "price": {
+                            "selector": "td:nth-of-type(1)",
+                            "type": "regex",
+                            "pattern": "[\\d,.]+",
+                            "dataType": "number",
+                            "description": "Extract the price value"
+                        },
+                        "day": {
+                            "selector": "td:nth-of-type(2)",
+                            "type": "css",
+                            "description": "Extract the daily change"
+                        },
+                        "month": {
+                            "selector": "td:nth-of-type(3)",
+                            "type": "css",
+                            "description": "Extract the monthly change"
+                        },
+                        "year": {
+                            "selector": "td:nth-of-type(4)",
+                            "type": "css",
+                            "description": "Extract the yearly change"
+                        },
+                        "Date": {
+                            "selector": "td:nth-of-type(5)",
+                            "type": "css",
+                            "description": "Extract the date"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 60000,
+        "javascript": true,
+        "debug": false,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
+    },
+    "estimatedCost": 0.0010806000000000001
+}

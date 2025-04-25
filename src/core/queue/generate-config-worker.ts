@@ -36,6 +36,60 @@ function cleanHtml(html: string): string {
   return html;
 }
 
+// Helper function to analyze DOM structure for selector debugging
+async function analyzeDomForSelector(page: Page, selector: string): Promise<string> {
+  try {
+    // Try to get information about the selector
+    const exists = await page.$(selector) !== null;
+    let result = `Selector '${selector}' ${exists ? 'exists' : 'does NOT exist'} in the current DOM.\n`;
+    
+    if (!exists) {
+      // Try to find similar selectors to suggest alternatives
+      const selectorParts = selector.split(/\s+|>|\+|~/g).filter(Boolean);
+      const lastPart = selectorParts[selectorParts.length - 1];
+      
+      // Extract the base tag from complex selectors (e.g. table:nth-child(4) -> table)
+      const baseTag = lastPart?.split(':')[0]?.split('.')[0]?.split('#')[0]?.split('[')[0];
+      
+      if (baseTag) {
+        // Count elements of this type in the DOM
+        const count = await page.evaluate((tag) => document.querySelectorAll(tag).length, baseTag);
+        result += `Found ${count} '${baseTag}' elements in the DOM.\n`;
+        
+        // If it's a specific nth-child, analyze the parent structure
+        if (lastPart.includes(':nth-child')) {
+          const parent = selectorParts.slice(0, -1).join(' ');
+          const parentExists = parent ? await page.$(parent) !== null : false;
+          
+          if (parent && parentExists) {
+            const childrenCount = await page.evaluate(
+              (p) => document.querySelector(p)?.children.length || 0, 
+              parent
+            );
+            result += `Parent selector '${parent}' exists and has ${childrenCount} children.\n`;
+            
+            // Get classes of children for better debugging
+            const childrenClasses = await page.evaluate((p) => {
+              const children = document.querySelector(p)?.children || [];
+              return Array.from(children).map((el, i) => 
+                `Child ${i+1}: ${el.tagName.toLowerCase()}, classes: ${Array.from(el.classList).join(', ')}`
+              );
+            }, parent);
+            
+            if (childrenClasses.length > 0) {
+              result += `Children of '${parent}':\n${childrenClasses.join('\n')}\n`;
+            }
+          }
+        }
+      }
+    }
+    
+    return result;
+  } catch (error: any) {
+    return `Failed to analyze DOM for selector '${selector}': ${error.message}`;
+  }
+}
+
 // --- Configuration Schema ---
 const ScrapingConfigSchema = z.object({
   startUrl: z.string().url(),
@@ -326,8 +380,43 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           testErrorLog = `Navigation test failed: ${
             testNavResult.error ?? 'Unknown navigation error during execution.'
           }`;
+          
+          // Enhanced error logging with more context
+          if (testNavResult.error && testNavResult.error.includes("selector")) {
+            // Extract the failing selector from the error message using regex
+            const selectorMatch = testNavResult.error.match(/(['"])([^'"]+)\1/);
+            const failingSelector = selectorMatch ? selectorMatch[2] : null;
+            
+            // Add selector analysis if we could identify the selector
+            if (failingSelector) {
+              try {
+                const selectorAnalysis = await analyzeDomForSelector(page, failingSelector);
+                testErrorLog += `\n\nSelector Analysis:\n${selectorAnalysis}`;
+              } catch (analysisError: any) {
+                logger.warn(`Job ${jobId}: Failed to analyze selector: ${analysisError.message}`);
+              }
+            }
+            
+            // For selector errors, add page HTML context around the problematic area
+            try {
+              const pageHtml = await page.content();
+              const minifiedHtml = pageHtml.replace(/\s+/g, ' ').trim();
+              const shortenedHtml = minifiedHtml.length > 2000 ? minifiedHtml.substring(0, 2000) + "..." : minifiedHtml;
+              testErrorLog += `\n\nCurrent Page HTML Context:\n${shortenedHtml}\n\nTry using alternative selectors that exist in the actual page structure.`;
+            } catch (htmlError: any) {
+              logger.warn(`Job ${jobId}: Failed to get HTML context: ${htmlError.message}`);
+            }
+          }
+          
+          // Add step context information - use a safer approach by checking the object structure
+          if (testNavResult && typeof testNavResult === 'object') {
+            const stepInfo = JSON.stringify(testNavResult, null, 2).substring(0, 500); // Limit to 500 chars
+            testErrorLog += `\n\nNavigation result context:\n${stepInfo}${stepInfo.length >= 500 ? '...' : ''}`;
+          }
+          
+          state.lastError = testErrorLog;
           state.testResult = testNavResult.result; // Store partial result if any
-          logger.warn(`Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testErrorLog}`);
+          logger.warn(`Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testNavResult.error}`);
         }
       } catch (execError: any) {
         // Catch errors from the overall executeFlow call (e.g., browser crash, setup issues)

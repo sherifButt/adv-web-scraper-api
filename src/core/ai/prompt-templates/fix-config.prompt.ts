@@ -92,6 +92,35 @@ Analyze the error and the previous configuration, then generate a NEW, CORRECTED
 
 The JSON configuration MUST follow the comprehensive structure defined previously (startUrl, steps, all NavigationStep types and their parameters, FieldDefinition, etc.).
 
+SELECTOR TROUBLESHOOTING PRIORITIES:
+1. If error logs include HTML context, carefully examine it to find ACTUAL available selectors
+2. Use the most stable selectors available (id > data-attributes > unique class combinations > tag hierarchies)
+3. For dynamic content, add appropriate wait steps before attempting to interact or extract
+4. If a selector worked in one step but not in subsequent steps, the page structure might have changed after an action
+5. When working with tables, verify the table structure carefully in the HTML context
+6. Add appropriate timeout values for waitForSelector steps (usually 10000-30000ms)
+7. Always verify selector existence with conditions before critical interactions
+
+ADVANCED DATA EXTRACTION FEATURES:
+1. Use "type": "regex" with "pattern" to extract specific text patterns
+   \`\`\`json
+   "price": {
+     "selector": ".price-display",
+     "type": "regex",
+     "pattern": "[\\\\d,.]+",
+     "group": 0
+   }
+   \`\`\`
+
+2. Convert data types with "dataType": "number", "boolean", etc.
+
+3. Use "optional": true for fields that might not always be present
+
+4. Advanced CSS selectors:
+   - Use ":first-of-type", ":nth-child(n)" for position-based selection
+   - "[attribute='value']" for attribute-based selection
+   - "+" for adjacent sibling selection
+
 Available Navigation Step Types:
 
 1. Basic Navigation:
@@ -130,6 +159,26 @@ Available Navigation Step Types:
    - scroll: Scroll page or to elements
    - executeScript: Execute custom JavaScript
 
+8. Handle consent dialogs (example):
+\`\`\`json
+{
+"type": "condition",
+"condition": "div.fc-consent-root button.fc-button.fc-cta-consent",
+"description": "Check if consent dialog is visible",
+"thenSteps": [
+    {
+        "type": "click",
+        "selector": "div.fc-consent-root button.fc-button.fc-cta-consent",
+        "description": "Click the accept button on the consent dialog",
+        "waitFor": 1000
+    }
+],
+"elseSteps": [],
+"continueOnError": true,
+"result": true
+}
+\`\`\`
+
 IMPORTANT NOTES:
 1. For detailed structure of each step type, refer to the examples below
 2. Complex features like login, pagination, and data extraction are demonstrated in the examples
@@ -166,6 +215,15 @@ export const fixConfigUserPrompt = (
   interactionHints?: string[] // Add interactionHints parameter
 ) => {
   const errorLogContent = errorLog ?? 'No specific error log was provided';
+  
+  // Check if error log contains HTML context - better structure it for the AI
+  let formattedErrorLog = errorLogContent;
+  if (errorLogContent.includes('Current Page HTML Context:')) {
+    // Split the error message and HTML context for better readability
+    const [errorPart, htmlPart] = errorLogContent.split('Current Page HTML Context:');
+    formattedErrorLog = `${errorPart.trim()}\n\n--- CURRENT PAGE HTML CONTEXT ---\n${htmlPart.trim()}`;
+  }
+  
   let userPrompt = `The following scraping configuration failed during testing. Please fix it based on the error provided.
 
 Original URL: ${url}
@@ -178,7 +236,7 @@ ${JSON.stringify(previousConfig, null, 2)}
 
 Error/Log from Test Run:
 \`\`\`
-${errorLogContent}
+${formattedErrorLog}
 \`\`\``;
 
   // Append interaction hints if provided

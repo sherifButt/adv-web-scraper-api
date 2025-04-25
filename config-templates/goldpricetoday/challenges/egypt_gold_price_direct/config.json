@@ -1,0 +1,91 @@
+{
+    "id": "512e799d-faa1-4dda-803f-eddd3717bb55",
+    "queueName": "config-generation-jobs",
+    "startUrl": "https://egypt.gold-price-today.com",
+    "steps": [
+        {
+            "type": "wait",
+            "waitForSelector": "#container",
+            "timeout": 15000,
+            "description": "Wait for the main container to load"
+        },
+        {
+            "type": "condition",
+            "condition": "//button[contains(text(),'قبول') or contains(text(),'موافق') or @id='onetrust-accept-btn-handler']",
+            "useXPath": true,
+            "description": "Check if a consent/terms button exists (using common patterns/text)",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": "//button[contains(text(),'قبول') or contains(text(),'موافق') or @id='onetrust-accept-btn-handler']",
+                    "useXPath": true,
+                    "description": "Click the consent/terms button if found",
+                    "waitFor": 1000
+                }
+            ],
+            "continueOnError": true,
+            "result": false
+        },
+        {
+            "type": "wait",
+            "value": 1000,
+            "description": "Wait a second after potential click"
+        },
+        {
+            "type": "extract",
+            "name": "goldPricesEgypt",
+            "selector": "//table[caption[normalize-space()='متوسط اسعار الذهب اليوم بمحلات الصاغة في مصر بدون مصنعية']]",
+            "useXPath": true,
+            "description": "Extract the specified gold price table",
+            "fields": {
+                "title": {
+                    "selector": "caption",
+                    "type": "css",
+                    "description": "Extract table title"
+                },
+                "rows": {
+                    "selector": "tbody tr",
+                    "type": "css",
+                    "multiple": true,
+                    "continueOnError": true,
+                    "fields": {
+                        "karat": {
+                            "selector": "th",
+                            "type": "css",
+                            "continueOnError": true,
+                            "description": "Gold Karat type"
+                        },
+                        "sell_price": {
+                            "selector": "td:nth-of-type(1)",
+                            "type": "regex",
+                            "pattern": "[\\d,.]+",
+                            "dataType": "number",
+                            "continueOnError": true,
+                            "description": "Sell price (Note: Last row has a different structure)"
+                        },
+                        "buy_price": {
+                            "selector": "td:nth-of-type(2)",
+                            "type": "regex",
+                            "pattern": "[\\d,.]+",
+                            "dataType": "number",
+                            "continueOnError": true,
+                            "description": "Buy price (Note: Last row has a different structure)"
+                        }
+                    }
+                },
+                "last_updated": {
+                    "selector": "tfoot tr td",
+                    "type": "css",
+                    "description": "Extract last updated timestamp"
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 60000,
+        "javascript": true,
+        "screenshots": false,
+        "debug": false
+    },
+    "estimatedCost": 0.0015046
+}

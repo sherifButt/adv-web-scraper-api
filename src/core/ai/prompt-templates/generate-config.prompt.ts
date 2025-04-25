@@ -51,8 +51,76 @@ const googleTrendsExample = `{
         { "type": "gotoStep", "step": 6 }
     ]}
   ],
-  "variables": { "country": "EG" },
+  "variables": { "country": "US" },
   "options": { "timeout": 60000, "waitForSelector": ".DEQ5Hc", "javascript": true, "screenshots": false, "userAgent": "Mozilla/5.0...", "debug": true }
+}`;
+
+const goldPriceExample = `{
+  "startUrl": "https://egypt.gold-price-today.com",
+  "steps": [
+    {
+      "type": "wait",
+      "waitForSelector": "div.entry-content table.prices-table caption",
+      "timeout": 20000,
+      "description": "Wait for the gold price table caption to load"
+    },
+    {
+      "type": "condition",
+      "condition": "button.fc-button.fc-cta-consent.fc-primary-button",
+      "description": "Check if consent button exists",
+      "thenSteps": [
+        {
+          "type": "click",
+          "selector": "button.fc-button.fc-cta-consent.fc-primary-button",
+          "description": "Click the Accept button"
+        },
+        {
+          "type": "wait",
+          "value": 1500,
+          "description": "Wait for consent banner to disappear"
+        }
+      ]
+    },
+    {
+      "type": "extract",
+      "name": "goldPricesEgypt",
+      "selector": "div.entry-content table.prices-table:first-of-type",
+      "description": "Extract gold price data",
+      "fields": {
+        "prices": {
+          "selector": "tbody tr",
+          "type": "css",
+          "multiple": true,
+          "fields": {
+            "karat_or_unit": {
+              "selector": "th",
+              "type": "css"
+            },
+            "sell_price_egp": {
+              "selector": "td:nth-of-type(1)",
+              "type": "regex",
+              "pattern": "[\\\\d,.]+",
+              "dataType": "number",
+              "description": "Sell price (Note: Last row has a different structure)"
+            },
+            "buy_price_egp": {
+              "selector": "td:nth-of-type(2)",
+              "type": "regex",
+              "pattern": "[\\\\d,.]+",
+              "dataType": "number",
+              "description": "Buy price (Note: Last row has a different structure)"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "options": {
+    "timeout": 40000,
+    "javascript": true,
+    "screenshots": false,
+    "debug": false
+  }
 }`;
 
 const googleMapsExample = `{
@@ -287,6 +355,12 @@ Available Navigation Step Types:
 
 4. Data Extraction:
    - extract: Extract data from elements using CSS selectors
+   - Advanced extraction options:
+     * type: "css" (default) or "regex" for pattern matching
+     * attribute: Extract attribute value instead of text content
+     * pattern/group: For regex type, extract specific match groups
+     * dataType: Convert to "number", "boolean", or other types
+     * optional: Mark field as optional to avoid errors
 
 5. Flow Control:
    - condition: Conditional step execution
@@ -305,6 +379,46 @@ Available Navigation Step Types:
    - scroll: Scroll page or to elements
    - executeScript: Execute custom JavaScript
 
+ADVANCED EXTRACTION EXAMPLES:
+
+1. Extract and clean numeric values:
+\`\`\`json
+"price": {
+  "selector": ".price-tag",
+  "type": "regex",
+  "pattern": "[\\\\d,.]+",
+  "dataType": "number",
+  "description": "Extract numeric values from price tags"
+}
+\`\`\`
+
+2. Advanced CSS selectors:
+\`\`\`json
+"firstTable": {"selector": "div.content table:first-of-type"},
+"nthItem": {"selector": "ul.list li:nth-child(3)"},
+"specificAttribute": {"selector": "meta[property='og:title']", "attribute": "content"}
+\`\`\`
+
+3. Handle consent dialogs (example):
+\`\`\`json
+{
+"type": "condition",
+"condition": "div.fc-consent-root button.fc-button.fc-cta-consent",
+"description": "Check if consent dialog is visible",
+"thenSteps": [
+    {
+        "type": "click",
+        "selector": "div.fc-consent-root button.fc-button.fc-cta-consent",
+        "description": "Click the accept button on the consent dialog",
+        "waitFor": 1000
+    }
+],
+"elseSteps": [],
+"continueOnError": true,
+"result": true
+}
+\`\`\`
+
 IMPORTANT NOTES:
 1. For detailed structure of each step type, refer to the examples below
 2. Complex features like login, pagination, and data extraction are demonstrated in the examples
@@ -319,43 +433,48 @@ Here are a few examples of well-structured configuration JSON objects:
 ${googleTrendsExample}
 \`\`\`
 
-**Example 2: Google Maps** (Demonstrates search, scrolling, and structured data extraction)
+**Example 2: Gold Price** (Demonstrates advanced data extraction with regex, post-processing, and data type conversion)
+\`\`\`json
+${goldPriceExample}
+\`\`\`
+
+**Example 3: Google Maps** (Demonstrates search, scrolling, and structured data extraction)
 \`\`\`json
 ${googleMapsExample}
 \`\`\`
 
-**Example 3: Rightmove Property Search** (Demonstrates form filling, filtering, and property data extraction)
+**Example 4: Rightmove Property Search** (Demonstrates form filling, filtering, and property data extraction)
 \`\`\`json
 ${rightmoveExample}
 \`\`\`
 `;
 
 export const generateConfigUserPrompt = (
-  url: string,
-  prompt: string,
-  htmlContent?: string,
-  interactionHints?: string[] // Add interactionHints parameter
+    url: string,
+    prompt: string,
+    htmlContent?: string,
+    interactionHints?: string[] // Add interactionHints parameter
 ) => {
-  let userPrompt = `Generate the scraping configuration for the following request:
+    let userPrompt = `Generate the scraping configuration for the following request:
 URL: ${url}
 Prompt: ${prompt}`;
 
-  if (htmlContent) {
-    const maxLength = 15000;
-    const truncatedHtml =
-      htmlContent.length > maxLength ? htmlContent.substring(0, maxLength) + '...' : htmlContent;
-    userPrompt += `\n\nRelevant HTML context (cleaned, truncated):\n\`\`\`html\n${truncatedHtml}\n\`\`\``;
-  } else {
-    userPrompt += `\n\n(No HTML content provided, generate based on URL structure and common patterns if possible)`;
-  }
+    if (htmlContent) {
+        const maxLength = 15000;
+        const truncatedHtml =
+            htmlContent.length > maxLength ? htmlContent.substring(0, maxLength) + '...' : htmlContent;
+        userPrompt += `\n\nRelevant HTML context (cleaned, truncated):\n\`\`\`html\n${truncatedHtml}\n\`\`\``;
+    } else {
+        userPrompt += `\n\n(No HTML content provided, generate based on URL structure and common patterns if possible)`;
+    }
 
-  // Append interaction hints if provided
-  if (interactionHints && interactionHints.length > 0) {
-    userPrompt += `\n\nUser Interaction Hints (Consider these when generating steps, especially for dynamic content like pagination or load more buttons):`;
-    interactionHints.forEach(hint => {
-      userPrompt += `\n- ${hint}`;
-    });
-  }
+    // Append interaction hints if provided
+    if (interactionHints && interactionHints.length > 0) {
+        userPrompt += `\n\nUser Interaction Hints (Consider these when generating steps, especially for dynamic content like pagination or load more buttons):`;
+        interactionHints.forEach(hint => {
+            userPrompt += `\n- ${hint}`;
+        });
+    }
 
-  return userPrompt;
+    return userPrompt;
 };
