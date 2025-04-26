@@ -65,23 +65,34 @@ export class CssSelectorStrategy implements SelectorStrategy {
 
     // Handle single selector (original behavior)
     // Transform dynamic class selectors to use wildcard matching
-    const transformedSelector = selector.includes('__')
+    // Check if selector is a string before using string methods
+    const transformedSelector = typeof selector === 'string' && selector.includes('__')
       ? selector.replace(/(\.[a-zA-Z0-9-]+)__[a-zA-Z0-9]+/g, '[class*="$1"]')
-      : selector;
+      : selector; // If it's an array, we can't transform it here. We rely on the caller (like extract) to handle arrays.
+
+    // If transformedSelector is still an array, we need to pick the first one or handle it based on logic.
+    // For now, let's assume the `extract` method handles the array case upstream.
+    const singleSelector = Array.isArray(transformedSelector) ? transformedSelector[0] : transformedSelector;
+
+    // Ensure we have a valid string selector before proceeding
+    if (typeof singleSelector !== 'string') {
+      logger.error('Invalid selector type provided to CSS strategy after transformation.');
+      return cssConfig.defaultValue !== undefined ? cssConfig.defaultValue : null;
+    }
 
     try {
       // Wait for the selector to be available
-      await page.waitForSelector(transformedSelector, { timeout: 5000 }).catch(() => {
+      await page.waitForSelector(singleSelector, { timeout: 5000 }).catch(() => {
         logger.warn(
-          `Selector "${selector}" (transformed to "${transformedSelector}") not found within timeout`
+          `Selector "${singleSelector}" not found within timeout`
         );
       });
 
       // Check if elements exist
-      const exists = (await page.$(transformedSelector)) !== null;
+      const exists = (await page.$(singleSelector)) !== null;
       if (!exists) {
         logger.warn(
-          `Selector "${selector}" (transformed to "${transformedSelector}") not found on page`
+          `Selector "${singleSelector}" not found on page`
         );
         return cssConfig.defaultValue !== undefined ? cssConfig.defaultValue : null;
       }
@@ -89,19 +100,19 @@ export class CssSelectorStrategy implements SelectorStrategy {
       // Extract data based on whether we want multiple elements or a single one
       try {
         if (multiple) {
-          return this.extractMultiple(page, transformedSelector, attribute, cssConfig.source);
+          return this.extractMultiple(page, singleSelector, attribute, cssConfig.source);
         } else {
-          return this.extractSingle(page, transformedSelector, attribute, cssConfig.source);
+          return this.extractSingle(page, singleSelector, attribute, cssConfig.source);
         }
       } catch (error) {
         if (cssConfig.continueOnError) {
-          logger.warn(`Failed to extract with selector "${transformedSelector}": ${error}`);
+          logger.warn(`Failed to extract with selector "${singleSelector}": ${error}`);
           return null;
         }
         throw error;
       }
     } catch (error) {
-      logger.error(`Error extracting data with CSS selector "${selector}": ${error}`);
+      logger.error(`Error extracting data with CSS selector "${singleSelector}": ${error}`);
       return cssConfig.defaultValue !== undefined ? cssConfig.defaultValue : null;
     }
   }

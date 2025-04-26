@@ -314,62 +314,91 @@ export class ExtractionEngine {
   ): Promise<any> {
     const { selector, type, multiple = false, fields } = config;
 
+    // Helper function to try multiple selectors
+    const trySelectors = async <T>(
+      action: (selector: string) => Promise<T | null | undefined>
+    ): Promise<T | null | undefined> => {
+      if (typeof selector === 'string') {
+        return action(selector);
+      } else if (Array.isArray(selector)) {
+        for (const sel of selector) {
+          const result = await action(sel);
+          // Use the first selector that yields a non-null/non-empty result
+          if (result !== null && result !== undefined && (!Array.isArray(result) || result.length > 0)) {
+            logger.debug(`Using fallback selector: ${sel}`);
+            return result;
+          }
+          logger.debug(`Fallback selector failed: ${sel}`);
+        }
+        logger.warn(`All fallback selectors failed for config: ${JSON.stringify(config)}`);
+        return null; // Or undefined, depending on desired behavior
+      }
+      return null; // Should not happen if selector is string | string[]
+    };
+
     try {
       if (multiple) {
         // Extract multiple items
         if (type === SelectorType.CSS) {
           // For CSS selectors, use $$eval for better performance
-          return page.$$eval(
-            selector,
-            (elements, fieldsJson) => {
-              const fields = JSON.parse(fieldsJson);
-              return elements.map(element => {
-                const result: Record<string, any> = {};
+          return trySelectors(async (sel) =>
+            page.$$eval(
+              sel, // Use the single selector 'sel' here
+              (elements, fieldsJson) => {
+                const fields = JSON.parse(fieldsJson);
+                return elements.map(element => {
+                  const result: Record<string, any> = {};
 
-                for (const [fieldName, fieldConfig] of Object.entries(fields)) {
-                  try {
-                    if ((fieldConfig as any).type === 'css') {
-                      const subElements = element.querySelectorAll((fieldConfig as any).selector);
-                      if ((fieldConfig as any).multiple) {
-                        result[fieldName] = Array.from(subElements).map(el => {
+                  for (const [fieldName, fieldConfig] of Object.entries(fields)) {
+                    try {
+                      if ((fieldConfig as any).type === 'css') {
+                        const subElements = element.querySelectorAll((fieldConfig as any).selector);
+                        if ((fieldConfig as any).multiple) {
+                          result[fieldName] = Array.from(subElements).map(el => {
+                            if ((fieldConfig as any).attribute) {
+                              return el.getAttribute((fieldConfig as any).attribute) || '';
+                            } else if ((fieldConfig as any).source === 'html') {
+                              // Preserve HTML structure by wrapping in CDATA
+                              return `<![CDATA[\n${el.innerHTML}\n]]>`;
+                            } else {
+                              return el.textContent?.trim() || '';
+                            }
+                          });
+                        } else if (subElements.length > 0) {
                           if ((fieldConfig as any).attribute) {
-                            return el.getAttribute((fieldConfig as any).attribute) || '';
-                          } else if ((fieldConfig as any).source === 'html') {
-                            // Preserve HTML structure by wrapping in CDATA
-                            return `<![CDATA[\n${el.innerHTML}\n]]>`;
+                            result[fieldName] =
+                              subElements[0].getAttribute((fieldConfig as any).attribute) || '';
                           } else {
-                            return el.textContent?.trim() || '';
+                            result[fieldName] = subElements[0].textContent?.trim() || '';
                           }
-                        });
-                      } else if (subElements.length > 0) {
-                        if ((fieldConfig as any).attribute) {
-                          result[fieldName] =
-                            subElements[0].getAttribute((fieldConfig as any).attribute) || '';
                         } else {
-                          result[fieldName] = subElements[0].textContent?.trim() || '';
+                          result[fieldName] = null;
                         }
                       } else {
+                        // For non-CSS selectors, we can't handle them in the browser context
                         result[fieldName] = null;
                       }
-                    } else {
-                      // For non-CSS selectors, we can't handle them in the browser context
-                      result[fieldName] = null;
+                    } catch (error) {
+                      result[fieldName] = null; // Default to null on error
                     }
-                  } catch (error) {
-                    result[fieldName] = null;
                   }
-                }
 
-                return result;
-              });
-            },
-            JSON.stringify(fields)
+                  return result;
+                });
+              },
+              JSON.stringify(fields)
+            )
           );
         } else {
           // For XPath selectors, we need to handle each element individually
-          const elements = await page.$$(selector);
-          const results: any[] = [];
+          // Use trySelectors to get the list of elements
+          const elements = await trySelectors(async (sel) => page.$$(sel));
+          if (!elements || elements.length === 0) {
+             logger.warn(`Selector(s) "${Array.isArray(selector) ? selector.join('", "') : selector}" not found for nested XPath extraction`);
+             return [];
+          }
 
+          const results: any[] = [];
           for (const element of elements) {
             const elementContext = { ...context, element };
             const result: Record<string, any> = {};
@@ -389,20 +418,19 @@ export class ExtractionEngine {
                 }
               } catch (error) {
                 logger.error(`Error extracting nested field "${fieldName}": ${error}`);
-                result[fieldName] = null;
+                result[fieldName] = null; // Default to null on error
               }
             }
-
             results.push(result);
           }
-
           return results;
         }
       } else {
         // Extract a single item
-        const element = await page.$(selector);
+        // Use trySelectors to find the single element
+        const element = await trySelectors(async (sel) => page.$(sel));
         if (!element) {
-          logger.warn(`Selector "${selector}" not found for nested extraction`);
+          logger.warn(`Selector(s) "${Array.isArray(selector) ? selector.join('", "') : selector}" not found for single nested extraction`);
           return null;
         }
 

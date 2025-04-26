@@ -27,14 +27,38 @@ export class XPathSelectorStrategy implements SelectorStrategy {
    */
   async extract(page: Page, config: SelectorConfig, context?: any): Promise<any> {
     const xpathConfig = config as XPathSelectorConfig;
-    const { selector, attribute, multiple = false, name } = xpathConfig;
+    const { selector, attribute, multiple = false, name, defaultValue } = xpathConfig;
+
+    // Helper function to try multiple selectors
+    const trySelectors = async <T>(
+      action: (selector: string) => Promise<T | null | undefined>
+    ): Promise<T | null | undefined> => {
+      if (typeof selector === 'string') {
+        return action(selector);
+      } else if (Array.isArray(selector)) {
+        for (const sel of selector) {
+          const result = await action(sel);
+          // Use the first selector that yields a non-null/non-empty result
+          if (result !== null && result !== undefined && (!Array.isArray(result) || result.length > 0)) {
+            logger.debug(`Using fallback XPath selector: ${sel}`);
+            return result;
+          }
+          logger.debug(`Fallback XPath selector failed: ${sel}`);
+        }
+        logger.warn(`All fallback XPath selectors failed for config: ${JSON.stringify(config)}`);
+        return null;
+      }
+      return null;
+    };
 
     try {
-      // Find elements using XPath
-      const elements = await page.$$(selector);
-      if (elements.length === 0) {
-        logger.warn(`XPath selector "${selector}" did not match any elements`);
-        return xpathConfig.defaultValue !== undefined ? xpathConfig.defaultValue : null;
+      // Find elements using XPath, trying fallbacks if necessary
+      const elements = await trySelectors(async (sel) => page.$$(sel));
+
+      if (!elements || elements.length === 0) {
+        const selectorString = Array.isArray(selector) ? selector.join('", "') : selector;
+        logger.warn(`XPath selector(s) "${selectorString}" did not match any elements`);
+        return defaultValue !== undefined ? defaultValue : null;
       }
 
       // Extract data based on whether we want multiple elements or a single one
@@ -44,8 +68,9 @@ export class XPathSelectorStrategy implements SelectorStrategy {
         return this.extractSingle(elements[0], attribute);
       }
     } catch (error) {
-      logger.error(`Error extracting data with XPath selector "${selector}": ${error}`);
-      return xpathConfig.defaultValue !== undefined ? xpathConfig.defaultValue : null;
+      const selectorString = Array.isArray(selector) ? selector.join('", "') : selector;
+      logger.error(`Error extracting data with XPath selector(s) "${selectorString}": ${error}`);
+      return defaultValue !== undefined ? defaultValue : null;
     }
   }
 
