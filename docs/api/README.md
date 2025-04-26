@@ -8,7 +8,7 @@ This section provides detailed documentation for the various API endpoints offer
 - **[Proxy API](./proxy-api.md)**: Endpoints for managing and interacting with the proxy pool (`/api/v1/proxy`).
 - **[AI API](./ai-api.md)**: Endpoints for AI-powered features, such as configuration generation (`/api/v1/ai`).
 - **[Template API](./templates-api.md)**: Endpoints for accessing configuration templates (`/api/v1/templates`).
-- **Navigation API**: Endpoints for executing multi-step browser navigation flows (`/api/v1/navigate`). (Documentation coming soon)
+- **[Navigation API](./navigation-api.md)**: Endpoints for executing multi-step browser navigation flows (`/api/v1/navigate`).
 - **Scraping API**: Endpoints for direct data scraping requests (`/api/v1/scrape`). (Documentation coming soon)
 - **Session API**: Endpoints for managing browser sessions (`/api/v1/sessions`). (Documentation coming soon)
 - **CAPTCHA API**: Endpoints related to CAPTCHA handling (if exposed directly). (Documentation coming soon)
