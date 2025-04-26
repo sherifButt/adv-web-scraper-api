@@ -203,6 +203,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       fetchHtmlForRefinement: fetchHtmlForRefinement ?? false, // Store the flag
       testResult: null, // Reset test result for refinement attempt
       isRefinement: true, // Mark state as refinement
+      fixHistory: [], // Initialize fix history
     };
      if (!state.lastConfig) {
          throw new Error(`Job ${jobId}: Refinement job started without a 'lastConfig' in initialState.`);
@@ -230,6 +231,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       fetchHtmlForRefinement: undefined, // Not applicable
       testResult: null,
       isRefinement: false, // Mark state as initial generation
+      fixHistory: [], // Initialize fix history
     };
   }
 
@@ -375,6 +377,21 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
             ? null // Let userFeedback be the primary driver, pass error separately if needed
             : state.lastError ?? 'Test failed or validation passed but requires refinement.'; // Existing logic for subsequent fixes
 
+        // --- Format Fix History for Prompt ---
+        let formattedHistory = 'No previous fix attempts in this session.';
+        if (state.fixHistory && state.fixHistory.length > 0) {
+            formattedHistory = `Fix Attempt History (Total: ${state.fixHistory.length}):\n`;
+            state.fixHistory.forEach(attempt => {
+                formattedHistory += `\n--- Attempt ${attempt.iteration} ---
+`;
+                // Optionally summarize config or just mention it was attempted
+                formattedHistory += `Config Attempted: (See previous configuration passed separately)\n`;
+                formattedHistory += `Error Log: ${attempt.errorLog.substring(0, 1000)}${attempt.errorLog.length > 1000 ? '...' : ''}\n`; // Truncate long errors
+            });
+             formattedHistory += `\nInstruction: Analyze the history and current error/feedback to propose a distinct fix.`;
+        }
+        // --- End History Formatting ---
+
         aiResponse = await aiService.fixConfiguration(
           state.url,
           state.prompt, // Always pass the original prompt for context
@@ -384,7 +401,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           jobId,
           state.options.interactionHints,
           fetchedHtmlContent, // Pass HTML if fetched
-          state.userFeedback // Pass explicit user feedback for refinement
+          state.userFeedback, // Pass explicit user feedback for refinement
+          formattedHistory // Pass the formatted history
         );
       }
 
@@ -413,6 +431,17 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         logger.warn(`Job ${jobId}: ${errorMsg}`);
         state.lastError = errorMsg;
         state.lastConfig = aiResponse.config; // Store the invalid config for potential next fix attempt
+
+        // Add to fix history for validation errors
+        if (state.lastConfig) { // Only add if we have a config to record
+          state.fixHistory = state.fixHistory || [];
+          state.fixHistory.push({
+              iteration: state.iteration,
+              configAttempted: state.lastConfig, // Record the config that failed validation
+              errorLog: errorMsg
+          });
+        }
+
         state.currentStatus = `Validation Failed (Iteration ${state.iteration})`;
         const progressValidationFailed = baseProgress + (PROGRESS_VALIDATION_END - baseProgress);
         await updateJobStatus(job, state, progressValidationFailed);
@@ -530,7 +559,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           // ... (existing test failure logging with selector analysis and HTML context) ...
            testPassed = false;
           // Prioritize the error message from the navigation result if available
-          testErrorLog = `Navigation test failed: ${
+          let detailedErrorLog = `Navigation test failed: ${
             testNavResult.error ?? 'Unknown navigation error during execution.'
           }`;
           
@@ -544,7 +573,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
             if (failingSelector) {
               try {
                 const selectorAnalysis = await analyzeDomForSelector(page, failingSelector);
-                testErrorLog += `\\n\\nSelector Analysis:\\n${selectorAnalysis}`;
+                detailedErrorLog += `\\n\\nSelector Analysis:\\n${selectorAnalysis}`;
               } catch (analysisError: any) {
                 logger.warn(`Job ${jobId}: Failed to analyze selector: ${analysisError.message}`);
               }
@@ -556,28 +585,62 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
               const minifiedHtml = pageHtml.replace(/\\s+/g, ' ').trim();
               // Limit HTML context size in logs
               const shortenedHtml = minifiedHtml.length > 3000 ? minifiedHtml.substring(0, 3000) + "..." : minifiedHtml;
-              testErrorLog += `\\n\\nCurrent Page HTML Context (truncated):\\n${shortenedHtml}\\n\\nTry using alternative selectors that exist in the actual page structure.`;
+              detailedErrorLog += `\\n\\nCurrent Page HTML Context (truncated):\\n${shortenedHtml}\\n\\nTry using alternative selectors that exist in the actual page structure.`;
             } catch (htmlError: any) {
               logger.warn(`Job ${jobId}: Failed to get HTML context: ${htmlError.message}`);
             }
           }
           
-          // Add step context information - use a safer approach by checking the object structure
+          // Add step context information
           if (testNavResult && typeof testNavResult === 'object') {
             const stepInfo = JSON.stringify(testNavResult, null, 2).substring(0, 500); // Limit to 500 chars
-            testErrorLog += `\\n\\nNavigation result context:\\n${stepInfo}${stepInfo.length >= 500 ? '...' : ''}`;
+            detailedErrorLog += `\\n\\nNavigation result context:\\n${stepInfo}${stepInfo.length >= 500 ? '...' : ''}`;
           }
-          
-          state.lastError = testErrorLog; // Store error for the next potential fix iteration
+
+          // --- Simulate Adding Diagnostics --- 
+          detailedErrorLog += `\n\n[Simulated Diagnostics: Screenshot available at failure_screenshot_${jobId}_iter${state.iteration}.png]`;
+          detailedErrorLog += `\n[Simulated Diagnostics: Console Logs Captured]`;
+          // --- End Simulation ---
+
+          testErrorLog = detailedErrorLog; // Assign the full log to testErrorLog
+
+          state.lastError = testErrorLog; // Store enhanced error for the next potential fix iteration
           state.testResult = testNavResult.result; // Store partial result if any
           logger.warn(`Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testNavResult.error}`);
+
+          // Add to fix history for test failures
+          if (currentConfig) { // Use currentConfig here as it passed validation
+             state.fixHistory = state.fixHistory || [];
+             state.fixHistory.push({
+               iteration: state.iteration,
+               configAttempted: currentConfig, // Record the config that failed the test
+               errorLog: state.lastError ?? 'Unknown error in processing loop' // Provide fallback
+             });
+          }
         }
       } catch (execError: any) {
          // ... (existing catch block for test execution errors) ...
         testPassed = false;
         testErrorLog = `Test execution crashed: ${execError.message}`;
+
+        // --- Simulate Adding Diagnostics (Crash Scenario) --- 
+        testErrorLog += `\n\n[Simulated Diagnostics: Screenshot available at failure_screenshot_${jobId}_iter${state.iteration}.png]`;
+        testErrorLog += `\n[Simulated Diagnostics: Console Logs Captured (Crash)]`;
+        // --- End Simulation ---
+
+        state.lastError = testErrorLog; // Store crash error
         state.testResult = null; // No reliable result available
-        // Apply ESLint formatting fix with careful indentation
+
+        // Add to fix history for crashes
+        if (currentConfig) { // Record the config that led to the crash
+          state.fixHistory = state.fixHistory || [];
+          state.fixHistory.push({
+              iteration: state.iteration,
+              configAttempted: currentConfig,
+              errorLog: state.lastError ?? 'Unknown error in processing loop' // Provide fallback
+          });
+        }
+
         logger.error(
           `Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testErrorLog}`,
           execError
@@ -634,6 +697,17 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       );
       state.lastError = error.message; // Store the error
       state.currentStatus = `Error Occurred (Iteration ${state.iteration})`;
+
+      // Add to fix history for other loop errors
+      if (state.lastConfig) { // Record the config that was active when error occurred (might be from previous iter or current invalid one)
+        state.fixHistory = state.fixHistory || [];
+        state.fixHistory.push({
+            iteration: state.iteration,
+            configAttempted: state.lastConfig,
+            errorLog: state.lastError ?? 'Unknown error in processing loop' // Provide fallback
+        });
+      }
+
       // Use progress from the end of the test phase, as the error likely happened there or after
       const progressErrorOccurred = baseProgress + (PROGRESS_TEST_END - baseProgress);
       await updateJobStatus(job, state, progressErrorOccurred);

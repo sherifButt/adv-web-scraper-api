@@ -215,10 +215,12 @@ export const fixConfigUserPrompt = (
   errorLog: string | null,
   interactionHints?: string[],
   htmlContent?: string,
-  userFeedback?: string
+  userFeedback?: string,
+  fixHistory?: string
 ) => {
   const errorLogContent = errorLog ?? 'No specific error log was provided';
   const feedbackContent = userFeedback ?? 'No specific user feedback provided.';
+  const historyContent = fixHistory ?? 'No previous fix attempts in this session.';
 
   // Check if error log contains HTML context - better structure it for the AI
   let formattedErrorLog = errorLogContent;
@@ -246,7 +248,13 @@ ${formattedErrorLog}
 User Feedback/Refinement Instructions (if any):
 \`\`\`
 ${feedbackContent}
-\`\`\``;
+\`\`\`
+
+Fix Attempt History:
+\`\`\`
+${historyContent}
+\`\`\`
+`;
 
   // Conditionally add fresh HTML context if provided
   if (htmlContent) {
@@ -269,7 +277,7 @@ ${truncatedHtml}
     });
   }
 
-  userPrompt += `\n\nPlease analyze the previous configuration, the error/log, the user feedback, and any provided HTML context.
+  userPrompt += `\n\nPlease analyze the previous configuration, the error/log, the user feedback, the fix history, and any provided HTML context.
 Generate the corrected/refined JSON configuration:`;
 
   return userPrompt;

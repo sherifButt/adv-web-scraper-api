@@ -106,7 +106,8 @@ export class AiService {
     jobId?: string,
     interactionHints?: string[],
     htmlContent?: string, // Optional fresh HTML context
-    userFeedback?: string // Optional user feedback for refinement
+    userFeedback?: string, // Optional user feedback for refinement
+    fixHistory?: string // Add the new optional parameter for history
   ): Promise<AiModelResponse> {
     const systemPrompt = FIX_CONFIG_SYSTEM_PROMPT;
     // Pass all relevant context to the prompt function
@@ -117,7 +118,8 @@ export class AiService {
       errorLog,
       interactionHints,
       htmlContent, // Pass HTML content
-      userFeedback // Pass user feedback
+      userFeedback, // Pass user feedback
+      fixHistory // Pass history to the prompt function
     );
     return this.callAiModel(systemPrompt, userPrompt, options, jobId);
   }
@@ -153,8 +155,8 @@ export class AiService {
 
     logger.info(`${logPrefix}Using AI model ${modelName} via ${provider} adapter.`);
     // Avoid logging potentially large prompts/HTML in production info logs unless debug enabled
-    logger.debug(`${logPrefix}System Prompt:\n${systemPrompt}`);
-    logger.debug(`${logPrefix}User Prompt:\n${userPrompt}`);
+    // logger.debug(`${logPrefix}System Prompt:\n${systemPrompt}`);
+    // logger.debug(`${logPrefix}User Prompt:\n${userPrompt}`);
     logger.debug(`${logPrefix}Calling ${provider} adapter with options:`, {
       model: modelName,
       maxTokens: options.maxTokens,

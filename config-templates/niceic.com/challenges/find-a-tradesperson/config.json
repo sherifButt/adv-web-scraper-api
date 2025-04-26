@@ -1,0 +1,31 @@
+{
+    "startUrl": "https://niceic.com/find-a-tradesperson/",
+    "steps": [
+        {
+            "type": "wait",
+            "value": 3000,
+            "description": "Wait for initial page load"
+        },
+      
+        {
+            "type": "extract",
+            "name": "pageContent",
+            "selector": "div.search-hero__content > div > div > div",
+            "description": "Extract the first title on the page",
+            "fields": {
+                "firstTitle": {
+                    "selector": "h1",
+                    "type": "css",
+                    "description": "The main heading on the page",
+                    "optional": true
+                }
+            }
+        }
+    ],
+    "options": {
+        "timeout": 30000,
+        "waitForTimeout": 10000,
+        "navigationTimeout": 30000,
+        "javascript": true
+    }
+}

@@ -29,6 +29,7 @@ export interface GenerateConfigState {
   isRefinement?: boolean;
   userFeedback?: string;
   fetchHtmlForRefinement?: boolean;
+  fixHistory?: FixAttempt[];
 }
 
 export interface GenerateConfigResult {
@@ -111,4 +112,12 @@ export interface StoredScrapingConfig {
     errorMessage?: string;
     // Add other fields that might be stored by StorageService.store
     [key: string]: any; // Allow other fields for flexibility
+}
+
+// Define the structure for a single fix attempt history entry
+export interface FixAttempt {
+    iteration: number;
+    configAttempted: any; // The configuration JSON that was tried
+    errorLog: string; // The error message resulting from the attempt
+    // Optionally add timestamp, diagnostics summary, etc.
 }

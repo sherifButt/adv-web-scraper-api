@@ -407,7 +407,7 @@ The JSON configuration MUST follow this structure:
      * type: "css" (default) or "regex" for pattern matching
      * attribute: Extract attribute value instead of text content
      * pattern/group: For regex type, extract specific match groups
-     * dataType: Convert to "number", "boolean", or other types
+     * dataType: Convert the extracted value to a specific type (e.g., "number", "boolean"). **IMPORTANT**: This performs a strict conversion (like JS \`Number()\`, \`Boolean()\`). If extracting with \`type: "css"\` and the text might contain non-numeric characters (e.g., currency symbols, units), **prefer using \`type: "regex"\` first** to isolate the desired part (see example 1 below), then apply \`dataType: "number"\`. If complex cleaning is needed, omit \`dataType\` and handle conversion after scraping.
      * optional: Mark field as optional to avoid errors
 
 5. Flow Control:
