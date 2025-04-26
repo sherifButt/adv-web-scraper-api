@@ -392,6 +392,18 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         }
         // --- End History Formatting ---
 
+        // --- Determine HTML content for the fix call ---
+        // Use HTML captured specifically on failure if available, otherwise use the initially fetched one (if any)
+        const htmlForFixCall = state.htmlContentAtFailure ?? fetchedHtmlContent;
+        if (state.htmlContentAtFailure) {
+            logger.info(`Job ${jobId}: Using HTML captured at failure point for AI fix call.`);
+        } else if (fetchedHtmlContent) {
+            logger.info(`Job ${jobId}: Using initially fetched HTML for AI fix call.`);
+        }
+        // Clear the failure-specific HTML from state after deciding, so it's not accidentally reused
+        state.htmlContentAtFailure = undefined;
+        // -------------------------------------------------
+
         aiResponse = await aiService.fixConfiguration(
           state.url,
           state.prompt, // Always pass the original prompt for context
@@ -400,7 +412,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           state.options,
           jobId,
           state.options.interactionHints,
-          fetchedHtmlContent, // Pass HTML if fetched
+          htmlForFixCall, // Pass HTML captured at failure (preferred) or initially fetched
           state.userFeedback, // Pass explicit user feedback for refinement
           formattedHistory // Pass the formatted history
         );
@@ -501,6 +513,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       let testErrorLog: string | null = null;
       let browser: any = null;
       let page: Page | null = null;
+      let capturedHtmlForFix: string | undefined = undefined; // Variable to hold captured HTML
 
       try {
         // ... [Existing Test Setup Logic - Browser Pool, Proxy, Page Creation] ...
@@ -524,6 +537,57 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         if (!page) {
           throw new Error(`Job ${jobId}: Failed to create page for testing.`);
         }
+
+        // --- Start: Early Selector Validation ---
+        logger.info(`Job ${jobId}: Performing early selector validation checks...`);
+        const validationPromises: Promise<void>[] = [];
+        for (const step of currentConfig.steps) {
+            // Check steps that commonly use selectors for interaction or extraction
+            const selectorOrArray = (step as any).selector || (step as any).condition;
+            if (selectorOrArray && typeof selectorOrArray !== 'function') { // Skip function selectors for now
+                 const selectors = Array.isArray(selectorOrArray) ? selectorOrArray.filter(s => s) : [selectorOrArray].filter(s => s);
+                for (const selector of selectors) {
+                     // Use a short timeout to check if the selector can be attached
+                     validationPromises.push(
+                        (async () => {
+                            try {
+                                 // Use locator().waitFor() for a quick check
+                                 await page.locator(selector).waitFor({ state: 'attached', timeout: 1500 });
+                                 logger.debug(`Early validation PASSED for selector: "${selector}"`);
+                            } catch (validationError: any) {
+                                // Log a warning, but don't fail the overall process here
+                                logger.warn(`Early Selector Validation FAILED (selector: "${selector}"): ${validationError.message?.split('\n')[0]}`);
+                            }
+                        })()
+                    );
+                }
+            }
+            // Also check fields within extract steps
+            if (step.type === 'extract' && step.fields) {
+                for (const fieldConfig of Object.values(step.fields)) {
+                     // Check if fieldConfig is an object and actually has a selector property
+                     if (typeof fieldConfig === 'object' && fieldConfig !== null && 'selector' in fieldConfig && fieldConfig.selector && typeof fieldConfig.selector !== 'function') {
+                        const fieldSelectors = Array.isArray(fieldConfig.selector) ? fieldConfig.selector.filter(s => s) : [fieldConfig.selector].filter(s => s);
+                         for (const fieldSelector of fieldSelectors) {
+                             validationPromises.push(
+                                (async () => {
+                                    try {
+                                        await page.locator(fieldSelector).waitFor({ state: 'attached', timeout: 1500 });
+                                        logger.debug(`Early validation PASSED for field selector: "${fieldSelector}"`);
+                                    } catch (validationError: any) {
+                                         logger.warn(`Early Selector Validation FAILED (field selector: "${fieldSelector}"): ${validationError.message?.split('\n')[0]}`);
+                                    }
+                                })()
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        // Wait for all validation checks to complete (or timeout)
+        await Promise.all(validationPromises);
+        logger.info(`Job ${jobId}: Early selector validation checks completed.`);
+        // --- End: Early Selector Validation ---
 
         logger.info(`Job ${jobId}: Executing navigation flow for test.`);
         const navigationEngine = new NavigationEngine(page, currentConfig.options || {});
@@ -604,6 +668,19 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
 
           testErrorLog = detailedErrorLog; // Assign the full log to testErrorLog
 
+          // --- Capture HTML on failure ---
+          try {
+              if (page) {
+                  capturedHtmlForFix = await page.content();
+                  logger.info(`Job ${jobId}: Captured HTML content (${capturedHtmlForFix?.length ?? 0} chars) after test failure for AI fix.`);
+              } else {
+                  logger.warn(`Job ${jobId}: Cannot capture HTML for fix as page object is null.`);
+              }
+          } catch (htmlError: any) {
+               logger.error(`Job ${jobId}: Could not capture HTML content for AI fix: ${htmlError.message}`);
+          }
+          // --- End Capture HTML ---
+
           state.lastError = testErrorLog; // Store enhanced error for the next potential fix iteration
           state.testResult = testNavResult.result; // Store partial result if any
           logger.warn(`Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testNavResult.error}`);
@@ -627,6 +704,19 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         testErrorLog += `\n\n[Simulated Diagnostics: Screenshot available at failure_screenshot_${jobId}_iter${state.iteration}.png]`;
         testErrorLog += `\n[Simulated Diagnostics: Console Logs Captured (Crash)]`;
         // --- End Simulation ---
+
+         // --- Capture HTML on crash ---
+         try {
+            if (page) {
+                capturedHtmlForFix = await page.content();
+                logger.info(`Job ${jobId}: Captured HTML content (${capturedHtmlForFix?.length ?? 0} chars) after test crash for AI fix.`);
+            } else {
+                logger.warn(`Job ${jobId}: Cannot capture HTML for fix (crash) as page object is null.`);
+            }
+        } catch (htmlError: any) {
+            logger.error(`Job ${jobId}: Could not capture HTML content for AI fix (crash): ${htmlError.message}`);
+        }
+        // --- End Capture HTML ---
 
         state.lastError = testErrorLog; // Store crash error
         state.testResult = null; // No reliable result available
@@ -679,6 +769,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       } else {
         // Test failed, prepare for next iteration (if maxIterations not reached)
         state.lastError = testErrorLog || 'Unknown test failure';
+        state.htmlContentAtFailure = capturedHtmlForFix; // Store captured HTML in state
         state.currentStatus = `Test Failed (Iteration ${state.iteration})`;
         const progressTestEnd = baseProgress + (PROGRESS_TEST_END - baseProgress);
         await updateJobStatus(job, state, progressTestEnd);

@@ -30,6 +30,7 @@ export interface GenerateConfigState {
   userFeedback?: string;
   fetchHtmlForRefinement?: boolean;
   fixHistory?: FixAttempt[];
+  htmlContentAtFailure?: string;
 }
 
 export interface GenerateConfigResult {

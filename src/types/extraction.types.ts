@@ -39,8 +39,8 @@ export interface BaseSelectorConfig {
  */
 export interface CssSelectorConfig extends BaseSelectorConfig {
   type: SelectorType.CSS;
-  selector: string;
-  selectors?: string[]; // Alternative selectors to try
+  selector: string | string[]; // Allow string or array
+  selectors?: string[]; // Keep this for potential alternative use or future cleanup
   attribute?: string; // If not provided, innerText is used
   multiple?: boolean; // If true, returns an array of matches
   source?: 'html' | 'text'; // 'html' for innerHTML/outerHTML, 'text' for textContent (default)
@@ -53,7 +53,7 @@ export interface CssSelectorConfig extends BaseSelectorConfig {
  */
 export interface XPathSelectorConfig extends BaseSelectorConfig {
   type: SelectorType.XPATH;
-  selector: string;
+  selector: string | string[]; // Allow string or array
   attribute?: string; // If not provided, innerText is used
   multiple?: boolean; // If true, returns an array of matches
 }
@@ -98,7 +98,7 @@ export interface FieldConfig {
  * Configuration for nested object extraction
  */
 export interface NestedExtractionConfig {
-  selector: string;
+  selector: string | string[]; // Allow string or array
   type: SelectorType.CSS | SelectorType.XPATH;
   multiple?: boolean;
   fields: FieldConfig;

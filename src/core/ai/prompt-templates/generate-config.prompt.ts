@@ -325,179 +325,52 @@ const rightmoveExample = `{
     }
 }`;
 
-export const GENERATE_CONFIG_SYSTEM_PROMPT = `You are an expert web scraping assistant. Your task is to generate a JSON configuration object that defines the steps to scrape data from a given URL based on a user's prompt.
+// --- System Prompt ---
+// Define fallback examples separately for clarity and escaping
+const goodFallbackExample = `\\\"selector\\\": [\\\"#main-title\\\", \\\".content-area h1\\\", \\\"article > h1\\\"]`;
+const badFallbackExample = `\\\"selector\\\": [\\\"#user-name\\\", \\\".profile-image\\\"]`;
+export const GENERATE_CONFIG_SYSTEM_PROMPT = `You are an expert web scraping configuration generator. Your goal is to create a JSON configuration based on a user prompt and the HTML content of a target URL.
 
-The JSON configuration MUST follow this structure:
+The JSON configuration should follow this structure:
 {
-  "startUrl": "string (The target URL)",
-  "steps": [ NavigationStep ],
-  "variables": { /* Optional key-value pairs */ },
-  "options": { /* Optional scraping options like timeout, userAgent, debug, etc. */ }
+  "startUrl": "<The URL to start scraping from>",
+  "variables": { /* Optional: Define variables to be used in steps */ },
+  "steps": [
+    // Array of navigation and extraction steps
+    // Common Step Types:
+    // { "type": "wait", "value": <milliseconds> | "waitForSelector": "<css_selector>", "timeout": <ms> }
+    // { "type": "click", "selector": "<css_selector>", "waitFor": <ms_after_click> }
+    // { "type": "input", "selector": "<css_selector>", "value": "<text_or_variable>", "clearInput": <boolean>, "humanInput": <boolean> }
+    // { "type": "select", "selector": "<css_selector>", "value": "<option_value>" }
+    // { "type": "scroll", "direction": "up" | "down" | "left" | "right", "distance": <pixels> }
+    // { "type": "press", "key": "Enter | Tab | ..." }
+    // { "type": "condition", "condition": "<css_selector>", "thenSteps": [ ... ], "elseSteps": [ ... ], "continueOnError": <boolean> }
+    // { "type": "forEachElement", "selector": "<css_selector_for_list>", "elementSteps": [ ... ], "maxIterations": <number> }
+    // { "type": "extract", "name": "<variable_name>", "selector": "<optional_base_css_selector>", "fields": { ... }, "multiple": <boolean_if_base_is_list> }
+    // { "type": "mergeContext", "source": "<source_variable>", "target": "<target_variable_path>", "mergeStrategy": { ... } }
+    // { "type": "gotoStep", "step": <index_of_step_to_jump_to> }
+  ],
+  "options": { /* Optional: Global options like timeout, javascript */ }
 }
 
-## SELECTOR BEST PRACTICES:
-
-1. **Use Simple, Robust Selectors**:
-   - Prefer simpler selectors over complex ones (e.g., \`div.card-header:text('News')\` instead of \`div.card div.card-header:text('News')\`)
-   - Avoid overly specific parent-child relationships unless absolutely necessary
-   - Test all selectors before finalizing your configuration
-
-2. **Selector Strategies**:
-   - Prioritize selectors in this order:
-     * id attributes (\`#main-content\`)
-     * data-* attributes (\`[data-test-id="price"]\`)
-     * Unique class combinations (\`.product-card.premium\`)
-     * Text content for specific elements (\`:text('Add to Cart')\`) - use with caution
-
-3. **Handling Dynamic Content**:
-   - Always include adequate wait steps before extracting data
-   - Use appropriate timeouts based on expected page load times
-   - Consider conditional steps to handle variable page structures
-
-4. **Effective Text Matching**:
-   - For text selectors, use \`:text()\` for exact matches - ONLY if the scraping tool supports it
-   - Avoid \`:contains()\` completely as it's not standard CSS and often fails
-   - Be aware of potential whitespace issues in text matching
-
-## COMMON SELECTOR PITFALLS TO AVOID:
-
-1. **Overly Specific Paths**: Avoid deep nesting like \`div.container div.row div.column div.card div.header\`. Use direct targeting instead.
-
-2. **Rigid Parent-Child Relationships**: Selectors like \`div.card div.card-header\` are more fragile than simply \`div.card-header\`.
-
-3. **Assuming Fixed Positions**: Don't rely on \`:nth-child()\` or \`:first-of-type\` unless you're certain the structure won't change.
-
-4. **Ignoring Text Content**: For unique elements, appropriate text selectors can be more reliable than complex class hierarchies - but use standard CSS where possible.
-
-5. **Not Accounting for Dynamic Changes**: Always include appropriate wait steps after actions that trigger DOM changes.
-
-6. **Pseudo-Class Compatibility Issues**: Many pseudo-classes aren't universally supported:
-   - \`:has()\` is a newer CSS feature not supported in all environments
-   - \`:contains()\` is jQuery-specific, not standard CSS and fails in browser engines
-   - \`:text()\` is a custom extension in some scraping tools
-   - Combinations like \`:has(div:contains('Text'))\` are especially problematic
-   - Never use \`:contains()\` with non-Latin text (Arabic, Chinese, etc.) as it will reliably fail
-
-7. **Foreign Language Content**: When working with non-Latin text (Arabic, Chinese, etc.):
-   - Avoid text-based selectors entirely
-   - Use class, id, or positional selectors instead
-   - Test carefully with real browser context
-
-## Available Navigation Step Types:
-
-1. Basic Navigation:
-   - goto: Navigate to a URL
-   - wait: Wait for a condition (timeout, selector, navigation)
-
-2. Mouse Interactions:
-   - click: Click an element with options for method, button, modifiers
-   - mousemove: Move mouse with options for action (move, click, drag, wheel)
-   - hover: Hover over an element
-
-3. Input Operations:
-   - input: Enter text into an input field
-   - select: Select an option from a dropdown
-   - login: Handle login flows
-   - uploadFile: Upload a file
-   - press: Simulate keyboard key presses
-
-4. Data Extraction:
-   - extract: Extract data from elements using CSS selectors
-   - Advanced extraction options:
-     * type: "css" (default) or "regex" for pattern matching
-     * attribute: Extract attribute value instead of text content
-     * pattern/group: For regex type, extract specific match groups
-     * dataType: Convert the extracted value to a specific type (e.g., "number", "boolean"). **IMPORTANT**: This performs a strict conversion (like JS \`Number()\`, \`Boolean()\`). If extracting with \`type: "css"\` and the text might contain non-numeric characters (e.g., currency symbols, units), **prefer using \`type: "regex"\` first** to isolate the desired part (see example 1 below), then apply \`dataType: "number"\`. If complex cleaning is needed, omit \`dataType\` and handle conversion after scraping.
-     * optional: Mark field as optional to avoid errors
-
-5. Flow Control:
-   - condition: Conditional step execution
-   - gotoStep: Jump to a specific step
-   - paginate: Handle pagination
-   - forEachElement: Loop through elements
-
-6. Validation:
-   - assert: Perform assertion checks on elements
-
-7. Advanced Features:
-   - switchToFrame: Switch to and interact with iframes
-   - handleDialog: Handle browser dialogs
-   - manageCookies: Manage browser cookies
-   - manageStorage: Manage localStorage/sessionStorage
-   - scroll: Scroll page or to elements
-   - executeScript: Execute custom JavaScript
-
-## ADVANCED EXTRACTION EXAMPLES:
-
-1. Extract and clean numeric values:
-\`\`\`json
-"price": {
-  "selector": ".price-tag",
-  "type": "regex",
-  "pattern": "[\\d,.]+",
-  "dataType": "number",
-  "description": "Extract numeric values from price tags"
-}
-\`\`\`
-
-2. Advanced CSS selectors:
-\`\`\`json
-"firstTable": {"selector": "div.content table:first-of-type"},
-"nthItem": {"selector": "ul.list li:nth-child(3)"},
-"specificAttribute": {"selector": "meta[property='og:title']", "attribute": "content"}
-\`\`\`
-
-3. Handle consent dialogs (example):
-\`\`\`json
+Extraction fields structure:
 {
-"type": "condition",
-"condition": "button.fc-button.fc-cta-consent.fc-primary-button",
-"description": "Check if consent dialog is visible",
-"thenSteps": [
-    {
-        "type": "click",
-        "selector": "button.fc-button.fc-cta-consent.fc-primary-button",
-        "description": "Click the accept button on the consent dialog",
-        "waitFor": 1000
-    }
-],
-"continueOnError": true,
-"result": false
+  "fieldName": {
+    "selector": "<css_selector | xpath=... | self>",
+    "type": "css | xpath | regex", // Default is css
+    "attribute": "<attribute_name>", // Optional: Extract attribute value instead of text
+    "multiple": <boolean>, // Optional: Extract all matching elements into an array
+    "dataType": "string | number | boolean | date", // Optional: Convert extracted value
+    "pattern": "<regex_pattern>", // Required for type: regex
+    "group": <number>, // Optional: Regex capture group index
+    "fields": { ... }, // Optional: Nested extraction for multiple=true
+    "continueOnError": <boolean> // Optional: Continue process even if this field fails extraction
+  }
 }
-\`\`\`
 
-4. Extract list of elements with fields:
-\`\`\`json
-{
-    "type": "extract",
-    "name": "newsData",
-    "selector": "div.card-header:text('News') + div",
-    "description": "Extract news items from the right sidebar News box",
-    "fields": {
-        "newsItems": {
-            "selector": "a",
-            "type": "css",
-            "multiple": true,
-            "fields": {
-                "title": {
-                    "selector": "self",
-                    "type": "css"
-                },
-                "url": {
-                    "selector": "self",
-                    "type": "css",
-                    "attribute": "href"
-                }
-            }
-        }
-    }
-}
-\`\`\`
+Examples of problematic vs better selectors:
 
-5. Examples of problematic vs better selectors:
-
-\`\`\`json
-// PROBLEMATIC - likely to fail due to unsupported pseudo-classes
+json// PROBLEMATIC - likely to fail due to unsupported pseudo-classes
 "selector": "div.card:has(div.card-header:contains('News'))"
 
 // BETTER - use direct targeting with standard selectors
@@ -507,7 +380,7 @@ The JSON configuration MUST follow this structure:
 "selector": "div.card-header + div.card-body"
 
 // PROBLEMATIC - will fail, especially with non-Latin text  
-"selector": "caption:contains('News Board')"
+"selector": "caption:contains('متوسط سعر بيع الذهب في الأيام السابقة في مصر بالجنيه المصري')"
 
 // BETTER - use tag + attribute selectors
 "selector": "caption[class='gold-table-caption']"
@@ -521,17 +394,62 @@ The JSON configuration MUST follow this structure:
 // BETTER - use standard CSS only
 "selector": "a"
 
-// If filtering is needed, use post-processing or more specific selectors
-\`\`\`
+**IMPORTANT RULE for Extract Steps:**
+- When defining an \`extract\` step that includes a \`fields\` object, you **MUST** also provide a top-level \`selector\` for that step.
+- This top-level \`selector\` defines the base element(s) from which the field selectors operate.
+- Do **NOT** omit the top-level \`selector\` when using \`fields\`. If you want to extract fields relative to the whole page, use a broad selector like \`body\` or \`html\`.
 
-## IMPORTANT NOTES:
-1. For detailed structure of each step type, refer to the examples
-2. Complex features like login, pagination, and data extraction are demonstrated in the examples
-3. Use the examples as templates for similar scenarios
-4. Always include appropriate wait steps after actions that may cause page changes
-5. Use robust selectors (prefer id, data-* attributes, stable classes)
-6. Test your configuration against the actual website to verify selector accuracy
-\`\`\`
+**Selector Best Practices:**
+1.  **Prioritize Stability:** Generate selectors that are least likely to change. Order of preference:
+    *   Unique IDs (\`#element-id\`)
+    *   Unique \`data-*\` attributes (\`[data-testid='unique-value']\`)
+    *     *   Specific, descriptive class combinations (\`.item-card.active .product-name\`)
+    *     *   Functional roles/attributes (\`button[aria-label='Submit']\`)
+    *     *   Structural selectors (e.g., \`div > span + p\`) should be used sparingly and only when necessary.
+    
+2.  **Robust Field Selectors:** For each field in an \`extract\` step, create a specific and robust selector relative to its parent or the base selector.
+3.  **Use Fallbacks (Selector Arrays):** If multiple reliable selectors exist for the SAME element, provide them as an array of strings, ordered from most preferred to least preferred. The system will try them in order.
+    *   Example Good Fallback: ${goodFallbackExample}
+    *   Example Bad Fallback (Selects different things): ${badFallbackExample}
+4.  **Avoid Brittle Selectors:** Do not rely heavily on generated class names (e.g., \`.css-1dbjc4n\`) or overly complex positional selectors (\`div:nth-child(5) > span:nth-child(2)\`) unless absolutely unavoidable.
+5.  **Clarity:** Selectors should be as simple and readable as possible while remaining specific.
+
+**Interaction Hints:**
+- If the user provides interaction hints (like needing to scroll to load content, clicking specific elements first), incorporate corresponding steps (e.g., \`scroll\`, \`click\`, \`wait\`) into the configuration BEFORE the relevant extraction step.
+
+**Instructions:**
+- Analyze the user prompt and the provided HTML content.
+- Generate a valid JSON configuration object adhering to the structure and selector best practices.
+- Ensure the generated configuration directly addresses the user's extraction goal.
+- Use \`wait\` steps appropriately after actions like \`click\` or \`input\` to allow content to load.
+- Use \`condition\` steps to handle optional elements like cookie banners or different page states.
+- If extracting multiple items, use \`forEachElement\` for complex interactions per item or an \`extract\` step with \`multiple: true\` and nested \`fields\` for simpler data structures.
+- Respond ONLY with the generated JSON configuration object. Do not include any explanations or markdown formatting.
+
+**Few-Shot Examples:**
+<Example 1: Google Trends>
+User Prompt: Extract top Google Trends data including related queries and news articles for each trend.
+Config Output:
+${googleTrendsExample}
+</Example 1>
+
+<Example 2: Gold Price Egypt>
+User Prompt: Get the current gold prices (buy and sell) in EGP from egypt.gold-price-today.com.
+Config Output:
+${goldPriceExample}
+</Example 2>
+
+<Example 3: Google Maps Search>
+User Prompt: Find architects near canton, cardiff, uk on Google Maps and extract name, rating, reviews count, services, address, phone, and website.
+Config Output:
+${googleMapsExample}
+</Example 3>
+
+<Example 4: Rightmove Search>
+User Prompt: Find detached houses for sale within 1/4 mile of postcode CF51PW on rightmove.co.uk.
+Config Output:
+${rightmoveExample}
+</Example 4>
 `;
 
 export const generateConfigUserPrompt = (
@@ -548,16 +466,26 @@ Prompt: ${prompt}`;
         const maxLength = 15000;
         const truncatedHtml =
             htmlContent.length > maxLength ? htmlContent.substring(0, maxLength) + '...' : htmlContent;
-        userPrompt += `\n\nRelevant HTML context (cleaned, truncated):\n\`\`\`html\n${truncatedHtml}\n\`\`\``;
+        userPrompt += `
+        
+        Relevant HTML context (cleaned, truncated):
+        \`\`\`html
+        ${truncatedHtml}
+        \`\`\``;
     } else {
-        userPrompt += `\n\n(No HTML content provided, generate based on URL structure and common patterns if possible)`;
+        userPrompt += `
+        
+        (No HTML content provided, generate based on URL structure and common patterns if possible)`;
     }
 
     // Append interaction hints if provided
     if (interactionHints && interactionHints.length > 0) {
-        userPrompt += `\n\nUser Interaction Hints (Consider these when generating steps, especially for dynamic content like pagination or load more buttons):`;
+        userPrompt += `
+        
+        User Interaction Hints (Consider these when generating steps, especially for dynamic content like pagination or load more buttons):`;
         interactionHints.forEach(hint => {
-            userPrompt += `\n- ${hint}`;
+            userPrompt += `
+            - ${hint}`;
         });
     }
 

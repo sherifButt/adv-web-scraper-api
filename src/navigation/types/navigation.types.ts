@@ -116,6 +116,12 @@ export interface NavigationStep {
   randomizeOffset?: boolean | number; // True for default range, or number for max pixel offset
   delayBeforeAction?: { min: number; max: number } | number; // Delay in ms before action (click, drag start, wheel)
   delayAfterAction?: { min: number; max: number } | number; // Delay in ms after action (click, drag end, wheel)
+
+  // --- Enhanced Wait Options ---
+  waitForState?: 'visible' | 'attached' | 'detached' | 'hidden'; // Removed 'stable'. Optional: Wait for a specific element state before proceeding (applies if selector is present)
+  waitForNetworkIdle?: boolean; // Optional: Wait for network activity to cease before proceeding
+  networkIdleTimeout?: number; // Optional: Timeout for network idle wait (default: 30000)
+  // ---------------------------------
 }
 
 /**

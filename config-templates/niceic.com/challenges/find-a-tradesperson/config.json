@@ -3,29 +3,61 @@
     "steps": [
         {
             "type": "wait",
-            "value": 3000,
-            "description": "Wait for initial page load"
+            "waitForSelector": "body",
+            "timeout": 30000,
+            "description": "Wait for the page to fully load"
         },
-      
+        {
+            "type": "condition",
+            "condition": [
+                "#onetrust-accept-btn-handler",
+                "button[aria-label='Allow All']",
+                "button:contains('Allow All')",
+                "button:contains('Accept All')",
+                ".cookie-banner button"
+            ],
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": [
+                        "#onetrust-accept-btn-handler",
+                        "button[aria-label='Allow All']",
+                        "button:contains('Allow All')",
+                        "button:contains('Accept All')",
+                        ".cookie-banner button"
+                    ],
+                    "description": "Click the Allow All button on cookies dialog"
+                },
+                {
+                    "type": "wait",
+                    "value": 1500,
+                    "description": "Wait for cookies dialog to disappear"
+                }
+            ],
+            "result": false
+        },
         {
             "type": "extract",
-            "name": "pageContent",
-            "selector": "div.search-hero__content > div > div > div",
-            "description": "Extract the first title on the page",
+            "name": "pageTitle",
+            "selector": "body",
             "fields": {
                 "firstTitle": {
-                    "selector": "h1",
+                    "selector": [
+                        "h1:first-of-type",
+                        "header h1",
+                        ".heading-1",
+                        ".page-title",
+                        "title"
+                    ],
                     "type": "css",
-                    "description": "The main heading on the page",
-                    "optional": true
+                    "continueOnError": true
                 }
             }
         }
     ],
     "options": {
         "timeout": 30000,
-        "waitForTimeout": 10000,
-        "navigationTimeout": 30000,
-        "javascript": true
+        "javascript": true,
+        "screenshots": false
     }
 }
