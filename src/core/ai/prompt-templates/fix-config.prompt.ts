@@ -88,18 +88,19 @@ export const FIX_CONFIG_SYSTEM_PROMPT = `You are an expert web scraping assistan
 
 You will be given the original URL, the original user prompt, the previous JSON configuration that failed, and the error message or log from the failed test run.
 
-Analyze the error and the previous configuration, then generate a NEW, CORRECTED JSON configuration object.
+**FIRST, identify the primary type of error from the error log (e.g., TimeoutError, SelectorNotFound, NavigationError, ExtractionError, DataFormatError). This will guide your fixing strategy.**
+
+Analyze the error, the previous configuration, and any provided HTML context, then generate a NEW, CORRECTED JSON configuration object.
 
 The JSON configuration MUST follow the comprehensive structure defined previously (startUrl, steps, all NavigationStep types and their parameters, FieldDefinition, etc.).
 
 SELECTOR TROUBLESHOOTING PRIORITIES:
-1. If error logs include HTML context, carefully examine it to find ACTUAL available selectors
-2. Use the most stable selectors available (id > data-attributes > unique class combinations > tag hierarchies)
-3. For dynamic content, add appropriate wait steps before attempting to interact or extract
-4. If a selector worked in one step but not in subsequent steps, the page structure might have changed after an action
-5. When working with tables, verify the table structure carefully in the HTML context
-6. Add appropriate timeout values for waitForSelector steps (usually 10000-30000ms)
-7. Always verify selector existence with conditions before critical interactions
+1. If error logs include HTML context (especially 'CURRENT PAGE HTML CONTEXT' or 'Relevant Fresh HTML Context'), **METICULOUSLY examine it to find ACTUAL available selectors BEFORE proposing a fix.** Do not guess selectors; base them on the provided HTML. If the context doesn't support a previously used selector, explain why and find a valid alternative based on the available structure.
+2. Use the most stable selectors available (id > data-attributes > unique class combinations > tag hierarchies).
+3. For dynamic content, add appropriate wait steps (\`"type": "wait", "waitForSelector": "..."\` or \`"type": "wait", "value": ...\`) before attempting to interact or extract. Set reasonable \`timeout\` values (e.g., 10000-30000ms).
+4. If a selector worked initially but failed later, the page structure likely changed dynamically after an interaction. Re-evaluate selectors based on the state *after* the interaction.
+5. When working with tables or lists, verify the structure carefully in the HTML context.
+6. Always verify selector existence with conditions (\`"type": "condition", "condition": "your-selector"\`) before critical interactions like clicks, especially if the element might appear conditionally.
 
 ADVANCED DATA EXTRACTION FEATURES:
 1. Use "type": "regex" with "pattern" to extract specific text patterns
@@ -192,8 +193,8 @@ IMPORTANT RULES:
 3. Modify the configuration specifically to address the root cause
 4. Ensure the generated JSON is valid and adheres strictly to the defined structure
 5. Maintain the original intent of the user's prompt while fixing the error
-6. Use robust CSS selectors (prefer 'id', 'data-*', stable classes)
-7. When you find fields resutls are null, try to find the correct selector for the field
+6. Use robust CSS selectors (prefer \'id\', \'data-*\', stable classes)
+7. When you find fields results are null, try to find the correct selector for the field **by carefully inspecting the provided HTML context.**
 
 Reference Examples (Good Structure):
 **Example 1: Google Trends** (Demonstrates complex data extraction, pagination, and dynamic content)
@@ -213,8 +214,8 @@ export const fixConfigUserPrompt = (
   previousConfig: any,
   errorLog: string | null,
   interactionHints?: string[],
-  htmlContent?: string, // Optional HTML content
-  userFeedback?: string // Optional user feedback
+  htmlContent?: string,
+  userFeedback?: string
 ) => {
   const errorLogContent = errorLog ?? 'No specific error log was provided';
   const feedbackContent = userFeedback ?? 'No specific user feedback provided.';
@@ -226,7 +227,7 @@ export const fixConfigUserPrompt = (
     formattedErrorLog = `${errorPart.trim()}\n\n--- CURRENT PAGE HTML CONTEXT (from error log) ---\n${htmlPart.trim()}`;
   }
 
-  // --- Build the prompt string --- 
+  // --- Build the prompt string ---
   let userPrompt = `The following scraping configuration needs correction or refinement based on the provided context.
 
 Original URL: ${url}
@@ -268,7 +269,7 @@ ${truncatedHtml}
     });
   }
 
-  userPrompt += `\n\nPlease analyze the previous configuration, the error/log, the user feedback, and any provided HTML context. 
+  userPrompt += `\n\nPlease analyze the previous configuration, the error/log, the user feedback, and any provided HTML context.
 Generate the corrected/refined JSON configuration:`;
 
   return userPrompt;
