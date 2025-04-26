@@ -24,18 +24,46 @@ When checking job status via the status URL, the response includes the current s
   "message": "Job status retrieved",
   "data": {
     "id": "job-123456", // The Job ID
-    "status": "completed", // Current status (see below)
-    "progress": 0, // Job progress (if reported by worker)
-    "result": { /* Extracted data or null */ }, // See Result Retrieval below
-    "estimatedCost": 0.15, // Cost estimation when available
-    "numberInQueue": 3, // Position in queue (only for waiting/active jobs)
-    "createdAt": 1744450886841, // Timestamp (ms) when job was created
-    "completedAt": 1744450939697, // Timestamp (ms) when job finished (if completed/failed)
-    "failedReason": null // Reason for failure (if status is 'failed')
+    "name": "generate-config", // The job name
+    "queueName": "config-generation-jobs", // The queue the job belongs to
+    "status": "active", // Current overall status (see below)
+    "progress": {
+            "percentage": 67,// Job progress percentage (0-100)
+            "status": "Executing step 3/3: extract - Extract pricing table data with provider, model, context, and token prices"
+        },
+    "detailedStatus": "Validating AI Response (Iteration 1)", // Specific status from worker (when active)
+    "attemptsMade": 1, // Number of attempts made
+    "failedReason": null, // Reason for failure (if status is 'failed')
+    "stacktrace": [], // Limited stack trace on failure
+    "opts": { // Options the job was created with (subset)
+        "attempts": 1,
+        "timeout": 300000
+    },
+    "timestamp": 1744450886841, // Timestamp (ms) when job was created
+    "processedOn": 1744450910234, // Timestamp (ms) when job processing started
+    "finishedOn": null // Timestamp (ms) when job finished (completed/failed)
   },
   "timestamp": "2025-04-12T09:42:36.752Z" // Timestamp of this API response
 }
 ```
+
+### Job Data Fields
+
+- `id` (string): Unique identifier for the job.
+- `name` (string): The name assigned to the job (e.g., 'generate-config', 'navigate').
+- `queueName` (string): The name of the queue the job belongs to.
+- `status` (string): Current overall status (see below).
+- `progress` (number): Job progress percentage (0-100), updated by the worker.
+- `detailedStatus` (string | null): A more specific status message provided by the worker, typically shown when the job `status` is `active` (e.g., "Fetching HTML", "Executing step 3: click"). Null otherwise.
+- `attemptsMade` (number): How many times the job has been attempted.
+- `result` (object | null): The final result stored by the `StorageService` (primarily used for completed jobs).
+- `returnValue` (any | null): The raw value returned by the worker function upon completion.
+- `failedReason` (string | null): Error message if the job failed.
+- `stacktrace` (string[] | null): A limited stack trace if the job failed.
+- `opts` (object): A subset of the options the job was created with (e.g., `attempts`, `delay`, `timeout`).
+- `timestamp` (number): Milliseconds timestamp when the job was added to the queue.
+- `processedOn` (number | null): Milliseconds timestamp when the worker started processing the job.
+- `finishedOn` (number | null): Milliseconds timestamp when the job completed or failed.
 
 ### Possible Status Values (`status`)
 
@@ -70,10 +98,22 @@ Retrieves a paginated list of all jobs across all queues or filtered by a specif
       "jobs": [
         {
           "id": "job-123456",
+          "name": "navigate",
           "status": "completed",
           "progress": 100,
-          "createdAt": 1744450886841,
-          "completedAt": 1744450939697,
+          "detailedStatus": null,
+          "timestamp": 1744450886841,
+          "finishedOn": 1744450939697,
+          "failedReason": null
+        },
+        {
+          "id": "job-654321",
+          "name": "generate-config",
+          "status": "active",
+          "progress": 35,
+          "detailedStatus": "Generating Initial Config",
+          "timestamp": 1744451200000,
+          "finishedOn": null,
           "failedReason": null
         }
         // More jobs in this queue...
