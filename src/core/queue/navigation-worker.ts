@@ -123,8 +123,12 @@ export async function processNavigationJob(job: Job) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     // Try to update progress one last time with error status
     // Use job.progress which might hold the last successful percentage
-    const lastProgress = typeof job.progress === 'object' && job.progress !== null ? job.progress.percentage : 50; // Default to 50% if unknown
-    await updateProgress(lastProgress, `Error: ${errorMsg.substring(0, 100)}`); // Truncate error message
+    // Add type check for the progress object structure
+    let lastProgressPercentage = 50; // Default to 50% if unknown or invalid
+    if (typeof job.progress === 'object' && job.progress !== null && typeof (job.progress as any).percentage === 'number') {
+       lastProgressPercentage = (job.progress as any).percentage;
+    }
+    await updateProgress(lastProgressPercentage, `Error: ${errorMsg.substring(0, 100)}`); // Truncate error message
     logger.error(`Failed navigation job ${job.id}: ${errorMsg}`);
 
     // Close page if it exists and wasn't closed
