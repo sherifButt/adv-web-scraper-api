@@ -6,6 +6,15 @@ import { redisConnection } from '../config/redis.js';
 import { logger } from '../../utils/logger.js';
 import { processNavigationJob } from './navigation-worker.js';
 import { processGenerateConfigJob } from './generate-config-worker.js';
+import { NavigationStep, NavigationResult, ProxyInfo } from '../../types/index.js';
+import { Page } from 'playwright';
+import * as z from 'zod'; // Using Zod for schema validation
+
+// Define an interface for the detailed progress object
+interface DetailedProgress {
+    percentage?: number;
+    status?: string;
+}
 
 export class QueueService {
   private queues: Record<string, Queue> = {};
@@ -158,26 +167,75 @@ export class QueueService {
   }
 
   // Helper to convert Job to a plain serializable object
-  private serializeJob(job: Job): any {
-    // Extract only the necessary properties from the job
+  private async serializeJob(job: Job): Promise<any> {
+    // Determine the overall job state
+    let status: string = 'unknown';
+    if (await job.isCompleted()) status = 'completed';
+    else if (await job.isFailed()) status = 'failed';
+    else if (await job.isActive()) status = 'active';
+    else if (await job.isDelayed()) status = 'delayed';
+    else if (await job.isWaiting()) status = 'waiting';
+    else if (await job.isWaitingChildren()) status = 'waiting-children';
+    // TODO: Add other states if necessary (e.g., paused, stuck?)
+
+    // Extract detailed progress if available
+    let progressPercentage: number = 0;
+    let detailedStatus: string | undefined = undefined;
+
+    // Check if progress is an object and fits our expected structure
+    const progressData = job.progress as any; // Cast to any for initial check
+    if (
+      typeof progressData === 'object' &&
+      progressData !== null &&
+      (typeof progressData.percentage === 'number' || typeof progressData.status === 'string')
+    ) {
+      const detailedProgress = progressData as DetailedProgress; // Cast to our interface
+      progressPercentage = Math.round(detailedProgress.percentage ?? 0);
+      detailedStatus = detailedProgress.status ?? undefined;
+    } else if (typeof job.progress === 'number') {
+      progressPercentage = Math.round(job.progress);
+    }
+
+    // Ensure progress is 100% if completed, 0% if not started
+    if (status === 'completed') {
+        progressPercentage = 100;
+        // Optionally clear detailed status upon completion
+        // detailedStatus = undefined;
+    } else if (status === 'waiting' || status === 'delayed') {
+        progressPercentage = 0;
+    }
+
+
     const serializedJob = {
       id: job.id,
       name: job.name,
-      data: job.data, // Typically omitted in API responses to reduce size
-      opts: job.opts,
-      progress: job.progress,
-      returnvalue: job.returnvalue,
-      stacktrace: job.stacktrace,
-      delay: job.delay,
-      priority: job.opts?.priority || 0,
-      attemptsStarted: job.attemptsStarted,
+      status: status, // Overall status
+      progress: progressPercentage, // Use 'progress' for the percentage
+      detailedStatus: status === 'active' ? detailedStatus : undefined, // Show detailed status only when active
+      // data: job.data, // Keep data omitted unless specifically needed
+      opts: {
+          attempts: job.opts?.attempts,
+          delay: job.opts?.delay,
+          priority: job.opts?.priority,
+          repeat: job.opts?.repeat,
+          lifo: job.opts?.lifo,
+          jobId: job.opts?.jobId,
+          removeOnComplete: job.opts?.removeOnComplete,
+          removeOnFail: job.opts?.removeOnFail,
+          // Add other relevant opts if needed, avoid exposing sensitive ones
+      },
+      returnValue: job.returnvalue, // Keep for completed jobs
+      failedReason: job.failedReason, // Keep for failed jobs
+      stacktrace: job.stacktrace?.slice(0, 1), // Limit stacktrace in response
       attemptsMade: job.attemptsMade,
       timestamp: job.timestamp,
       queueName: job.queueName,
       finishedOn: job.finishedOn,
       processedOn: job.processedOn,
-      failedReason: job.failedReason,
     };
+
+    // Clean up undefined fields if needed, although often handled by JSON.stringify
+    // Object.keys(serializedJob).forEach(key => serializedJob[key] === undefined && delete serializedJob[key]);
 
     return serializedJob;
   }
@@ -189,8 +247,8 @@ export class QueueService {
       try {
         const jobs = await queue.getJobs(['waiting', 'active', 'completed', 'failed', 'delayed']);
 
-        // Create a serializable version of each job
-        const serializedJobs = jobs.map(job => this.serializeJob(job));
+        // Use Promise.all because serializeJob is now async
+        const serializedJobs = await Promise.all(jobs.map(job => this.serializeJob(job)));
 
         results.push({ queue: name, jobs: serializedJobs });
       } catch (error) {

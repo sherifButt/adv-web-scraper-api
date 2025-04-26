@@ -76,10 +76,16 @@ export class NavigationEngine {
   public async executeFlow(
     startUrl: string,
     steps: NavigationStep[],
-    initialContext: NavigationContext = {}
+    initialContext: NavigationContext = {},
+    onProgressUpdate?: (progress: number, status: string) => Promise<void>
   ): Promise<NavigationResult> {
     const startTime = Date.now();
     let stepsExecuted = 0;
+    const totalSteps = steps.length;
+    // Define base progress range for steps (after initial setup)
+    const stepProgressStart = 20; // Matches the progress in navigation-worker
+    const stepProgressEnd = 90; // Matches the progress in navigation-worker
+    const stepProgressRange = stepProgressEnd - stepProgressStart;
 
     try {
       this.context = { ...initialContext };
@@ -110,6 +116,18 @@ export class NavigationEngine {
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
 
+        // Calculate progress percentage for the current step
+        const stepProgress = stepProgressStart + (i / totalSteps) * stepProgressRange;
+        const statusMessage = `Executing step ${i + 1}/${totalSteps}: ${step.description}`;
+
+        // Call progress update callback if provided
+        if (onProgressUpdate) {
+          await onProgressUpdate(Math.round(stepProgress), statusMessage);
+        } else {
+           // Log progress locally if no callback is provided
+           logger.info(statusMessage);
+        }
+
         // Check execution limits
         if (this.options.maxSteps && stepsExecuted >= this.options.maxSteps) {
           logger.warn(`Reached maximum steps limit (${this.options.maxSteps})`);
@@ -120,7 +138,7 @@ export class NavigationEngine {
           break;
         }
 
-        logger.info(`Executing step ${i + 1}: ${step.type}`);
+        // logger.info(`Executing step ${i + 1}: ${step.type}`); // Replaced by progress update
         // Execute step and get potential result (including jump index and new page)
         const stepResult = await this.executeStep(step, i);
         stepsExecuted++;
@@ -165,6 +183,11 @@ export class NavigationEngine {
       }
 
       // --- Flow Completion ---
+      // Optionally report final step progress before session save
+      if (onProgressUpdate) {
+          await onProgressUpdate(stepProgressEnd, `Finalizing flow after ${stepsExecuted} steps`);
+      }
+
       // Update session with any new cookies if session is enabled
       if (
         this.options.useSession !== false &&
@@ -192,6 +215,13 @@ export class NavigationEngine {
     } catch (error) {
       // --- Error Handling ---
       logger.error('Error executing navigation flow:', error);
+      // Optionally report error via progress update (if possible)
+       if (onProgressUpdate) {
+           // Try to get the progress percentage from just before the error
+           const errorProgress = stepProgressStart + ((stepsExecuted -1) / totalSteps) * stepProgressRange;
+           const errorMsg = error instanceof Error ? error.message : String(error);
+           await onProgressUpdate(Math.round(errorProgress), `Error during step ${stepsExecuted}: ${errorMsg.substring(0,50)}`);
+       }
       return this.formatResult('failed', startUrl, stepsExecuted, error);
     }
   }

@@ -113,17 +113,28 @@ const DEFAULT_OPTIONS: Required<GenerateConfigOptions> = {
 };
 
 // --- Helper Function to Update Job Progress/Data ---
-async function updateJobStatus(job: Job, state: Partial<GenerateConfigState>) {
+async function updateJobStatus(job: Job, state: Partial<GenerateConfigState>, progressPercentage?: number) {
   const currentData = job.data as GenerateConfigState;
-  const newData = { ...currentData, ...state };
-  await job.updateData(newData);
+  // Ensure state has necessary properties before merging
+  const newState = { ...currentData, ...state };
+  await job.updateData(newState);
 
-  if (typeof state.iteration === 'number' && state.options?.maxIterations) {
-    const progress = Math.round((state.iteration / state.options.maxIterations) * 100);
-    await job.updateProgress(progress);
-  }
-  if (state.currentStatus) {
-    logger.info(`Job ${job.id} status: ${state.currentStatus}`);
+  // Use provided percentage if available, otherwise calculate based on iteration
+  const finalProgressPercentage =
+    progressPercentage !== undefined
+      ? progressPercentage
+      : typeof newState.iteration === 'number' && newState.options?.maxIterations
+      ? Math.round((newState.iteration / newState.options.maxIterations) * 100)
+      : newState.progress; // Fallback to existing progress in state if any
+
+  // Update progress with both percentage and the detailed status string
+  await job.updateProgress({
+    percentage: Math.min(100, Math.max(0, finalProgressPercentage)), // Clamp between 0-100
+    status: newState.currentStatus ?? 'Processing',
+  });
+
+  if (newState.currentStatus) {
+    logger.info(`Job ${job.id} status: ${newState.currentStatus} (${finalProgressPercentage}%)`);
   }
 }
 
@@ -224,9 +235,26 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
 
   await updateJobStatus(job, state);
 
+  // Initial status update
+  state.progress = 0;
+  await updateJobStatus(job, state, 0);
+
+  // Define progress steps (adjust percentages as needed)
+  const PROGRESS_FETCH_HTML_START = 5;
+  const PROGRESS_FETCH_HTML_END = 15;
+  const PROGRESS_AI_CALL_START = 20;
+  const PROGRESS_AI_CALL_END = 60; // AI call is the bulk
+  const PROGRESS_VALIDATION_START = 65;
+  const PROGRESS_VALIDATION_END = 70;
+  const PROGRESS_TEST_START = 75;
+  const PROGRESS_TEST_END = 95;
+  const PROGRESS_COMPLETE = 100;
+
   // --- Main Generation/Refinement Loop ---
   while (state.iteration < state.options.maxIterations) {
     state.iteration++; // Increment iteration at the start
+    const baseProgress = Math.round(((state.iteration - 1) / state.options.maxIterations) * (PROGRESS_TEST_END - PROGRESS_FETCH_HTML_START)) + PROGRESS_FETCH_HTML_START;
+    const progressMultiplier = 1 / state.options.maxIterations;
 
     // Update status based on whether it's the first pass of initial/refinement or a subsequent fix
      if (state.iteration === 1) {
@@ -236,7 +264,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
      } else {
         state.currentStatus = `Preparing Fix Iteration ${state.iteration}`;
      }
-    await updateJobStatus(job, state);
+    await updateJobStatus(job, state, baseProgress); // Starting progress for iteration
 
 
     let aiResponse: AiModelResponse;
@@ -250,7 +278,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
 
       if (shouldFetchHtml) {
         state.currentStatus = 'Fetching HTML';
-        await updateJobStatus(job, state);
+        const progress = baseProgress + (PROGRESS_FETCH_HTML_START - baseProgress) * 0.5 ; // Mid-point fetch
+        await updateJobStatus(job, state, progress);
         logger.info(
           `Job ${jobId}: Fetching HTML content for ${state.url} (Iteration ${state.iteration}, RefinementFetch: ${state.fetchHtmlForRefinement})`
         );
@@ -284,6 +313,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
                 fetchedHtmlContent?.length ?? 0
               } chars).`
             );
+             await updateJobStatus(job, state, baseProgress + (PROGRESS_FETCH_HTML_END - baseProgress)); // HTML fetch complete
           } else {
             throw new Error(`Job ${jobId}: Failed to create page for HTML fetching.`);
           }
@@ -294,6 +324,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           );
           // Don't assign error to state.lastError here, as it might overwrite a real config error later
           fetchedHtmlContent = undefined;
+          // Update progress even if fetch failed, move to next stage
+          await updateJobStatus(job, state, baseProgress + (PROGRESS_FETCH_HTML_END - baseProgress));
         } finally {
           if (page) await page.close();
           if (browser) await BrowserPool.getInstance().releaseBrowser(browser);
@@ -301,6 +333,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       } else {
          logger.info(`Job ${jobId}: Skipping HTML fetch for this iteration.`);
          fetchedHtmlContent = undefined;
+         // Update progress as if HTML fetch step was completed quickly
+          await updateJobStatus(job, state, baseProgress + (PROGRESS_FETCH_HTML_END - baseProgress));
       }
 
       // --- Determine AI Call Type and Parameters ---
@@ -310,7 +344,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           : state.iteration === 1 && state.isRefinement
           ? 'Generating Refined Config'
           : `Generating Fix (Iteration ${state.iteration})`;
-      await updateJobStatus(job, state);
+      const progressAICallStart = baseProgress + (PROGRESS_AI_CALL_START - baseProgress);
+      await updateJobStatus(job, state, progressAICallStart);
       logger.info(`Job ${jobId}: Calling AI Service (${state.currentStatus})`);
 
 
@@ -354,6 +389,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       }
 
       // --- Process AI Response (Common Logic) ---
+      const progressAICallEnd = baseProgress + (PROGRESS_AI_CALL_END - baseProgress);
+      await updateJobStatus(job, {...state, currentStatus: `Processing AI Response (Iteration ${state.iteration})`}, progressAICallEnd);
       logger.info(
         `Job ${jobId}: Received AI Response. Tokens: ${
           aiResponse.tokensUsed
@@ -362,7 +399,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       state.tokensUsed += aiResponse.tokensUsed;
       state.estimatedCost += aiResponse.cost;
       state.currentStatus = `Validating AI Response (Iteration ${state.iteration})`;
-      await updateJobStatus(job, state);
+      const progressValidationStart = baseProgress + (PROGRESS_VALIDATION_START - baseProgress);
+      await updateJobStatus(job, state, progressValidationStart);
 
       logger.debug(`Job ${jobId}: Raw AI config:`, aiResponse.config);
       const validationResult = ScrapingConfigSchema.safeParse(aiResponse.config);
@@ -376,11 +414,14 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         state.lastError = errorMsg;
         state.lastConfig = aiResponse.config; // Store the invalid config for potential next fix attempt
         state.currentStatus = `Validation Failed (Iteration ${state.iteration})`;
-        await updateJobStatus(job, state);
+        const progressValidationFailed = baseProgress + (PROGRESS_VALIDATION_END - baseProgress);
+        await updateJobStatus(job, state, progressValidationFailed);
         continue; // Skip testing and go to next iteration
       }
 
       logger.info(`Job ${jobId}: AI response schema validation PASSED.`);
+      const progressValidationEnd = baseProgress + (PROGRESS_VALIDATION_END - baseProgress);
+      await updateJobStatus(job, {...state, currentStatus: `Validation Passed (Iteration ${state.iteration})` }, progressValidationEnd);
       const currentConfig = validationResult.data as {
         startUrl: string;
         steps: NavigationStep[]; // Use NavigationStep[] type
@@ -397,7 +438,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
          // ... (existing no-test logic remains the same) ...
         logger.info(`Job ${jobId}: Skipping test phase as testConfig is false.`);
         state.currentStatus = 'Completed (No Test)';
-        await updateJobStatus(job, state);
+        await updateJobStatus(job, state, PROGRESS_COMPLETE); // Set progress to 100%
         logger.info(`Job ${jobId}: Storing final configuration (no test).`);
         // Ensure originalPrompt is stored
         await storageService.store({
@@ -423,7 +464,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
 
       // --- Execute Test ---
       state.currentStatus = `Testing Config (Iteration ${state.iteration})`;
-      await updateJobStatus(job, state);
+      const progressTestStart = baseProgress + (PROGRESS_TEST_START - baseProgress);
+      await updateJobStatus(job, state, progressTestStart);
       logger.info(`Job ${jobId}: Starting configuration test (Iteration ${state.iteration}).`);
 
       let testPassed = false;
@@ -549,7 +591,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       // --- Post-Test Logic ---
       if (testPassed) {
         state.currentStatus = 'Completed';
-        await updateJobStatus(job, state);
+        await updateJobStatus(job, state, PROGRESS_COMPLETE); // Set progress to 100%
         logger.info(`Job ${jobId}: Storing final configuration after successful test.`);
          // Ensure originalPrompt is stored
         await storageService.store({
@@ -575,12 +617,13 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         // Test failed, prepare for next iteration (if maxIterations not reached)
         state.lastError = testErrorLog || 'Unknown test failure';
         state.currentStatus = `Test Failed (Iteration ${state.iteration})`;
+        const progressTestEnd = baseProgress + (PROGRESS_TEST_END - baseProgress);
+        await updateJobStatus(job, state, progressTestEnd);
         logger.warn(
           `Job ${jobId}: Test failed. Preparing for fix iteration ${state.iteration + 1}. Error: ${
             state.lastError?.substring(0, 500) // Log truncated error
           }...`
         );
-        await updateJobStatus(job, state);
         // Loop continues...
       }
     } catch (error: any) {
@@ -591,8 +634,10 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       );
       state.lastError = error.message; // Store the error
       state.currentStatus = `Error Occurred (Iteration ${state.iteration})`;
-      await updateJobStatus(job, state);
-      // Loop continues, will likely use this error in the next fix attempt
+      // Use progress from the end of the test phase, as the error likely happened there or after
+      const progressErrorOccurred = baseProgress + (PROGRESS_TEST_END - baseProgress);
+      await updateJobStatus(job, state, progressErrorOccurred);
+      // Loop continues, will likely use this error in the next potential fix attempt
     }
   } // --- End of while loop ---
 
@@ -605,7 +650,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
     state.lastError ?? 'Unknown'
   }`;
   state.status = 'failed'; // Final status
-  await updateJobStatus(job, state);
+  // Use progress from the end of the test phase for the final failure state
+  await updateJobStatus(job, state, PROGRESS_TEST_END);
 
    // Store the final failed state? Optional, but might be useful for debugging.
    // Store the last generated config even if it failed the final test.
