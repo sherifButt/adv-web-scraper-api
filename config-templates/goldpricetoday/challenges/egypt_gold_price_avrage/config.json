@@ -24,7 +24,7 @@
         {
             "type": "extract",
             "name": "secondTableData",
-            "selector": "table.prices-table:nth-of-type(2)",
+            "selector": "table.prices-table:nth-of-type(2):has(caption:contains('متوسط سعر بيع الذهب في الأيام السابقة في مصر بالجنيه المصري'))",
             "description": "Extract data from the second gold price table with caption 'متوسط سعر بيع الذهب في الأيام السابقة في مصر بالجنيه المصري'",
             "fields": {
                 "caption": {

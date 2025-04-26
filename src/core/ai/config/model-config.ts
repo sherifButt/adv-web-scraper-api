@@ -75,22 +75,26 @@ export const MODEL_COSTS = {
     output: 15 / 1_000_000, // $15 / 1M output tokens
   },
   'claude-3-5-sonnet-20240620': {
-    input: 3 / 1_000_000, // $3 / 1M input tokens
-    output: 15 / 1_000_000, // $15 / 1M output tokens
+    input: 3 / 1000000, // $3 / 1M input tokens
+    output: 15 / 1000000, // $15 / 1M output tokens
   },
   // OpenRouter models (using actual model names)
   'openrouter/google/gemini-2.5-pro-exp-03-25:free': {
-    input: 0.0001 / 1000,  // Example cost, adjust based on actual pricing
-    output: 0.0002 / 1000,
+    input: 0.0000 / 1000000,  // Example cost, adjust based on actual pricing
+    output: 0.0000 / 1000000,
   },
   'openrouter/openai/gpt-4.1-mini': {
-    input: 0.00015 / 1000,
-    output: 0.0006 / 1000,
+    input: 0.15 / 1000000,
+    output: 0.60 / 1000000,
   },
   // OpenRouter models
   'google/gemini-2.5-pro-preview-03-25': {
-    input: 0.0001 / 1000,  // Example cost, adjust based on actual pricing
-    output: 0.0002 / 1000,
+    input: 1.25 / 1000000,  // Example cost, adjust based on actual pricing
+    output: 10 / 1000000,
+  },
+  'anthropic/claude-3.7-sonnet:thinking': {
+    input: 3 / 1000000,
+    output: 15/ 1000000,
   },
   // Add other models like Opus, Haiku if needed
 };
