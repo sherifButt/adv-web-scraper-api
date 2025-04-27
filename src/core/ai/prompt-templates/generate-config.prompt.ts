@@ -329,10 +329,7 @@ const rightmoveExample = `{
 // Define fallback examples separately for clarity and escaping
 const goodFallbackExample = `\\\"selector\\\": [\\\"#main-title\\\", \\\".content-area h1\\\", \\\"article > h1\\\"]`;
 const badFallbackExample = `\\\"selector\\\": [\\\"#user-name\\\", \\\".profile-image\\\"]`;
-export const GENERATE_CONFIG_SYSTEM_PROMPT = `You are an expert web scraping configuration generator. Your goal is to create a JSON configuration based on a user prompt and the HTML content of a target URL.
-
-The JSON configuration should follow this structure:
-{
+export const GENERATE_CONFIG_SYSTEM_PROMPT = `You are an expert web scraping configuration generator. Your goal is to create a JSON configuration based on a user prompt and the HTML content of a target URL.\n\nThe JSON configuration should follow this structure:\n{
   "startUrl": "<The URL to start scraping from>",
   "variables": { /* Optional: Define variables to be used in steps */ },
   "steps": [
@@ -368,65 +365,10 @@ Extraction fields structure:
   }
 }
 
-Examples of problematic vs better selectors:
-
-json// PROBLEMATIC - likely to fail due to unsupported pseudo-classes
-"selector": "div.card:has(div.card-header:contains('News'))"
-
-// BETTER - use direct targeting with standard selectors
-"selector": "div.card-header:text('News') + div"
-
-// ALTERNATIVE - use adjacent sibling selector when appropriate
-"selector": "div.card-header + div.card-body"
-
-// PROBLEMATIC - will fail, especially with non-Latin text  
-"selector": "caption:contains('متوسط سعر بيع الذهب في الأيام السابقة في مصر بالجنيه المصري')"
-
-// BETTER - use tag + attribute selectors
-"selector": "caption[class='gold-table-caption']"
-
-// ALTERNATIVE - use position-based selectors  
-"selector": "table.gold-prices caption"
-
-// PROBLEMATIC - likely to fail
-"selector": "a:not(:contains('More'))"
-
-// BETTER - use standard CSS only
-"selector": "a"
-
 **IMPORTANT RULE for Extract Steps:**
 - When defining an \`extract\` step that includes a \`fields\` object, you **MUST** also provide a top-level \`selector\` for that step.
 - This top-level \`selector\` defines the base element(s) from which the field selectors operate.
-- Do **NOT** omit the top-level \`selector\` when using \`fields\`. If you want to extract fields relative to the whole page, use a broad selector like \`body\` or \`html\`.
-
-**Selector Best Practices:**
-1.  **Prioritize Stability:** Generate selectors that are least likely to change. Order of preference:
-    *   Unique IDs (\`#element-id\`)
-    *   Unique \`data-*\` attributes (\`[data-testid='unique-value']\`)
-    *     *   Specific, descriptive class combinations (\`.item-card.active .product-name\`)
-    *     *   Functional roles/attributes (\`button[aria-label='Submit']\`)
-    *     *   Structural selectors (e.g., \`div > span + p\`) should be used sparingly and only when necessary.
-    
-2.  **Robust Field Selectors:** For each field in an \`extract\` step, create a specific and robust selector relative to its parent or the base selector.
-3.  **Use Fallbacks (Selector Arrays):** If multiple reliable selectors exist for the SAME element, provide them as an array of strings, ordered from most preferred to least preferred. The system will try them in order.
-    *   Example Good Fallback: ${goodFallbackExample}
-    *   Example Bad Fallback (Selects different things): ${badFallbackExample}
-4.  **Avoid Brittle Selectors:** Do not rely heavily on generated class names (e.g., \`.css-1dbjc4n\`) or overly complex positional selectors (\`div:nth-child(5) > span:nth-child(2)\`) unless absolutely unavoidable.
-5.  **Clarity:** Selectors should be as simple and readable as possible while remaining specific.
-
-**Interaction Hints:**
-- If the user provides interaction hints (like needing to scroll to load content, clicking specific elements first), incorporate corresponding steps (e.g., \`scroll\`, \`click\`, \`wait\`) into the configuration BEFORE the relevant extraction step.
-
-**Instructions:**
-- Analyze the user prompt and the provided HTML content.
-- Generate a valid JSON configuration object adhering to the structure and selector best practices.
-- Ensure the generated configuration directly addresses the user's extraction goal.
-- Use \`wait\` steps appropriately after actions like \`click\` or \`input\` to allow content to load.
-- Use \`condition\` steps to handle optional elements like cookie banners or different page states.
-- If extracting multiple items, use \`forEachElement\` for complex interactions per item or an \`extract\` step with \`multiple: true\` and nested \`fields\` for simpler data structures.
-- Respond ONLY with the generated JSON configuration object. Do not include any explanations or markdown formatting.
-
-**Few-Shot Examples:**
+- Do **NOT** omit the top-level \`selector\` when using \`fields\`. If you want to extract fields relative to the whole page, use a broad selector like \`body\` or \`html\`.\n\n**Selector Best Practices:**\n1.  **Prioritize Stability:** Generate selectors that are least likely to change. Order of preference:\n    *   Unique IDs (\`#element-id\`)\n    *   Unique \`data-*\` attributes (\`[data-testid='unique-value']\`)\n    *   Specific, descriptive class combinations (\`.item-card.active .product-name\`)\n    *   Functional roles/attributes (\`button[aria-label='Submit']\`)\n    *   Structural selectors (e.g., \`div > span + p\`) should be used sparingly and only when necessary.\n2.  **Robust Field Selectors:** For each field in an \`extract\` step, create a specific and robust selector relative to its parent or the base selector.\n3.  **Use Fallbacks (Selector Arrays):** If multiple reliable selectors exist for the SAME element, provide them as an array of strings, ordered from most preferred to least preferred. The system will try them in order.\n    *   Example Good Fallback: ${goodFallbackExample}\n    *   Example Bad Fallback (Selects different things): ${badFallbackExample}\n4.  **Avoid Brittle Selectors:** Do not rely heavily on generated class names (e.g., \`.css-1dbjc4n\`) or overly complex positional selectors (\`div:nth-child(5) > span:nth-child(2)\`) unless absolutely unavoidable.\n5.  **Clarity:** Selectors should be as simple and readable as possible while remaining specific.\n\n**Interaction Hints:**\n- If the user provides interaction hints (like needing to scroll to load content, clicking specific elements first), incorporate corresponding steps (e.g., \`scroll\`, \`click\`, \`wait\`) into the configuration BEFORE the relevant extraction step.\n\n**Instructions:**\n- Analyze the user prompt and the provided HTML content.\n- Generate a valid JSON configuration object adhering to the structure and selector best practices.\n- Ensure the generated configuration directly addresses the user's extraction goal.\n- Use \`wait\` steps appropriately after actions like \`click\` or \`input\` to allow content to load.\n- Use \`condition\` steps to handle optional elements like cookie banners or different page states.\n- If extracting multiple items, use \`forEachElement\` for complex interactions per item or an \`extract\` step with \`multiple: true\` and nested \`fields\` for simpler data structures.\n- Respond ONLY with the generated JSON configuration object. Do not include any explanations or markdown formatting.\n\n**Few-Shot Examples:**
 <Example 1: Google Trends>
 User Prompt: Extract top Google Trends data including related queries and news articles for each trend.
 Config Output:
@@ -466,26 +408,16 @@ Prompt: ${prompt}`;
         const maxLength = 15000;
         const truncatedHtml =
             htmlContent.length > maxLength ? htmlContent.substring(0, maxLength) + '...' : htmlContent;
-        userPrompt += `
-        
-        Relevant HTML context (cleaned, truncated):
-        \`\`\`html
-        ${truncatedHtml}
-        \`\`\``;
+        userPrompt += `\n\nRelevant HTML context (cleaned, truncated):\n\`\`\`html\n${truncatedHtml}\n\`\`\``;
     } else {
-        userPrompt += `
-        
-        (No HTML content provided, generate based on URL structure and common patterns if possible)`;
+        userPrompt += `\n\n(No HTML content provided, generate based on URL structure and common patterns if possible)`;
     }
 
     // Append interaction hints if provided
     if (interactionHints && interactionHints.length > 0) {
-        userPrompt += `
-        
-        User Interaction Hints (Consider these when generating steps, especially for dynamic content like pagination or load more buttons):`;
+        userPrompt += `\n\nUser Interaction Hints (Consider these when generating steps, especially for dynamic content like pagination or load more buttons):`;
         interactionHints.forEach(hint => {
-            userPrompt += `
-            - ${hint}`;
+            userPrompt += `\n- ${hint}`;
         });
     }
 

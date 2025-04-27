@@ -38,9 +38,17 @@ export class ConditionStepHandler extends BaseStepHandler {
         // Use $ instead of waitForSelector for a simple existence check
         const element = await scope.$(selector);
         result = !!element; // True if element exists in the scope, false otherwise
-      } catch (error) {
-        logger.warn(`Error evaluating condition selector "${condition}": ${error}`);
-        result = false; // Treat errors as false condition
+      } catch (error: any) {
+        // Check if the error is likely a selector syntax error
+        if (error.message?.includes('is not a valid selector') || error.name === 'SyntaxError') {
+          logger.error(`Invalid selector syntax in condition: "${condition}". Error: ${error.message}`);
+          // Re-throw the syntax error to halt execution and report it
+          throw new Error(`InvalidConditionSelectorError: Selector "${condition}" is invalid: ${error.message}`);
+        } else {
+          // Log other errors as warnings and treat condition as false
+          logger.warn(`Error evaluating condition selector "${condition}": ${error.message}`);
+          result = false;
+        }
       }
     } else if (typeof condition === 'function') {
       try {

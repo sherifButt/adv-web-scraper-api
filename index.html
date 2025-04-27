@@ -371,7 +371,7 @@
     /* Demo section */
     .demo-container {
       background-color: white;
-      border-radius: var(--border-radius);
+      border-radius: 100px !important;
       padding: 1.5rem;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
@@ -387,7 +387,7 @@
       padding: 0.75rem 1.25rem;
       cursor: pointer;
       background-color: var(--bg-light);
-      border-radius: var(--border-radius);
+      border-radius: 100px !important;
       font-size: 0.8rem;
       white-space: nowrap;
     }
@@ -618,6 +618,65 @@
     .code-tab.active {
       background-color: #1e293b;
       color: white;
+    }
+
+    /* Demo Tabs Content (PicoCSS Radio Button Approach) */
+    [role="tabs"] {
+      display: flex;
+    }
+    [role="tabs"] section {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    [role="tabs"] figure {
+      /* flex-grow: 1; */ /* Optional, adjust if needed for layout */
+      width: 100%;
+      /* height: 100%; */ /* Optional, adjust if needed for layout */
+      display: none;
+      margin: 0; /* Reset figure margin */
+      padding: 0; /* Reset figure padding */
+    }
+    [role="tabs"] [type="radio"]:checked + figure {
+      display: block;
+    }
+    /* Style for the active tab label (optional, handled by JS) */
+    nav[role="tab-control"] label.active {
+       /* Use PicoCSS primary color or your preference */
+      color: var(--primary);
+      cursor: pointer;
+    }
+    /* Original Demo Tab Styling */
+    nav.demo-tabs ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1rem 0;
+      display: flex;
+      gap: 0.5rem;
+      /* Removed border-bottom */
+    }
+    nav.demo-tabs li {
+       margin-bottom: 0; /* Removed overlap margin */
+    }
+    nav.demo-tabs label.demo-tab {
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      background-color: var(--bg-light); /* Original inactive background */
+      border-radius: var(--border-radius); /* Original border-radius */
+      font-size: 0.8rem; /* Original font size */
+      white-space: nowrap;
+      border: none; /* Original: no border */
+      display: inline-block;
+      color: var(--text-muted); /* Original inactive text color */
+      transition: var(--transition);
+    }
+    nav.demo-tabs label.demo-tab:hover {
+        color: var(--primary); /* Original hover text color */
+    }
+    nav.demo-tabs label.demo-tab.active {
+       background-color: var(--primary); /* Original active background */
+       color: white; /* Original active text color */
+       border: none; /* Original: no border */
     }
 
     /* Responsive menu */
@@ -1278,47 +1337,100 @@
       </div>
 
       <div class="demo-container">
-        <div class="demo-tabs">
-          <div class="demo-tab active">Google Maps Data</div>
-          <div class="demo-tab">HackerNews</div>
-          <div class="demo-tab">Google Trends</div>
-        </div>
+        <nav class="demo-tabs" role="tab-control">
+          <ul>
+            <li><label for="tab-maps" class="demo-tab active" data-target="demo-content-maps">Google Maps Data</label></li>
+            <li><label for="tab-hackernews" class="demo-tab" data-target="demo-content-hackernews">HackerNews</label></li>
+            <li><label for="tab-trends" class="demo-tab" data-target="demo-content-trends">Google Trends</label></li>
+          </ul>
+        </nav>
 
-        <div class="result-preview">
-          <div class="result-header">
-            <div class="result-title">
-              <i class="ph ph-brackets-curly"></i> JSON Result
-            </div>
-          </div>
-          <div class="json-preview">
-            <span class="punctuation">{</span><br>
-            &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span class="boolean">true</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;<span class="key">"searchResults"</span><span class="punctuation">:</span> <span class="punctuation">{</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"listings"</span><span class="punctuation">:</span> <span class="punctuation">[</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"name"</span><span class="punctuation">:</span> <span class="string">"Black Brick Studio"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"rating"</span><span class="punctuation">:</span> <span class="string">"5.0"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"reviews"</span><span class="punctuation">:</span> <span class="number">12</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"services"</span><span class="punctuation">:</span> <span class="string">"Architecture firm"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"address"</span><span class="punctuation">:</span> <span class="string">"117 Bute St"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"phone"</span><span class="punctuation">:</span> <span class="string">"029 2252 0485"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"website"</span><span class="punctuation">:</span> <span class="string">"//www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwid7omr29WMAxU9k1AGHSH7NcoYABAAGgJkZw&co=1&ase=2&gclid=EAIaIQobChMIne6Jq9vVjAMVPZNQBh0h-zXKEBAYASAAEgLQ3PD_BwE&ohost=www.google.com&cid=CAASE-RoknGIys0KUcLcNKmR_mNyQKQ&sig=AOD64_2rOvQXKE-0Bj5Q7iKPhXRFn_0xQQ&adurl&q&ctype=99&nis=6"</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"name"</span><span class="punctuation">:</span> <span class="string">"Kotzmuth Williams Architects - Cardiff Architects"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"rating"</span><span class="punctuation">:</span> <span class="string">"5.0"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"reviews"</span><span class="punctuation">:</span> <span class="number">3</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"services"</span><span class="punctuation">:</span> <span class="string">"Architect"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"address"</span><span class="punctuation">:</span> <span class="string">"Canton House, Cowbridge Rd E"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"phone"</span><span class="punctuation">:</span> <span class="string">"029 2178 0001"</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"website"</span><span class="punctuation">:</span> <span class="string">"http://www.kwarchitects.com/"</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">]</span><br>
-            &nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;<span class="key">"screenshots"</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span><br>
-            &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span class="string">"2025-04-13T19:12:14.318Z"</span><br>
-            <span class="punctuation">}</span>
-          </div>
+        <div role="tabs">
+          <section>
+            <input hidden="hidden" type="radio" name="demo-tabs-group" id="tab-maps" checked="checked" />
+            <figure id="demo-content-maps">
+              <div class="result-preview">
+                <div class="result-header">
+                  <div class="result-title">
+                    <i class="ph ph-map-pin"></i> Google Maps Result
+                  </div>
+                </div>
+                <div class="json-preview">
+                  <span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span class="boolean">true</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"searchResults"</span><span class="punctuation">:</span> <span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"listings"</span><span class="punctuation">:</span> <span class="punctuation">[</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"name"</span><span class="punctuation">:</span> <span class="string">"Black Brick Studio"</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"rating"</span><span class="punctuation">:</span> <span class="string">"5.0"</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"reviews"</span><span class="punctuation">:</span> <span class="number">12</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"address"</span><span class="punctuation">:</span> <span class="string">"117 Bute St"</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"phone"</span><span class="punctuation">:</span> <span class="string">"029 2252 0485"</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/* ... More Listings ... */</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">]</span><br>
+                  &nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span class="string">"2025-04-13T19:12:14.318Z"</span><br>
+                  <span class="punctuation">}</span>
+                </div>
+              </div>
+            </figure>
+
+            <input hidden="hidden" type="radio" name="demo-tabs-group" id="tab-hackernews" />
+            <figure id="demo-content-hackernews">
+              <div class="result-preview">
+                <div class="result-header">
+                  <div class="result-title">
+                    <i class="ph ph-newspaper"></i> HackerNews Result
+                  </div>
+                </div>
+                <div class="json-preview">
+                  <span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span class="boolean">true</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"stories"</span><span class="punctuation">:</span> <span class="punctuation">[</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span> <span class="string">"The surprising size of Tesla's data empire"</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"url"</span><span class="punctuation">:</span> <span class="string">"https://..."</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"points"</span><span class="punctuation">:</span> <span class="number">314</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span> <span class="string">"Understanding how HashMap works in Rust"</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"url"</span><span class="punctuation">:</span> <span class="string">"https://..."</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"points"</span><span class="punctuation">:</span> <span class="number">239</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><br>
+                  &nbsp;&nbsp;<span class="punctuation">]</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span class="string">"2025-04-27T12:34:56.789Z"</span><br>
+                  <span class="punctuation">}</span>
+                </div>
+              </div>
+            </figure>
+
+            <input hidden="hidden" type="radio" name="demo-tabs-group" id="tab-trends" />
+            <figure id="demo-content-trends">
+              <div class="result-preview">
+                <div class="result-header">
+                  <div class="result-title">
+                    <i class="ph ph-chart-line"></i> Google Trends Result
+                  </div>
+                </div>
+                <div class="json-preview">
+                  <span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span class="boolean">true</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"trendsData"</span><span class="punctuation">:</span> <span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"trends"</span><span class="punctuation">:</span> <span class="punctuation">[</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span> <span class="string">"AI Development Tools"</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"searchVolume"</span><span class="punctuation">:</span> <span class="string">"100K+"</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/* ... More Trends ... */</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">]</span><br>
+                  &nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span class="string">"2025-04-28T10:00:00.000Z"</span><br>
+                  <span class="punctuation">}</span>
+                </div>
+              </div>
+            </figure>
+          </section>
         </div>
       </div>
     </section>
@@ -1439,36 +1551,7 @@
     </div>
   </footer>
 
-  <script>
-    // Mobile menu toggle
-    document.addEventListener('DOMContentLoaded', function () {
-      const menuToggle = document.getElementById('menuToggle');
-      const mainNav = document.getElementById('mainNav');
-
-      if (menuToggle && mainNav) {
-        menuToggle.addEventListener('click', function () {
-          mainNav.classList.toggle('active');
-        });
-      }
-
-      // Demo tabs
-      const demoTabs = document.querySelectorAll('.demo-tab');
-      if (demoTabs.length > 0) {
-        demoTabs.forEach(tab => {
-          tab.addEventListener('click', function () {
-            // Remove active class from all tabs
-            demoTabs.forEach(t => t.classList.remove('active'));
-
-            // Add active class to clicked tab
-            this.classList.add('active');
-
-            // In a real implementation, you would switch the content here
-            // For now, we'll just keep the first example
-          });
-        });
-      }
-    });
-  </script>
+  <script src="script.js" defer></script>
 </body>
 
 </html>
