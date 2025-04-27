@@ -90,6 +90,7 @@
       font-weight: bold;
     }
 
+
     #logo a {
       display: flex;
       align-items: center;
@@ -223,6 +224,10 @@
       color: var(--primary);
     }
 
+    section {
+      scroll-margin-top: 150px;
+    }
+
     /* Hero section */
     #hero {
       padding: 4rem 0;
@@ -286,11 +291,47 @@
     /* Code examples */
     pre {
       background-color: #1e293b;
-
       padding: 1.5rem;
       border-radius: var(--border-radius);
       overflow-x: auto;
       margin: 1.5rem 0;
+      position: relative;
+      word-wrap: break-word;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      border: none;
+      border-radius: 4px;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    }
+
+    pre:hover .copy-btn {
+      opacity: 1;
+    }
+
+    .copy-btn:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .copy-btn i {
+      font-size: 0.9rem;
+      color: #e2e8f0;
+    }
+
+    .copy-btn.copied {
+      background-color: #10b981;
     }
 
     code {
@@ -371,7 +412,7 @@
     /* Demo section */
     .demo-container {
       background-color: white;
-      border-radius: 100px !important;
+      border-radius: var(--border-radius);
       padding: 1.5rem;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
@@ -388,7 +429,7 @@
       cursor: pointer;
       background-color: var(--bg-light);
       border-radius: 100px !important;
-      font-size: 0.8rem;
+      font-size: .9rem !important;
       white-space: nowrap;
     }
 
@@ -624,28 +665,37 @@
     [role="tabs"] {
       display: flex;
     }
+
     [role="tabs"] section {
       display: flex;
       flex-wrap: wrap;
       width: 100%;
     }
+
     [role="tabs"] figure {
-      /* flex-grow: 1; */ /* Optional, adjust if needed for layout */
+      /* flex-grow: 1; */
+      /* Optional, adjust if needed for layout */
       width: 100%;
-      /* height: 100%; */ /* Optional, adjust if needed for layout */
+      /* height: 100%; */
+      /* Optional, adjust if needed for layout */
       display: none;
-      margin: 0; /* Reset figure margin */
-      padding: 0; /* Reset figure padding */
+      margin: 0;
+      /* Reset figure margin */
+      padding: 0;
+      /* Reset figure padding */
     }
-    [role="tabs"] [type="radio"]:checked + figure {
+
+    [role="tabs"] [type="radio"]:checked+figure {
       display: block;
     }
+
     /* Style for the active tab label (optional, handled by JS) */
     nav[role="tab-control"] label.active {
-       /* Use PicoCSS primary color or your preference */
+      /* Use PicoCSS primary color or your preference */
       color: var(--primary);
       cursor: pointer;
     }
+
     /* Original Demo Tab Styling */
     nav.demo-tabs ul {
       list-style: none;
@@ -655,28 +705,42 @@
       gap: 0.5rem;
       /* Removed border-bottom */
     }
+
     nav.demo-tabs li {
-       margin-bottom: 0; /* Removed overlap margin */
+      margin-bottom: 0;
+      /* Removed overlap margin */
     }
+
     nav.demo-tabs label.demo-tab {
       padding: 0.75rem 1.25rem;
       cursor: pointer;
-      background-color: var(--bg-light); /* Original inactive background */
-      border-radius: var(--border-radius); /* Original border-radius */
-      font-size: 0.8rem; /* Original font size */
+      background-color: var(--bg-light);
+      /* Original inactive background */
+      border-radius: var(--border-radius);
+      /* Original border-radius */
+      font-size: 0.8rem;
+      /* Original font size */
       white-space: nowrap;
-      border: none; /* Original: no border */
+      border: none;
+      /* Original: no border */
       display: inline-block;
-      color: var(--text-muted); /* Original inactive text color */
+      color: var(--text-muted);
+      /* Original inactive text color */
       transition: var(--transition);
     }
+
     nav.demo-tabs label.demo-tab:hover {
-        color: var(--primary); /* Original hover text color */
+      color: var(--primary);
+      /* Original hover text color */
     }
+
     nav.demo-tabs label.demo-tab.active {
-       background-color: var(--primary); /* Original active background */
-       color: white; /* Original active text color */
-       border: none; /* Original: no border */
+      background-color: var(--primary);
+      /* Original active background */
+      color: white;
+      /* Original active text color */
+      border: none;
+      /* Original: no border */
     }
 
     /* Responsive menu */
@@ -1030,21 +1094,55 @@
             <p>Use the AI endpoint to create a scraping configuration by simply describing what data you want to
               extract.</p>
             <div class="code-container">
-              <pre><code class="language-bash">curl -X POST YOUR_API_URL/api/v1/ai/generate-config \
+              <pre><code class="language-bash">
+curl -X POST http://localhost:3000/api/v1/ai/generate-config \
 -H "Content-Type: application/json" \
 -d '{
   "url": "https://news.ycombinator.com/",
   "prompt": "Extract the title and URL for each story listed on the front page.",
-  "options": {
-    "model": "anthropic/claude-3.7-sonnet:thinking",
-    "testConfiguration": true,
-    "maxIterations": 3
-  }
-}'</code></pre>
+  "previousJobId": "",
+    "fetchHtmlForRefinement": false,
+    "options": {
+        "maxIterations": 3,
+        "testConfig": true,
+        "model": "anthropic/claude-3.7-sonnet:thinking",
+        "maxTokens": 8192,
+        "temperature": 0.7,
+        "browserOptions": {
+            "headless": true,
+            "proxy": false
+        },
+        "interactionHints": []
+    }
+}'
+              </code></pre>
             </div>
             <p>This will return a Job ID that you can use to check the status of your configuration generation.</p>
+
+            <details>
+              <summary><i class="ph ph-clock"></i> Response Example</summary>
+              <div class="result-preview">
+                <div class="result-header">
+                  <div class="result-title">
+                    <i class="ph ph-clock"></i> 200: Queued Job Status
+                  </div>
+                </div>
+                <pre><code class="language-bash">
+{
+    "success":true,
+    "message":"AI configuration generation job queued successfully",
+    "data":{
+        "jobId":"6675cd68-4d40-4e2a-bf23-0d9fe3d5c157",
+        "statusUrl":"/api/v1/jobs/6675cd68-4d40-4e2a-bf23-0d9fe3d5c157"
+    },
+    "timestamp":"2025-04-27T11:37:21.336Z"
+}
+              </code></pre>
+
+              </div>
           </div>
         </div>
+        </details>
 
         <div class="step-card">
           <div class="step-number">3</div>
@@ -1053,17 +1151,20 @@
             <p>Poll the job status endpoint until the status is "completed". This will give you the generated
               configuration.</p>
             <div class="code-container">
-              <pre><code class="language-bash">curl YOUR_API_URL/api/v1/jobs/YOUR_JOB_ID // f97e8ed0-6061-4e7b-b996-5c1cb7945c5e</code></pre>
+              <pre><code class="language-bash">curl http://localhost:3000/api/v1/jobs/6675cd68-4d40-4e2a-bf23-0d9fe3d5c157</code></pre>
             </div>
 
             <p>The response will tell you the status of the job and the generated configuration:</p>
-            <div class="code-container">
-              <pre><code class="language-json">
+            <details>
+              <summary><i class="ph ph-clock"></i> Response Example (pending)</summary>
+
+              <div class="code-container">
+                <pre><code class="language-json">
 {
     "success": true,
     "message": "Job status retrieved",
     "data": {
-        "id": "f97e8ed0-6061-4e7b-b996-5c1cb7945c5e",
+        "id": "6675cd68-4d40-4e2a-bf23-0d9fe3d5c157",
         "name": "generate-config",
         "queueName": "config-generation-jobs",
         "status": "active",
@@ -1079,31 +1180,16 @@
     "timestamp": "2025-04-27T06:40:51.035Z"
 }
             </code></pre>
-            </div>
+              </div>
+            </details>
+            <details>
+              <summary><i class="ph ph-check"></i> Response Example (Processing)</summary>
 
-
-          </div>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <h3>Use Your Generated Config to Scrape Data</h3>
-            <p>After the job completes, take the generated configuration and use it with the navigation endpoint to
-              start scraping data as a human would, with the ability to handle dynamic content, pagination, and
-              conditional logic.</p>
-            <div class="code-container">
-              <pre><code class="language-bash">curl -X POST YOUR_API_URL/api/v1/navigate \
--H "Content-Type: application/json" \
--d '{
+              <div class="code-container">
+                <pre><code class="language-json">
+{
   "startUrl": "https://news.ycombinator.com/",
   "steps": [
-      {
-          "type": "wait",
-          "waitForSelector": "table#hnmain",
-          "timeout": 10000,
-          "description": "Wait for the Hacker News main table to load"
-      },
       {
           "type": "extract",
           "name": "hackerNewsStories",
@@ -1115,11 +1201,11 @@
                   "multiple": true,
                   "fields": {
                       "title": {
-                          "selector": "td.title span.titleline > a",
+                          "selector": ".titleline a:first-child",
                           "type": "css"
                       },
                       "url": {
-                          "selector": "td.title span.titleline > a",
+                          "selector": ".titleline a:first-child",
                           "type": "css",
                           "attribute": "href"
                       }
@@ -1130,67 +1216,324 @@
   ],
   "options": {
       "timeout": 30000,
-      "javascript": true
+      "javascript": false
+  }
+}
+            </code></pre>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Use Your Generated Config to Scrape Data</h3>
+            <p>After the job completes, take the generated configuration and use it with the navigation endpoint to
+              start scraping data as a human would, with the ability to handle dynamic content, pagination, and
+              conditional logic.</p>
+            <div class="code-container">
+              <pre><code class="language-bash">
+curl -X POST http://localhost:3000/api/v1/navigate \
+-H "Content-Type: application/json" \
+-d '{
+  "startUrl": "https://news.ycombinator.com/",
+  "steps": [
+      {
+          "type": "extract",
+          "name": "hackerNewsStories",
+          "selector": "table#hnmain",
+          "fields": {
+              "stories": {
+                  "selector": "tr.athing.submission",
+                  "type": "css",
+                  "multiple": true,
+                  "fields": {
+                      "title": {
+                          "selector": ".titleline a:first-child",
+                          "type": "css"
+                      },
+                      "url": {
+                          "selector": ".titleline a:first-child",
+                          "type": "css",
+                          "attribute": "href"
+                      }
+                  }
+              }
+          }
+      }
+  ],
+  "options": {
+      "timeout": 30000,
+      "javascript": false
   }
 }'</code></pre>
             </div>
             <p>This will return another Job ID. Once that job completes, you'll have your scraped data!</p>
-            <div class="code-container">
+            
+
+              
+          <details>
+              <summary><i class="ph ph-clock"></i> Response Example (queued)</summary>
+            <div class="result-preview">
+              <div class="result-header">
+                <div class="result-title">
+                  <i class="ph ph-clock"></i> 200: Queued Job Status
+                </div>
+              </div>
+
               <pre><code class="language-bash">
 {
-    "success": true,
-    "message": "Navigation job queued successfully",
-    "jobId": "37dc14f8-495b-4ac7-a779-93b7d7feeba4",
-    "statusUrl": "/api/jobs/37dc14f8-495b-4ac7-a779-93b7d7feeba4",
-    "timestamp": "2025-04-27T06:49:06.949Z"
+  "success":true,
+  "message":"AI configuration generation job queued successfully",
+  "data":{
+      "jobId":"6675cd68-4d40-4e2a-bf23-0d9fe3d5c157",
+      "statusUrl":"/api/v1/jobs/6675cd68-4d40-4e2a-bf23-0d9fe3d5c157"
+  },
+  "timestamp":"2025-04-27T11:37:21.336Z"
 }
-          </code></pre>
+            </code></pre>
+
             </div>
+              </details>
+            
           </div>
-
         </div>
-      </div>
+        <div class="step-card">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h3>Get the Scraped Data</h3>
+            <p>After the navigation job completes, you can retrieve the scraped data using the job ID.</p>
+            <div class="code-container">
+              <pre><code class="language-bash">curl http://localhost:3000/api/v1/jobs/891bb3c2-3376-4957-94b8-ce70ae8fc31d</code></pre>
+            </div>
+            <p>This will return the scraped data.</p>
+            <details>
+              <summary><i class="ph ph-clock"></i> Response Example (processing)</summary>
+              <p>if the job is still processing, you'll get a 202 status code. with a message indicating the job is still processing. and a status url to check the status of the job.</p>
+              <div class="code-container">
+                <pre><code class="language-json">
+{
+    "success": true,
+    "message": "Job status retrieved",
+    "data": {
+        "id": "6675cd68-4d40-4e2a-bf23-0d9fe3d5c157",
+        "name": "generate-config",
+        "queueName": "config-generation-jobs",
+        "status": "active",
+        "progress": {
+            "percentage": 75,
+            "status": "Testing Config (Iteration 1)"
+        },
+        "result": null,
+        "estimatedCost": null,
+        "createdAt": 1745736033517,
+        "numberInQueue": 0
+    },
+    "timestamp": "2025-04-27T06:40:51.035Z"
+}
+            </code></pre>
+              </div>
+            </details>
+            <div class="result-preview">
+              <div class="result-header">
+                <div class="result-title">
+                  <i class="ph ph-check"></i> 200: Data Retrieved
+                </div>
+              </div>
 
-      <!-- step 5 Get your scraped data -->
-      <div class="step-card">
-        <div class="step-number">5</div>
-        <div class="step-content">
-          <h3>Retrieve Your Scraped Data</h3>
-          <p>Use the scrape endpoint to get your scraped data.</p>
-          <div class="code-container">
-            <pre><code class="language-bash">curl -X POST YOUR_API_URL/api/v1/jobs/YOUR_JOB_ID</code></pre>
-          </div>
-          <p>This will return your scraped data.</p>
-          <div class="code-container">
-            <pre><code class="language-bash">
+              <pre><code class="language-bash">
 {
   "hackerNewsStories": {
       "stories": [
           {
-              "title": "CSS Zen Garden",
-              "url": "https://csszengarden.com/"
+              "title": "Reverse Geocoding Is Hard",
+              "url": "https://shkspr.mobi/blog/2025/04/reverse-geocoding-is-hard/"
           },
           {
-              "title": "Open-source interactive C tutorial in the browser",
-              "url": "https://www.learn-c.org/"
-          },
-          {
-              "title": "Watching o3 guess a photo's location is surreal, dystopian and entertaining",
-              "url": "https://simonwillison.net/2025/Apr/26/o3-photo-locations/"
+              "title": "Shardines: SQLite3 Database-per-Tenant with ActiveRecord",
+              "url": "https://blog.julik.nl/2025/04/a-can-of-shardines"
           },
           ....
-      ]
-  }
+        ]
+    }
 }
-        </code></pre>
+          </code></pre>
+
+            </div>
+            <details>
+              <summary><i class="ph ph-eye"></i> See more data</summary>
+    
+              <div class="code-container">
+                <pre><code class="language-json">
+{
+  "success": true,
+  "message": "Job status retrieved",
+  "data": {
+      "id": "e420b897-336a-4691-a249-0226c6c17380",
+      "name": "execute-flow",
+      "queueName": "navigation-jobs",
+      "status": "completed",
+      "progress": {
+          "percentage": 100,
+          "status": "Completed"
+      },
+      "result": {
+          "id": "e420b897-336a-4691-a249-0226c6c17380",
+          "startUrl": "https://news.ycombinator.com/",
+          "status": "completed",
+          "stepsExecuted": 1,
+          "result": {
+              "hackerNewsStories": {
+                  "stories": [
+                      {
+                          "title": "Reverse Geocoding Is Hard",
+                          "url": "https://shkspr.mobi/blog/2025/04/reverse-geocoding-is-hard/"
+                      },
+                      {
+                          "title": "Shardines: SQLite3 Database-per-Tenant with ActiveRecord",
+                          "url": "https://blog.julik.nl/2025/04/a-can-of-shardines"
+                      },
+                      {
+                          "title": "We're building a dystopia just to make people click on ads [video]",
+                          "url": "https://www.ted.com/talks/zeynep_tufekci_we_re_building_a_dystopia_just_to_make_people_click_on_ads"
+                      },
+                      {
+                          "title": "Mesmerizing Interlocking Geometric Patterns Produced with Japanese Woodworking",
+                          "url": "https://www.smithsonianmag.com/smithsonian-institution/see-the-mesmerizing-interlocking-geometric-patterns-produced-with-this-ancient-japanese-woodworking-technique-180986494/"
+                      },
+                      {
+                          "title": "Show HN: Remote-Controlled IKEA Deathstar Lamp",
+                          "url": "https://gitlab.com/sephalon/deathstar_lamp"
+                      },
+                      {
+                          "title": "Show HN: Lil digi – play a platformer game as yourself",
+                          "url": "https://www.lildigi.me/"
+                      },
+                      {
+                          "title": "Show HN: A Common Lisp implementation in development, supports ASDF",
+                          "url": "https://savannah.nongnu.org/p/alisp"
+                      },
+                      {
+                          "title": "Wikipedia: Database Download",
+                          "url": "https://en.wikipedia.org/wiki/Wikipedia:Database_download"
+                      },
+                      {
+                          "title": "How to program a text adventure in C",
+                          "url": "https://helderman.github.io/htpataic/htpataic01.html"
+                      },
+                      {
+                          "title": "Open-source interactive C tutorial in the browser",
+                          "url": "https://www.learn-c.org/"
+                      },
+                      {
+                          "title": "ZFS: Apple's New Filesystem that wasn't (2016)",
+                          "url": "https://ahl.dtrace.org/2016/06/15/apple_and_zfs/"
+                      },
+                      {
+                          "title": "Earth's oceans used to be green, and they could turn purple next",
+                          "url": "https://newatlas.com/science/earths-oceans-used-to-be-green-and-they-could-turn-purple-next/"
+                      },
+                      {
+                          "title": "Found a simple tool for database modeling: dbdiagram.io",
+                          "url": "https://dbdiagram.io"
+                      },
+                      {
+                          "title": "Show HN: Bhvr, a Bun and Hono and Vite and React Starter",
+                          "url": "https://bhvr.dev"
+                      },
+                      {
+                          "title": "Icônes",
+                          "url": "https://icones.js.org/"
+                      },
+                      {
+                          "title": "Show HN: My self-written hobby OS is finally running on my vintage IBM ThinkPad",
+                          "url": "https://github.com/joexbayer/RetrOS-32"
+                      },
+                      {
+                          "title": "Bare metal printf – C standard library without OS",
+                          "url": "https://popovicu.com/posts/bare-metal-printf/"
+                      },
+                      {
+                          "title": "An end to all this prostate trouble?",
+                          "url": "https://yarchive.net/blog/prostate/"
+                      },
+                      {
+                          "title": "Sigbovik Conference Proceedings 2025 [pdf]",
+                          "url": "https://sigbovik.org/2025/proceedings.pdf"
+                      },
+                      {
+                          "title": "Watching o3 guess a photo's location is surreal, dystopian and entertaining",
+                          "url": "https://simonwillison.net/2025/Apr/26/o3-photo-locations/"
+                      },
+                      {
+                          "title": "What Porn Did to American Culture",
+                          "url": "https://www.theatlantic.com/newsletters/archive/2025/04/what-porn-did-to-american-culture/682610/"
+                      },
+                      {
+                          "title": "Anatomy of a SQL Engine",
+                          "url": "https://www.dolthub.com/blog/2025-04-25-sql-engine-anatomy/"
+                      },
+                      {
+                          "title": "Former Disney employee who hacked Disney World menus sentenced to 3 years",
+                          "url": "https://databreaches.net/2025/04/24/former-disney-employeedwho-hacked-disney-world-restaurant-menus-in-revenge-sentenced-to-3-years-in-federal-prison/"
+                      },
+                      {
+                          "title": "Bill Gates's Personal Easter Eggs in 8 Bit BASIC (2008)",
+                          "url": "https://www.pagetable.com/?p=43"
+                      },
+                      {
+                          "title": "Chongqing, the Largest City – In Pictures",
+                          "url": "https://www.theguardian.com/world/gallery/2025/apr/27/chongqing-the-worlds-largest-city-in-pictures"
+                      },
+                      {
+                          "title": "Compiler Reminders",
+                          "url": "https://jfmengels.net/compiler-reminders/"
+                      },
+                      {
+                          "title": "Cloth",
+                          "url": "https://www.cloudofoz.com/verlet-test/"
+                      },
+                      {
+                          "title": "Australian who ordered radioactive materials walks away from court",
+                          "url": "https://www.chemistryworld.com/news/australian-who-ordered-radioactive-materials-over-the-internet-walks-away-from-court/4021306.article"
+                      },
+                      {
+                          "title": "Parity (YC S24) is hiring founding engineers to build an AI SRE (in-person, SF)",
+                          "url": "https://www.ycombinator.com/companies/parity/jobs"
+                      },
+                      {
+                          "title": "The Friendship Recession: The lost art of connecting",
+                          "url": "https://www.happiness.hks.harvard.edu/february-2025-issue/the-friendship-recession-the-lost-art-of-connecting"
+                      }
+                  ]
+              }
+          },
+          "screenshots": [],
+          "timestamp": "2025-04-27T16:05:28.213Z",
+          "queueName": "navigation-jobs"
+      },
+      "createdAt": 1745769924089,
+      "completedAt": 1745769928220
+  },
+  "timestamp": "2025-04-27T16:12:00.487Z"
+}
+              </code></pre>
+                
+              </div>
+            
+            </details>
+            
           </div>
-          <p class="text-center">
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation_examples.html" class="btn">
-              <i class="ph-fill ph-code"></i> More Examples
-            </a>
-          </p>
         </div>
-      </div>
+        <p class="text-center">
+       <a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation_examples.html" class="btn">
+         <i class="ph-fill ph-code"></i> More Examples
+       </a>
+     </p>
+       
+
+
 
 
     </section>
@@ -1286,6 +1629,12 @@
           </li>
           <li>
             <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html">
+              <code>GET /api/v1/jbs</code>
+            </a>
+            - get all jobs in the queue.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html">
               <code>GET /api/v1/jobs/:id</code>
             </a>
             - Check the status and retrieve results of asynchronous jobs.
@@ -1339,8 +1688,10 @@
       <div class="demo-container">
         <nav class="demo-tabs" role="tab-control">
           <ul>
-            <li><label for="tab-maps" class="demo-tab active" data-target="demo-content-maps">Google Maps Data</label></li>
-            <li><label for="tab-hackernews" class="demo-tab" data-target="demo-content-hackernews">HackerNews</label></li>
+            <li><label for="tab-maps" class="demo-tab active" data-target="demo-content-maps">Google Maps Data</label>
+            </li>
+            <li><label for="tab-hackernews" class="demo-tab" data-target="demo-content-hackernews">HackerNews</label>
+            </li>
             <li><label for="tab-trends" class="demo-tab" data-target="demo-content-trends">Google Trends</label></li>
           </ul>
         </nav>
@@ -1357,20 +1708,32 @@
                 </div>
                 <div class="json-preview">
                   <span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span class="boolean">true</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;<span class="key">"searchResults"</span><span class="punctuation">:</span> <span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"listings"</span><span class="punctuation">:</span> <span class="punctuation">[</span><br>
+                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span
+                    class="boolean">true</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"searchResults"</span><span class="punctuation">:</span> <span
+                    class="punctuation">{</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"listings"</span><span class="punctuation">:</span> <span
+                    class="punctuation">[</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"name"</span><span class="punctuation">:</span> <span class="string">"Black Brick Studio"</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"rating"</span><span class="punctuation">:</span> <span class="string">"5.0"</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"reviews"</span><span class="punctuation">:</span> <span class="number">12</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"address"</span><span class="punctuation">:</span> <span class="string">"117 Bute St"</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"phone"</span><span class="punctuation">:</span> <span class="string">"029 2252 0485"</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"name"</span><span
+                    class="punctuation">:</span> <span class="string">"Black Brick Studio"</span><span
+                    class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"rating"</span><span
+                    class="punctuation">:</span> <span class="string">"5.0"</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"reviews"</span><span
+                    class="punctuation">:</span> <span class="number">12</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"address"</span><span
+                    class="punctuation">:</span> <span class="string">"117 Bute St"</span><span
+                    class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"phone"</span><span
+                    class="punctuation">:</span> <span class="string">"029 2252 0485"</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span
+                    class="punctuation">,</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/* ... More Listings ... */</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">]</span><br>
                   &nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span class="string">"2025-04-13T19:12:14.318Z"</span><br>
+                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span
+                    class="string">"2025-04-13T19:12:14.318Z"</span><br>
                   <span class="punctuation">}</span>
                 </div>
               </div>
@@ -1386,20 +1749,31 @@
                 </div>
                 <div class="json-preview">
                   <span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span class="boolean">true</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;<span class="key">"stories"</span><span class="punctuation">:</span> <span class="punctuation">[</span><br>
+                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span
+                    class="boolean">true</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"stories"</span><span class="punctuation">:</span> <span
+                    class="punctuation">[</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span> <span class="string">"The surprising size of Tesla's data empire"</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"url"</span><span class="punctuation">:</span> <span class="string">"https://..."</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"points"</span><span class="punctuation">:</span> <span class="number">314</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span>
+                  <span class="string">"The surprising size of Tesla's data empire"</span><span
+                    class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"url"</span><span class="punctuation">:</span>
+                  <span class="string">"https://..."</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"points"</span><span
+                    class="punctuation">:</span> <span class="number">314</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span> <span class="string">"Understanding how HashMap works in Rust"</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"url"</span><span class="punctuation">:</span> <span class="string">"https://..."</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"points"</span><span class="punctuation">:</span> <span class="number">239</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span>
+                  <span class="string">"Understanding how HashMap works in Rust"</span><span
+                    class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"url"</span><span class="punctuation">:</span>
+                  <span class="string">"https://..."</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"points"</span><span
+                    class="punctuation">:</span> <span class="number">239</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><br>
                   &nbsp;&nbsp;<span class="punctuation">]</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span class="string">"2025-04-27T12:34:56.789Z"</span><br>
+                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span
+                    class="string">"2025-04-27T12:34:56.789Z"</span><br>
                   <span class="punctuation">}</span>
                 </div>
               </div>
@@ -1415,17 +1789,25 @@
                 </div>
                 <div class="json-preview">
                   <span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span class="boolean">true</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;<span class="key">"trendsData"</span><span class="punctuation">:</span> <span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"trends"</span><span class="punctuation">:</span> <span class="punctuation">[</span><br>
+                  &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span
+                    class="boolean">true</span><span class="punctuation">,</span><br>
+                  &nbsp;&nbsp;<span class="key">"trendsData"</span><span class="punctuation">:</span> <span
+                    class="punctuation">{</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"trends"</span><span class="punctuation">:</span> <span
+                    class="punctuation">[</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span> <span class="string">"AI Development Tools"</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"searchVolume"</span><span class="punctuation">:</span> <span class="string">"100K+"</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
-                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/* ... More Trends ... */</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span
+                    class="punctuation">:</span> <span class="string">"AI Development Tools"</span><span
+                    class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"searchVolume"</span><span
+                    class="punctuation">:</span> <span class="string">"100K+"</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span
+                    class="punctuation">,</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/* ... More Trends ... */</span><br>
                   &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">]</span><br>
                   &nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
-                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span class="string">"2025-04-28T10:00:00.000Z"</span><br>
+                  &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span
+                    class="string">"2025-04-28T10:00:00.000Z"</span><br>
                   <span class="punctuation">}</span>
                 </div>
               </div>
@@ -1433,6 +1815,50 @@
           </section>
         </div>
       </div>
+    </section>
+
+    <section id="llm-integration">
+      <div style="text-align: center; margin: 60px auto">
+        <h2>AI Integration</h2>
+        <p>Powerful language model capabilities built right into the API</p>
+      </div>
+
+      <div class="use-case-grid">
+
+        <article>
+          <h2><i class="ph-light ph-brain"></i></h2>
+          <h3>Multiple Model Support</h3>
+          <p>
+            Access a wide range of AI models through our unified OpenRouter integration, including
+            GPT-4, Claude, Gemini, and more.
+          </p>
+        </article>
+
+        <article>
+          <h2><i class="ph-light ph-currency-dollar"></i></h2>
+          <h3>Cost Tracking</h3>
+          <p>
+            Built-in token usage tracking and cost estimation for each model, helping you
+            manage your AI budget effectively.
+          </p>
+        </article>
+
+        <article>
+          <h2><i class="ph-light ph-sliders"></i></h2>
+          <h3>Customizable Parameters</h3>
+          <p>
+            Fine-tune your AI requests with customizable parameters like temperature, max tokens,
+            and provider-specific options.
+          </p>
+        </article>
+
+      </div>
+
+      <p style="margin: 6rem auto; text-align: center;">
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html" class="btn">
+          <i class="ph-fill ph-file-doc"></i> AI Integration Documentation
+        </a>
+      </p>
     </section>
 
     <section id="faq">
@@ -1552,6 +1978,68 @@
   </footer>
 
   <script src="script.js" defer></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Mobile menu toggle
+      const menuToggle = document.getElementById('menuToggle');
+      const mainNav = document.getElementById('mainNav');
+
+      if (menuToggle && mainNav) {
+        menuToggle.addEventListener('click', function () {
+          mainNav.classList.toggle('active');
+        });
+      }
+
+      // Demo tabs
+      const tabLabels = document.querySelectorAll('.demo-tab');
+
+      tabLabels.forEach(tab => {
+        tab.addEventListener('click', function () {
+          // Remove active class from all tabs
+          tabLabels.forEach(t => t.classList.remove('active'));
+          // Add active class to clicked tab
+          this.classList.add('active');
+        });
+      });
+
+      // Add copy button to all pre elements
+      const preElements = document.querySelectorAll('pre');
+
+      preElements.forEach(pre => {
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-btn';
+        copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
+        copyButton.title = 'Copy to clipboard';
+
+        copyButton.addEventListener('click', function () {
+          const code = pre.querySelector('code').innerText;
+
+          navigator.clipboard.writeText(code).then(() => {
+            // Visual feedback
+            copyButton.innerHTML = '<i class="ph ph-check"></i> Copied!';
+            copyButton.classList.add('copied');
+
+            // Reset after 2 seconds
+            setTimeout(() => {
+              copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
+              copyButton.classList.remove('copied');
+            }, 2000);
+          }).catch(err => {
+            console.error('Failed to copy: ', err);
+            copyButton.innerHTML = '<i class="ph ph-x"></i> Failed';
+
+            // Reset after 2 seconds
+            setTimeout(() => {
+              copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
+            }, 2000);
+          });
+        });
+
+        pre.appendChild(copyButton);
+      });
+    });
+  </script>
 </body>
 
 </html>
