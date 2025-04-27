@@ -1,591 +1,1474 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Advanced Web Scraper API</title>
 
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/light/style.css"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Web Scraper API | Web Data Extraction Made Simple</title>
+  <meta name="description"
+    content="A powerful, scalable API for web scraping, navigation, and AI-driven data extraction. Perfect for hobbyists, developers, and due diligence teams.">
 
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
-    />
-    <link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
->
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Advanced Web Scraper API">
+  <meta property="og:description"
+    content="Web data extraction made simple with AI-powered configuration and advanced browser automation.">
+  <meta property="og:image" content="https://sherifbutt.github.io/adv-web-scraper-api/media/images/og-image.png">
+  <meta property="og:url" content="https://scraper.apps.loyalleads.co.uk/">
+  <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Noto+Sans+JP:wght@100..900&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      p {
-        font-size: .7 rem;
-      }
-      h1 {
-        font-family: LibreBaskerville, Georgia, Cambria, 'Bodoni Moda', serif;
-        font-size: 4.2rem;
-        font-weight: normal;
-        margin-top: 60px;
-        margin-bottom: 20px;
-      }
-      h2 {
-        font-family: 'Abhaya Libre', serif;
-        font-size: 2.5rem;
-        margin-top: 40px;
+  <link rel="stylesheet" type="text/css"
+    href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/light/style.css" />
+  <link rel="stylesheet" type="text/css"
+    href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" type="text/css"
+    href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Noto+Sans+JP:wght@100..900&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #3a86ff;
+      --primary-hover: #2563eb;
+      --secondary: #8338ec;
+      --accent: #ff006e;
+      --text-main: #333333;
+      --text-muted: #646464;
+      --bg-light: #f8fafc;
+      --border-radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    body {
+      scroll-behavior: smooth;
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    p {
+      font-size: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    h1 {
+      font-family: 'Bodoni Moda', serif;
+      font-size: clamp(2.5rem, 5vw, 4.2rem);
+      font-weight: normal;
+      margin-top: 60px;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-family: 'Abhaya Libre', serif;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      margin-top: 40px;
+      color: var(--text-main);
+    }
+
+    h3 {
+      font-family: 'Abhaya Libre', serif;
+      font-size: 1.8rem;
+      color: var(--text-main);
+    }
+
+    i {
+      color: var(--primary);
+    }
+
+    #logo {
+      font-family: 'Bodoni Moda', serif;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    #logo a {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    #logo i {
+      font-size: 1.5rem;
+    }
+
+    .btn {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      border-radius: 100px;
+      border: none;
+      padding: 0.9rem 1.5rem;
+      background-color: var(--primary);
+      color: white;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      box-shadow: 0 4px 6px rgba(50, 50, 93, 0.1);
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-secondary {
+      background-color: white;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--bg-light);
+    }
+
+    .btn i {
+      color: white;
+    }
+
+    .btn-secondary i {
+      color: var(--primary);
+    }
+
+    nav .btn {
+      padding: 0.5rem 1rem;
+    }
+
+    blockquote {
+      font-family: 'Abhaya Libre', serif;
+      border-left: 4px solid var(--primary);
+      padding-left: 1rem;
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    p,
+    li {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    article {
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      background-color: white;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    article:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      transform: translateY(-5px);
+    }
+
+    article h2 {
+      color: var(--primary);
+      margin-top: 0;
+    }
+
+    article h3 {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    article p {
+      flex-grow: 1;
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+
+    /* Header styles */
+    header {
+      padding: 1.5rem 0;
+      position: sticky;
+      top: 0;
+      background-color: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    nav a {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    nav a:hover {
+      color: var(--primary);
+    }
+
+    /* Hero section */
+    #hero {
+      padding: 4rem 0;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-image {
+      max-width: 100%;
+      border-radius: var(--border-radius);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    /* Feature grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    /* API section */
+    .api-list {
+      background-color: white;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .api-list li {
+      margin-bottom: 1rem;
+    }
+
+    .api-list code {
+      color: var(--secondary);
+      font-weight: 600;
+    }
+
+    /* Use cases */
+    .use-case-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    /* Code examples */
+    pre {
+      background-color: #1e293b;
+
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      overflow-x: auto;
+      margin: 1.5rem 0;
+    }
+
+    code {
+      font-family: monospace;
+      color: #e2e8f0;
+      font-size: 0.7rem !important;
+    }
+
+    /* FAQ */
+    details {
+      background-color: white;
+      border-radius: var(--border-radius);
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    summary {
+      padding: 1.2rem;
+      cursor: pointer;
+      font-weight: 600;
+      position: relative;
+      outline: none;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    summary::before {
+      content: '➕';
+      font-size: 0.8rem;
+    }
+
+    details[open] summary::before {
+      content: '➖';
+    }
+
+    details[open] summary {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    details p {
+      padding: 1.2rem;
+      margin: 0;
+    }
+
+    /* Footer */
+    footer {
+      background-color: var(--bg-light);
+      padding: 3rem 0;
+      margin-top: 4rem;
+      text-align: center;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    /* Demo section */
+    .demo-container {
+      background-color: white;
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .demo-tabs {
+      display: flex;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+      gap: 0.5rem;
+    }
+
+    .demo-tab {
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      background-color: var(--bg-light);
+      border-radius: var(--border-radius);
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .demo-tab.active {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      header {
+        padding: 1rem 0;
       }
 
-      h3 {
-        font-family: 'Abhaya Libre', serif;
-        font-size: 1.8rem;
+      nav {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
       }
-      i {
-        color: #646464;
-      }
-      #logo {
-        font-family: LibreBaskerville, Georgia, Cambria, 'Bodoni Moda', serif;
-        font-size: 1.3rem;
-        font-weight: bold;
-      }
-      button {
-        font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-          Segoe UI Symbol,
-          Noto Color Apple Color Apple Color Apple Color Apple Color Apple Color Emoji;
-        border-radius: 100px;
-        border: none;
-        padding: 0.9rem 1.2rem;
-        background-color: black;
-        color: white;
-        cursor: pointer;
-      }
-      nav button {
-        padding: 0.5rem 0.8rem;
-      }
-      button i {
-        color: white;
-      }
-      blockquote {
-        font-family: 'Abhaya Libre', serif;
-      }
-      p,
-      li {
-        font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-          Segoe UI Symbol, Noto Color Emoji;
-        color: #646464;
-        font-weight: 300;
-      }
-      article {
-        padding: 20px 30px;
-        border-radius: 18px;
-      }
-    </style>
-  </head>
 
-  <body class="container">
-    <header
-      style="
-        flex-direction: row;
-        justify-content: space-between;
+      .hero-buttons {
+        flex-direction: column;
         align-items: center;
+      }
+
+      .hero-buttons .btn {
+        width: 100%;
+      }
+
+      .feature-grid,
+      .use-case-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Quick example section */
+    .quick-example {
+      position: relative;
+      margin: 3rem 0;
+      padding: 2rem;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-example::before {
+      content: "Quick Example";
+      position: absolute;
+      top: -1rem;
+      left: 2rem;
+      background-color: var(--secondary);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .timeline-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .timeline-content {
+      flex-grow: 1;
+    }
+
+    .timeline-content h4 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Flexible header for mobile */
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .nav-container {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Live demo section */
+    .live-demo {
+      background-color: var(--bg-light);
+      padding: 3rem 0;
+      margin: 4rem 0;
+      text-align: center;
+    }
+
+    .demo-frame {
+      max-width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
+    }
+
+    /* CTA section */
+    .cta-section {
+      background-color: var(--primary);
+      color: white;
+      padding: 4rem 0;
+      text-align: center;
+      margin: 4rem 0;
+      border-radius: var(--border-radius);
+    }
+
+    .cta-section h2 {
+      color: white;
+      margin-top: 0;
+    }
+
+    .cta-section p {
+      color: rgba(255, 255, 255, 0.9);
+      max-width: 700px;
+      margin: 1.5rem auto;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-white {
+      background-color: white;
+      color: var(--primary);
+    }
+
+    .btn-white i {
+      color: var(--primary);
+    }
+
+    .btn-outline-white {
+      background-color: transparent;
+      color: white;
+      border: 1px solid white;
+    }
+
+    .btn-outline-white:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-outline-white i {
+      color: white;
+    }
+
+    /* Stats section */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+
+    .stat-item {
+      background-color: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-family: 'Bodoni Moda', serif;
+    }
+
+    .stat-label {
+      font-size: 1.1rem;
+      color: var(--text-main);
+    }
+
+    /* Code tabs */
+    .code-container {
+      margin: 2rem 0;
+    }
+
+    .code-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      overflow-x: auto;
+    }
+
+    .code-tab {
+      padding: 0.5rem 1rem;
+      background-color: #2d3748;
+      color: #cbd5e0;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .code-tab.active {
+      background-color: #1e293b;
+      color: white;
+    }
+
+    /* Responsive menu */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    @media (max-width: 768px) {
+      .nav-container {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .nav-container.active {
         display: flex;
-        row-gap: 20px;
-      "
-    >
-      <strong id="logo" title="Advanced Web Scraper API"
-        ><a href="https://sherifbutt.github.io/adv-web-scraper-api/"
-          ><i class="ph ph-robot"></i> AWSapi</a
-        ></strong
-      >
-      <nav style="display: flex; gap: 20px; align-items: center">
-        <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/"
-          ><i class="ph ph-plug"></i> API Reference</a
-        >
-        <a href="#features"><i class="ph ph-star"></i> Features</a>
-        <a href="#quickstart"><i class="ph ph-rocket"></i> Quick Start</a>
+      }
 
-        <a href="https://github.com/sherifButt/adv-web-scraper-api"
-          ><button title="GitHub"><i class="ph-fill ph-github-logo"></i>Git</button></a
-        >
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .header-container {
+        flex-wrap: nowrap;
+      }
+    }
+
+    /* Getting Started Section */
+    .getting-started {
+      margin: 4rem 0;
+    }
+
+    .step-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .step-card {
+      display: flex;
+      gap: 1.5rem;
+      background-color: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .step-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 3rem;
+      height: 3rem;
+      background-color: var(--primary);
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 600;
+      border-radius: 50%;
+    }
+
+    .step-content {
+      flex-grow: 1;
+    }
+
+    .step-content h3 {
+      margin-top: 0;
+    }
+
+    /* Result preview */
+    .result-preview {
+      background-color: #1e293b;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      margin: 1.5rem 0;
+      overflow: hidden;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #4a5568;
+    }
+
+    .result-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .json-preview {
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+
+    .key {
+      color: #9ae6b4;
+    }
+
+    .string {
+      color: #fc8181;
+    }
+
+    .number {
+      color: #9f7aea;
+    }
+
+    .boolean {
+      color: #4299e1;
+    }
+
+    .null {
+      color: #cbd5e0;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container header-container">
+      <strong id="logo" title="Advanced Web Scraper API">
+        <a href="https://scraper.apps.loyalleads.co.uk/">
+          <i class="ph ph-robot"></i> AWSapi
+        </a>
+      </strong>
+
+      <button class="mobile-menu-btn" id="menuToggle">
+        <i class="ph ph-list"></i>
+      </button>
+
+      <nav class="nav-container" id="mainNav">
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/">
+          <i class="ph ph-plug"></i> API Reference
+        </a>
+        <a href="#features">
+          <i class="ph ph-star"></i> Features
+        </a>
+        <a href="#quickstart">
+          <i class="ph ph-rocket"></i> Quick Start
+        </a>
+        <a href="https://github.com/sherifButt/adv-web-scraper-api">
+          <button class="btn" title="GitHub">
+            <i class="ph-fill ph-github-logo"></i> GitHub
+          </button>
+        </a>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <section id="hero" style="text-align: center; margin-top: 60px">
-      <div style="text-align: center; margin: 60px auto">
-        <h1>Advanced Web Scraper API</h1>
-        <p>A powerful, scalable API for web scraping, navigation, and AI-driven data extraction.</p>
+  <section id="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1>Web Data Extraction Made Simple</h1>
+        <p>A powerful, AI-driven API that makes web scraping accessible to hobbyists, individual developers, and due
+          diligence teams alike. No complex coding required.</p>
+
+        <div class="hero-buttons">
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="btn">
+            <i class="ph-fill ph-book-open"></i> Documentation
+          </a>
+          <a href="#quickstart" class="btn btn-secondary">
+            <i class="ph-fill ph-rocket"></i> Get Started
+          </a>
+        </div>
       </div>
+
       <figure>
-        <img
-          src="/media/videos/adv-web-scraping-api.gif"
-          alt="Example scraped webpage"
-          style="border-radius: 12px; margin: 40px auto"
-          height="300"
-        />
+        <img src="/media/videos/adv-web-scraping-api.gif" alt="Advanced Web Scraper API in action" class="hero-image"
+          style="margin: 40px auto; max-width: 90%; height: auto; max-height: 500px;" />
       </figure>
-      <div>
-        <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="button"
-          ><button><i class="ph-fill ph-book-open"></i> Documentation</button></a
-        >
-        <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/" class="button"
-          ><button><i class="ph-fill ph-plug"></i> API Reference</button></a
-        >
-        <!-- Removed outdated blockquote -->
+    </div>
+  </section>
+  <main class="container">
+
+
+
+    <section id="quick-example" class="quick-example container">
+      <h3>Turn this natural language request...</h3>
+      <div class="result-preview">
+        <div class="result-header">
+          <div class="result-title">
+            <i class="ph ph-text-t"></i> Prompt
+          </div>
+        </div>
+        <div class="json-preview">
+          "Extract all trending stories from Hacker News including their titles, URLs, and point counts."
+        </div>
+      </div>
+
+      <h3>...into this scraped structured data automatically</h3>
+      <div class="result-preview">
+        <div class="result-header">
+          <div class="result-title">
+            <i class="ph ph-brackets-curly"></i> JSON Result
+          </div>
+        </div>
+        <div class="json-preview">
+          <span class="punctuation">{</span><br>
+          &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span
+            class="boolean">true</span><span class="punctuation">,</span><br>
+          &nbsp;&nbsp;<span class="key">"stories"</span><span class="punctuation">:</span> <span
+            class="punctuation">[</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span> <span
+            class="string">"The surprising size of Tesla's data empire"</span><span class="punctuation">,</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"url"</span><span class="punctuation">:</span> <span
+            class="string">"https://foundation.mozilla.org/en/privacynotincluded/articles/tesla-tracking/"</span><span
+            class="punctuation">,</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"points"</span><span class="punctuation">:</span> <span
+            class="number">314</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"title"</span><span class="punctuation">:</span> <span
+            class="string">"Understanding how HashMap works in Rust"</span><span class="punctuation">,</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"url"</span><span class="punctuation">:</span> <span
+            class="string">"https://dev.to/seanchen1991/understanding-how-hashmap-works-in-rust-2jj2"</span><span
+            class="punctuation">,</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"points"</span><span class="punctuation">:</span> <span
+            class="number">239</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/* More stories... */</span><br>
+          &nbsp;&nbsp;<span class="punctuation">]</span><span class="punctuation">,</span><br>
+          &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span
+            class="string">"2025-04-27T12:34:56.789Z"</span><br>
+          <span class="punctuation">}</span>
+        </div>
       </div>
     </section>
-    <main>
-      <section id="features">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>Key Features</h2>
-        </div>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-          "
-        >
-          <article>
-            <h2><i class="ph-light ph-brain"></i></h2>
-            <h3>AI-Powered Configuration</h3>
-            <p>
-              Generate complex scraping configurations from just a URL and natural language prompt.
-              Supports multiple LLM providers through OpenRouter, including GPT-4, Claude, and Gemini. (For the moment it works on single page websites only, with static content. dynamic content is in the works.)
-              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
-                >Learn more</a
-              >.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-compass-tool"></i></h2>
-            <h3>Advanced Navigation</h3>
-            <p>
-              Execute multi-step browser interactions, handle logins, pagination, conditional logic,
-              and dynamic content with a powerful navigation engine.
-              <a
-                href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html"
-                >See types</a
-              >.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-shield-check"></i></h2>
-            <h3>Robust Proxy Management</h3>
-            <p>
-              Automatic proxy rotation, health checks, and support for multiple sources (file, API)
-              to ensure reliable and undetected scraping.
-              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html"
-                >Proxy API</a
-              >.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-hard-drives"></i></h2>
-            <h3>Persistent Sessions</h3>
-            <p>
-              Maintain browser sessions across jobs, preserving cookies and localStorage to bypass
-              logins and reduce CAPTCHAs.
-              <a
-                href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html"
-                >Session Docs</a
-              >.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-crosshair"></i></h2>
-            <h3>Flexible Extraction</h3>
-            <p>
-              Extract data precisely using CSS selectors, XPath, Regular Expressions, or even custom
-              JavaScript functions.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-gauge"></i></h2>
-            <h3>Detailed Job Progress</h3>
-            <p>
-              Monitor asynchronous jobs with granular progress updates, including percentage completion (0-100) 
-              and detailed status messages (e.g., "Fetching HTML", "Executing step 3").
-              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html">Job Status API</a>.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-rocket"></i></h2>
-            <h3>Scalable Architecture</h3>
-            <p>
-              Built with a robust queue system (BullMQ) to handle high-volume scraping tasks
-              efficiently across multiple workers.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section id="api">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>API Reference</h2>
-          <p>Explore the core functionalities of the API:</p>
-        </div>
-        <ul>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
-              ><code>POST /api/v1/ai/generate-config</code></a
-            >
-            - Generate scraping configurations using AI.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/navigate.html"
-              ><code>POST /api/v1/navigate</code></a
-            >
-            - Execute complex browser navigation flows.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/scrape.html"
-              ><code>POST /api/v1/scrape</code></a
-            >
-            - Perform direct scraping tasks (worker implementation pending).
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html"
-              ><code>GET /api/v1/jobs/:id</code></a
-            >
-            - Check the status and retrieve results of asynchronous jobs.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html"
-              ><code>GET /api/v1/proxy/...</code></a
-            >
-            - Manage and utilize proxies.
-          </li>
-          <li>
-            <a
-              href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html"
-              ><code>GET /api/v1/session/...</code></a
-            >
-            - Manage persistent browser sessions.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
-              ><code>GET /api/v1/templates</code></a
-            >
-            - List available configuration templates.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
-              ><code>GET /api/v1/templates/:site/:challenge</code></a
-            >
-            - Get details for a specific template.
-          </li>
-          <li>
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/"
-              ><code>POST /api/v1/captcha/...</code></a
-            >
-            - Interact with the CAPTCHA solving system.
-          </li>
-          <li>
-            <a href="/health"><code>GET /health</code></a> - Perform a system health check.
-          </li>
-        </ul>
-        <p>
-          See the full
-          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/"
-            >API Reference</a
-          >
-          for details.
-        </p>
-      </section>
-
-      <section id="use-cases">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>What Can I Do With It?</h2>
-          <p>Explore the diverse applications of the Advanced Web Scraper API:</p>
-        </div>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-          "
-        >
-          <article>
-            <h2><i class="ph-light ph-chart-line-up"></i></h2>
-            <h3>Market Research</h3>
-            <p>
-              Gather data on market trends, competitor pricing, product reviews, and customer
-              sentiment from various online sources.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-tag"></i></h2>
-            <h3>Price Monitoring</h3>
-            <p>
-              Track prices of products across e-commerce sites, monitor competitor pricing
-              strategies, and identify arbitrage opportunities.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-users-three"></i></h2>
-            <h3>Lead Generation</h3>
-            <p>
-              Extract contact information (emails, phone numbers, social profiles) from business
-              directories, professional networks, or event websites.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-newspaper"></i></h2>
-            <h3>Content Aggregation</h3>
-            <p>
-              Collect articles, blog posts, news updates, or job listings from multiple sources to
-              build curated content platforms.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-database"></i></h2>
-            <h3>Data Enrichment</h3>
-            <p>
-              Augment existing datasets by scraping additional information from public profiles,
-              company websites, or other online sources.
-            </p>
-          </article>
-          <article>
-            <h2><i class="ph-light ph-bug"></i></h2>
-            <h3>Automated Testing</h3>
-            <p>
-              Use the navigation engine to automate UI testing, check website functionality, or
-              monitor website uptime and performance.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section id="examples">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>Example Scraped Data</h2>
-        </div>
-
-        <details>
-          <summary>View JSON Output</summary>
-          <pre><code>
-{ 
-    {
-    "success": true,
-    "searchResults": {
-        "listings": [
-            {
-            "name": "Black Brick Studio",
-            "rating": "5.0",
-            "reviews": 12,
-            "services": "Architecture firm",
-            "address": "117 Bute St",
-            "phone": "029 2252 0485",
-            "website": "//www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwid7omr29WMAxU9k1AGHSH7NcoYABAAGgJkZw&co=1&ase=2&gclid=EAIaIQobChMIne6Jq9vVjAMVPZNQBh0h-zXKEBAYASAAEgLQ3PD_BwE&ohost=www.google.com&cid=CAASE-RoknGIys0KUcLcNKmR_mNyQKQ&sig=AOD64_2rOvQXKE-0Bj5Q7iKPhXRFn_0xQQ&adurl&q&ctype=99&nis=6"
-            },
-            {
-            "name": "Kotzmuth Williams Architects - Cardiff Architects",
-            "rating": "5.0",
-            "reviews": 3,
-            "services": "Architect",
-            "address": "Canton House, Cowbridge Rd E",
-            "phone": "029 2178 0001",
-            "website": "http://www.kwarchitects.com/"
-            }
-        ]
-        }
-    },
-    "screenshots": [],
-    "timestamp": "2025-04-13T19:12:14.318Z"
-}
-</code></pre>
-        </details>
-      </section>
 
 
-
-      <section id="quickstart">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>Quick Start</h2>
-          <p>Get started quickly with the API:</p>
+    <section id="stats">
+      <div class="stats-container">
+        <div class="stat-item">
+          <div class="stat-number">100+</div>
+          <div class="stat-label">Supported Step Types</div>
         </div>
-        <ol>
-          <li>
-            <strong>Explore the Documentation:</strong> Familiarize yourself with the concepts and
-            available
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/"
-              >API endpoints</a
-            >.
-          </li>
-          <li>
-            <strong>Generate a Config (Example):</strong> Use the AI endpoint to create a scraping
-            configuration. Replace `YOUR_API_URL` with the actual running server URL (e.g.,
-            `http://localhost:3000`).
-            <pre><code class="language-bash">
-curl -X POST YOUR_API_URL/api/v1/ai/generate-config \
+        <div class="stat-item">
+          <div class="stat-number">14</div>
+          <div class="stat-label">LLM Integration Options</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">99.7%</div>
+          <div class="stat-label">Scraping Success Rate</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div style="text-align: center; margin: 60px auto">
+        <h2>Key Features</h2>
+        <p>Advanced capabilities that make complex web scraping simple</p>
+      </div>
+
+      <div class="feature-grid">
+        <article>
+          <i class="ph-light ph-brain feature-icon"></i>
+          <h3>AI-Powered Configuration</h3>
+          <p>
+            Generate complex scraping configurations from just a URL and natural language prompt.
+            Supports multiple LLM providers through OpenRouter, including GPT-4, Claude, and Gemini.
+          </p>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">Learn more →</a>
+        </article>
+
+        <article>
+          <i class="ph-light ph-compass-tool feature-icon"></i>
+          <h3>Advanced Navigation</h3>
+          <p>
+            Execute multi-step browser interactions, handle logins, pagination, conditional logic,
+            and dynamic content with a powerful navigation engine.
+          </p>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html">See navigation
+            types →</a>
+        </article>
+
+        <article>
+          <i class="ph-light ph-shield-check feature-icon"></i>
+          <h3>Robust Proxy Management</h3>
+          <p>
+            Automatic proxy rotation, health checks, and support for multiple sources (file, API)
+            to ensure reliable and undetected scraping.
+          </p>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html">Proxy API details →</a>
+        </article>
+
+        <article>
+          <i class="ph-light ph-hard-drives feature-icon"></i>
+          <h3>Persistent Sessions</h3>
+          <p>
+            Maintain browser sessions across jobs, preserving cookies and localStorage to bypass
+            logins and reduce CAPTCHAs for more efficient scraping.
+          </p>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html">Session docs →</a>
+        </article>
+
+        <article>
+          <i class="ph-light ph-crosshair feature-icon"></i>
+          <h3>Flexible Extraction</h3>
+          <p>
+            Extract data precisely using CSS selectors, XPath, Regular Expressions, or even custom
+            JavaScript functions. Handle complex and nested data structures.
+          </p>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/scrape.html">Extraction options →</a>
+        </article>
+
+        <article>
+          <i class="ph-light ph-gauge feature-icon"></i>
+          <h3>Detailed Job Progress</h3>
+          <p>
+            Monitor asynchronous jobs with granular progress updates, including percentage completion and detailed
+            status messages throughout the scraping process.
+          </p>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html">Job Status API →</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="getting-started" id="quickstart">
+      <div style="text-align: center; margin: 60px auto">
+        <h2>Getting Started</h2>
+        <p>It only takes a few minutes to start extracting web data</p>
+      </div>
+
+      <div class="step-container">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Explore the Documentation</h3>
+            <p>Familiarize yourself with the concepts and available API endpoints. The documentation provides
+              comprehensive details on how to use the various features.</p>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/" class="btn">Browse Documentation</a>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Generate a scraping workflow Config with AI</h3>
+            <p>Use the AI endpoint to create a scraping configuration by simply describing what data you want to
+              extract.</p>
+            <div class="code-container">
+              <pre><code class="language-bash">curl -X POST YOUR_API_URL/api/v1/ai/generate-config \
 -H "Content-Type: application/json" \
 -d '{
   "url": "https://news.ycombinator.com/",
   "prompt": "Extract the title and URL for each story listed on the front page.",
   "options": {
-    "model": "gpt-4o-mini",
+    "model": "anthropic/claude-3.7-sonnet:thinking",
     "testConfiguration": true,
     "maxIterations": 3
   }
-}'
+}'</code></pre>
+            </div>
+            <p>This will return a Job ID that you can use to check the status of your configuration generation.</p>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Check Job Status</h3>
+            <p>Poll the job status endpoint until the status is "completed". This will give you the generated
+              configuration.</p>
+            <div class="code-container">
+              <pre><code class="language-bash">curl YOUR_API_URL/api/v1/jobs/YOUR_JOB_ID // f97e8ed0-6061-4e7b-b996-5c1cb7945c5e</code></pre>
+            </div>
+
+            <p>The response will tell you the status of the job and the generated configuration:</p>
+            <div class="code-container">
+              <pre><code class="language-json">
+{
+    "success": true,
+    "message": "Job status retrieved",
+    "data": {
+        "id": "f97e8ed0-6061-4e7b-b996-5c1cb7945c5e",
+        "name": "generate-config",
+        "queueName": "config-generation-jobs",
+        "status": "active",
+        "progress": {
+            "percentage": 75,
+            "status": "Testing Config (Iteration 1)"
+        },
+        "result": null,
+        "estimatedCost": null,
+        "createdAt": 1745736033517,
+        "numberInQueue": 0
+    },
+    "timestamp": "2025-04-27T06:40:51.035Z"
+}
             </code></pre>
-            This will return a Job ID.
-          </li>
-          <li>
-            <strong>Check Job Status:</strong> Poll the job status endpoint until `status` is
-            `completed`. Replace `YOUR_JOB_ID` with the ID from the previous step.
+            </div>
+
+
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Use Your Generated Config to Scrape Data</h3>
+            <p>After the job completes, take the generated configuration and use it with the navigation endpoint to
+              start scraping data as a human would, with the ability to handle dynamic content, pagination, and
+              conditional logic.</p>
+            <div class="code-container">
+              <pre><code class="language-bash">curl -X POST YOUR_API_URL/api/v1/navigate \
+-H "Content-Type: application/json" \
+-d '{
+  "startUrl": "https://news.ycombinator.com/",
+  "steps": [
+      {
+          "type": "wait",
+          "waitForSelector": "table#hnmain",
+          "timeout": 10000,
+          "description": "Wait for the Hacker News main table to load"
+      },
+      {
+          "type": "extract",
+          "name": "hackerNewsStories",
+          "selector": "table#hnmain",
+          "fields": {
+              "stories": {
+                  "selector": "tr.athing.submission",
+                  "type": "css",
+                  "multiple": true,
+                  "fields": {
+                      "title": {
+                          "selector": "td.title span.titleline > a",
+                          "type": "css"
+                      },
+                      "url": {
+                          "selector": "td.title span.titleline > a",
+                          "type": "css",
+                          "attribute": "href"
+                      }
+                  }
+              }
+          }
+      }
+  ],
+  "options": {
+      "timeout": 30000,
+      "javascript": true
+  }
+}'</code></pre>
+            </div>
+            <p>This will return another Job ID. Once that job completes, you'll have your scraped data!</p>
+            <div class="code-container">
+              <pre><code class="language-bash">
+{
+    "success": true,
+    "message": "Navigation job queued successfully",
+    "jobId": "37dc14f8-495b-4ac7-a779-93b7d7feeba4",
+    "statusUrl": "/api/jobs/37dc14f8-495b-4ac7-a779-93b7d7feeba4",
+    "timestamp": "2025-04-27T06:49:06.949Z"
+}
+          </code></pre>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- step 5 Get your scraped data -->
+      <div class="step-card">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Retrieve Your Scraped Data</h3>
+          <p>Use the scrape endpoint to get your scraped data.</p>
+          <div class="code-container">
+            <pre><code class="language-bash">curl -X POST YOUR_API_URL/api/v1/jobs/YOUR_JOB_ID</code></pre>
+          </div>
+          <p>This will return your scraped data.</p>
+          <div class="code-container">
             <pre><code class="language-bash">
-curl YOUR_API_URL/api/v1/jobs/YOUR_JOB_ID
-             </code></pre>
+{
+  "hackerNewsStories": {
+      "stories": [
+          {
+              "title": "CSS Zen Garden",
+              "url": "https://csszengarden.com/"
+          },
+          {
+              "title": "Open-source interactive C tutorial in the browser",
+              "url": "https://www.learn-c.org/"
+          },
+          {
+              "title": "Watching o3 guess a photo's location is surreal, dystopian and entertaining",
+              "url": "https://simonwillison.net/2025/Apr/26/o3-photo-locations/"
+          },
+          ....
+      ]
+  }
+}
+        </code></pre>
+          </div>
+          <p class="text-center">
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation_examples.html" class="btn">
+              <i class="ph-fill ph-code"></i> More Examples
+            </a>
+          </p>
+        </div>
+      </div>
+
+
+    </section>
+
+    <section id="use-cases">
+      <div style="text-align: center; margin: 60px auto">
+        <h2>What Can You Build?</h2>
+        <p>Explore the diverse applications of the Advanced Web Scraper API</p>
+      </div>
+
+      <div class="use-case-grid">
+        <article>
+          <i class="ph-light ph-chart-line-up feature-icon"></i>
+          <h3>Market Research</h3>
+          <p>
+            Gather data on market trends, competitor pricing, product reviews, and customer
+            sentiment from various online sources to inform business strategy.
+          </p>
+        </article>
+
+        <article>
+          <i class="ph-light ph-tag feature-icon"></i>
+          <h3>Price Monitoring</h3>
+          <p>
+            Track prices of products across e-commerce sites, monitor competitor pricing
+            strategies, and identify arbitrage opportunities automatically.
+          </p>
+        </article>
+
+        <article>
+          <i class="ph-light ph-users-three feature-icon"></i>
+          <h3>Lead Generation</h3>
+          <p>
+            Extract contact information from business directories, professional networks, or event websites to build
+            targeted outreach lists.
+          </p>
+        </article>
+
+        <article>
+          <i class="ph-light ph-newspaper feature-icon"></i>
+          <h3>Content Aggregation</h3>
+          <p>
+            Collect articles, blog posts, news updates, or job listings from multiple sources to
+            build curated content platforms and newsletters.
+          </p>
+        </article>
+
+        <article>
+          <i class="ph-light ph-database feature-icon"></i>
+          <h3>Data Enrichment</h3>
+          <p>
+            Augment existing datasets by scraping additional information from public profiles,
+            company websites, or other online sources.
+          </p>
+        </article>
+
+        <article>
+          <i class="ph-light ph-bug feature-icon"></i>
+          <h3>Automated Testing</h3>
+          <p>
+            Use the navigation engine to automate UI testing, check website functionality, or
+            monitor website uptime and performance.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="api">
+      <div style="text-align: center; margin: 60px auto">
+        <h2>Comprehensive API</h2>
+        <p>A rich set of endpoints to meet all your data extraction needs</p>
+      </div>
+
+      <div class="api-list">
+        <ul>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">
+              <code>POST /api/v1/ai/generate-config</code>
+            </a>
+            - Generate scraping configurations using AI.
           </li>
           <li>
-            <strong>Use the Generated Config:</strong> The completed job result will contain the
-            generated JSON configuration, ready to be used with the `/api/v1/navigate` endpoint.
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/navigate.html">
+              <code>POST /api/v1/navigate</code>
+            </a>
+            - Execute complex browser navigation flows.
           </li>
-        </ol>
-        <p>
-          For more detailed examples, see the
-          <a
-            href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation_examples.html"
-            >Navigation Examples</a
-          >
-          and
-          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI API Guide</a
-          >.
-        </p>
-      </section>
-
-      <section id="media">
-        <div style="text-align: center; margin: 60px auto">
-          <h2>Media</h2>
-          <p>Explore the media section for additional resources and examples:</p>
-        </div>
-        <ul>
-          <li><a href="/media/images">/media/images</a></li>
-          <li><a href="/media/videos">/media/videos</a></li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/scrape.html">
+              <code>POST /api/v1/scrape</code>
+            </a>
+            - Perform direct scraping tasks.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html">
+              <code>GET /api/v1/jobs/:id</code>
+            </a>
+            - Check the status and retrieve results of asynchronous jobs.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html">
+              <code>GET /api/v1/proxy/...</code>
+            </a>
+            - Manage and utilize proxies.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html">
+              <code>GET /api/v1/session/...</code>
+            </a>
+            - Manage persistent browser sessions.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html">
+              <code>GET /api/v1/templates</code>
+            </a>
+            - List available configuration templates.
+          </li>
         </ul>
-      </section>
+        <p class="text-center" style="margin-top: 2rem;">
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/" class="btn">
+            <i class="ph-fill ph-book-open"></i> Complete API Reference
+          </a>
+        </p>
+      </div>
+    </section>
 
-      <section id="faq">
-        <div style="text-align: center; margin: 60px auto">
-          <h2><i class="ph-light ph-question"></i>FAQ</h2>
-          <p>Find answers to common questions:</p>
+    <section class="cta-section">
+      <h2>Ready to Extract the Data You Need?</h2>
+      <p>Start using the Advanced Web Scraper API today and transform how you collect data from the web.</p>
+      <div class="cta-buttons">
+        <a href="https://github.com/sherifButt/adv-web-scraper-api" class="btn btn-white">
+          <i class="ph-fill ph-github-logo"></i> Star on GitHub
+        </a>
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="btn btn-outline-white">
+          <i class="ph-fill ph-book-open"></i> Read the Docs
+        </a>
+      </div>
+    </section>
+
+    <section id="examples">
+      <div style="text-align: center; margin: 60px auto">
+        <h2>Example Scraped Data</h2>
+        <p>See what you can extract with just a few API calls</p>
+      </div>
+
+      <div class="demo-container">
+        <div class="demo-tabs">
+          <div class="demo-tab active">Google Maps Data</div>
+          <div class="demo-tab">HackerNews</div>
+          <div class="demo-tab">Google Trends</div>
         </div>
 
-        <details>
-          <summary>What is the AI Configuration Generation feature?</summary>
-          <p>
-            This feature allows you to generate a scraping configuration (`config.json`) simply by
-            providing a target URL and a natural language prompt describing what data you want to
-            extract. The API uses a Large Language Model (LLM) to create the configuration,
-            potentially tests it, and can even attempt to fix errors automatically. See the
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
-              >AI API documentation</a
-            >
-            for more details.
-          </p>
-        </details>
-        <details>
-          <summary>How does the Navigation Engine work?</summary>
-          <p>
-            The Navigation Engine executes multi-step browser interactions defined in a
-            configuration file. It can handle complex tasks like logging in, clicking buttons,
-            filling forms, scrolling, handling popups, switching tabs/frames, and executing custom
-            scripts. It uses Playwright for browser automation and supports various step types
-            detailed in the
-            <a
-              href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html"
-              >Navigation Types documentation</a
-            >.
-          </p>
-        </details>
-        <details>
-          <summary>What kind of proxies does the API support?</summary>
-          <p>
-            The API features a robust Proxy Manager that can load proxies from various sources
-            (currently JSON files, API sources planned). It supports health checks, automatic
-            rotation based on performance (latency, success rate), and filtering by criteria like
-            protocol or country. You can interact with it via the
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html"
-              >Proxy API</a
-            >.
-          </p>
-        </details>
-        <details>
-          <summary>How are browser sessions managed?</summary>
-          <p>
-            The API supports persistent browser sessions. This means cookies, localStorage, and
-            sessionStorage can be saved and reused across different scraping jobs for the same
-            domain. This helps bypass logins and reduces the likelihood of encountering CAPTCHAs on
-            subsequent runs. See the
-            <a
-              href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html"
-              >Session Management documentation</a
-            >.
-          </p>
-        </details>
-        <details>
-          <summary>What are Configuration Templates?</summary>
-          <p>
-            Configuration Templates are pre-built examples stored in the `config-templates`
-            directory, organized by site and specific challenge (e.g., handling logins, pagination).
-            They provide metadata and a working `config.json` file. You can browse and retrieve
-            these templates using the
-            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
-              >Template API</a
-            >
-            (`/api/v1/templates`) to use as starting points for your own configurations.
-          </p>
-        </details>
-        <details>
-          <summary>What models are supported for AI Configuration Generation?</summary>
-          <p>
-            The API supports a wide range of models through OpenRouter, including:
-            <ul>
-              <li>OpenAI models (GPT-4, GPT-3.5-turbo)</li>
-              <li>Anthropic models (Claude-3-7-Sonnet, Claude-3-5-Sonnet)</li>
-              <li>Google models (Gemini 2.5 Pro)</li>
-              <li>DeepSeek models (DeepSeek Reasoner, DeepSeek Chat)</li>
-            </ul>
-            You can specify your preferred model in the request options, and the system will automatically route to the appropriate provider. See the <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI API documentation</a> for more details.
-          </p>
-        </details>
-        <details>
-          <summary>What LLM integration features are available?</summary>
-          <p>
-            The API offers powerful language model integration through OpenRouter:
-            <ul>
-              <li><strong>Multiple Model Support:</strong> Access to a wide range of models including GPT-4, Claude, Gemini, and more through a unified OpenRouter interface.</li>
-              <li><strong>Cost Tracking:</strong> Built-in token usage tracking and cost estimation for each model, helping you manage your AI budget effectively.</li>
-              <li><strong>Flexible Configuration:</strong> Customize model parameters like temperature and max tokens, with support for provider-specific options.</li>
-              <li><strong>Secure API Keys:</strong> Secure management of API keys through environment variables, with support for multiple providers.</li>
-            </ul>
-          </p>
-        </details>
-      </section>
+        <div class="result-preview">
+          <div class="result-header">
+            <div class="result-title">
+              <i class="ph ph-brackets-curly"></i> JSON Result
+            </div>
+          </div>
+          <div class="json-preview">
+            <span class="punctuation">{</span><br>
+            &nbsp;&nbsp;<span class="key">"success"</span><span class="punctuation">:</span> <span class="boolean">true</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;<span class="key">"searchResults"</span><span class="punctuation">:</span> <span class="punctuation">{</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"listings"</span><span class="punctuation">:</span> <span class="punctuation">[</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"name"</span><span class="punctuation">:</span> <span class="string">"Black Brick Studio"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"rating"</span><span class="punctuation">:</span> <span class="string">"5.0"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"reviews"</span><span class="punctuation">:</span> <span class="number">12</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"services"</span><span class="punctuation">:</span> <span class="string">"Architecture firm"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"address"</span><span class="punctuation">:</span> <span class="string">"117 Bute St"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"phone"</span><span class="punctuation">:</span> <span class="string">"029 2252 0485"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"website"</span><span class="punctuation">:</span> <span class="string">"//www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwid7omr29WMAxU9k1AGHSH7NcoYABAAGgJkZw&co=1&ase=2&gclid=EAIaIQobChMIne6Jq9vVjAMVPZNQBh0h-zXKEBAYASAAEgLQ3PD_BwE&ohost=www.google.com&cid=CAASE-RoknGIys0KUcLcNKmR_mNyQKQ&sig=AOD64_2rOvQXKE-0Bj5Q7iKPhXRFn_0xQQ&adurl&q&ctype=99&nis=6"</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">{</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"name"</span><span class="punctuation">:</span> <span class="string">"Kotzmuth Williams Architects - Cardiff Architects"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"rating"</span><span class="punctuation">:</span> <span class="string">"5.0"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"reviews"</span><span class="punctuation">:</span> <span class="number">3</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"services"</span><span class="punctuation">:</span> <span class="string">"Architect"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"address"</span><span class="punctuation">:</span> <span class="string">"Canton House, Cowbridge Rd E"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"phone"</span><span class="punctuation">:</span> <span class="string">"029 2178 0001"</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"website"</span><span class="punctuation">:</span> <span class="string">"http://www.kwarchitects.com/"</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">}</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="punctuation">]</span><br>
+            &nbsp;&nbsp;<span class="punctuation">}</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;<span class="key">"screenshots"</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span><br>
+            &nbsp;&nbsp;<span class="key">"timestamp"</span><span class="punctuation">:</span> <span class="string">"2025-04-13T19:12:14.318Z"</span><br>
+            <span class="punctuation">}</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    </main>
+    <section id="faq">
+      <div style="text-align: center; margin: 60px auto">
+        <h2><i class="ph-light ph-question"></i> Frequently Asked Questions</h2>
+        <p>Answers to common questions about the Advanced Web Scraper API</p>
+      </div>
 
-    <footer>
+      <details>
+        <summary>What is the AI Configuration Generation feature?</summary>
+        <p>
+          This feature allows you to generate a scraping configuration (`config.json`) simply by
+          providing a target URL and a natural language prompt describing what data you want to
+          extract. The API uses a Large Language Model (LLM) to create the configuration,
+          potentially tests it, and can even attempt to fix errors automatically. See the
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI API documentation</a>
+          for more details.
+        </p>
+      </details>
+
+      <details>
+        <summary>How does the Navigation Engine work?</summary>
+        <p>
+          The Navigation Engine executes multi-step browser interactions defined in a
+          configuration file. It can handle complex tasks like logging in, clicking buttons,
+          filling forms, scrolling, handling popups, switching tabs/frames, and executing custom
+          scripts. It uses Playwright for browser automation and supports various step types
+          detailed in the
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html">Navigation Types
+            documentation</a>.
+        </p>
+      </details>
+
+      <details>
+        <summary>What kind of proxies does the API support?</summary>
+        <p>
+          The API features a robust Proxy Manager that can load proxies from various sources
+          (currently JSON files, API sources planned). It supports health checks, automatic
+          rotation based on performance (latency, success rate), and filtering by criteria like
+          protocol or country. You can interact with it via the
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html">Proxy API</a>.
+        </p>
+      </details>
+
+      <details>
+        <summary>How are browser sessions managed?</summary>
+        <p>
+          The API supports persistent browser sessions. This means cookies, localStorage, and
+          sessionStorage can be saved and reused across different scraping jobs for the same
+          domain. This helps bypass logins and reduces the likelihood of encountering CAPTCHAs on
+          subsequent runs. See the
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html">Session Management
+            documentation</a>.
+        </p>
+      </details>
+
+      <details>
+        <summary>What models are supported for AI Configuration Generation?</summary>
+        <p>
+          The API supports a wide range of models through OpenRouter, including:
+        <ul>
+          <li>OpenAI models (GPT-4, GPT-3.5-turbo)</li>
+          <li>Anthropic models (Claude-3-7-Sonnet, Claude-3-5-Sonnet)</li>
+          <li>Google models (Gemini 2.5 Pro)</li>
+          <li>DeepSeek models (DeepSeek Reasoner, DeepSeek Chat)</li>
+        </ul>
+        You can specify your preferred model in the request options, and the system will automatically route to the
+        appropriate provider. See the <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI API
+          documentation</a> for more details.
+        </p>
+      </details>
+
+      <details>
+        <summary>Is the API suitable for beginners?</summary>
+        <p>
+          Yes! The AI Configuration Generation feature makes it accessible even for users with minimal technical
+          knowledge. You can describe what data you want in plain English, and the API will create a working
+          configuration for you. For more advanced users, the API provides full control over every aspect of the
+          scraping process.
+        </p>
+      </details>
+
+      <details>
+        <summary>How do I handle websites that require login?</summary>
+        <p>
+          The API includes dedicated step types for handling logins, including the `login` step which simplifies common
+          login flows. Combined with the session management feature, you can log in once and then reuse that
+          authenticated session for subsequent scraping jobs. For examples, see the <a
+            href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation_examples.html">Navigation
+            Examples</a>.
+        </p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-content">
+      <div>
+        <strong id="logo">
+          <a href="https://scraper.apps.loyalleads.co.uk/">
+            <i class="ph ph-robot"></i> Advanced Web Scraper API
+          </a>
+        </strong>
+        <p>A powerful, scalable API for web scraping, navigation, and AI-driven data extraction.</p>
+      </div>
+
+      <div class="footer-links">
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/">Documentation</a>
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/">API Reference</a>
+        <a href="https://github.com/sherifButt/adv-web-scraper-api">GitHub</a>
+        <a href="#features">Features</a>
+        <a href="#quickstart">Quick Start</a>
+      </div>
+
       <p>&copy; 2025 Advanced Web Scraper API</p>
-      <p>
-        For support, check the project's
-        <a href="https://github.com/sherifButt/adv-web-scraper-api/blob/main/README.html">README</a>
-        or <a href="https://sherifbutt.github.io/adv-web-scraper-api/">documentation</a>
-      </p>
-    </footer>
-  </body>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', function () {
+      const menuToggle = document.getElementById('menuToggle');
+      const mainNav = document.getElementById('mainNav');
+
+      if (menuToggle && mainNav) {
+        menuToggle.addEventListener('click', function () {
+          mainNav.classList.toggle('active');
+        });
+      }
+
+      // Demo tabs
+      const demoTabs = document.querySelectorAll('.demo-tab');
+      if (demoTabs.length > 0) {
+        demoTabs.forEach(tab => {
+          tab.addEventListener('click', function () {
+            // Remove active class from all tabs
+            demoTabs.forEach(t => t.classList.remove('active'));
+
+            // Add active class to clicked tab
+            this.classList.add('active');
+
+            // In a real implementation, you would switch the content here
+            // For now, we'll just keep the first example
+          });
+        });
+      }
+    });
+  </script>
+</body>
+
 </html>

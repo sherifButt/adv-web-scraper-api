@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Advanced Web Scraper API - A powerful, scalable API for web scraping, navigation, and AI-driven data extraction. Perfect for developers, hobbyists, and due diligence teams." />
+    <meta name="keywords" content="web scraper, API, data extraction, web scraping, AI, automation, proxy management, session management" />
+    <title>Advanced Web Scraper API | Powerful Data Extraction</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- Phosphor Icons -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/light/style.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
+    />
+   
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Noto+Sans+JP:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    
+    <!-- Custom Styles -->
+    <style>/* Modern CSS for Advanced Web Scraper API */
+
+        :root {
+          /* Color Palette */
+          --primary: #4361ee;
+          --primary-light: #4895ef;
+          --primary-dark: #3a0ca3;
+          --secondary: #4cc9f0;
+          --accent: #f72585;
+          --success: #2ec4b6;
+          --warning: #ff9f1c;
+          --error: #e71d36;
+          --dark: #0b132b;
+          --dark-medium: #1c2541;
+          --medium: #3a506b;
+          --light: #f8f9fa;
+          --white: #ffffff;
+          --gray-100: #f8f9fa;
+          --gray-200: #e9ecef;
+          --gray-300: #dee2e6;
+          --gray-400: #ced4da;
+          --gray-500: #adb5bd;
+          --gray-600: #6c757d;
+          --gray-700: #495057;
+          --gray-800: #343a40;
+          --gray-900: #212529;
+        
+          /* Spacing */
+          --space-xs: 0.25rem;
+          --space-sm: 0.5rem;
+          --space-md: 1rem;
+          --space-lg: 1.5rem;
+          --space-xl: 2rem;
+          --space-xxl: 3rem;
+        
+          /* Layout */
+          --border-radius-sm: 0.25rem;
+          --border-radius: 0.5rem;
+          --border-radius-lg: 1rem;
+          --border-radius-xl: 1.5rem;
+          --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          --transition: all 0.3s ease;
+          --max-width: 1200px;
+          --header-height: 70px;
+        }
+        
+        /* Base Styles */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        html {
+          scroll-behavior: smooth;
+          font-size: 16px;
+        }
+        
+        body {
+          font-family: 'Noto Sans JP', sans-serif;
+          line-height: 1.6;
+          color: var(--gray-800);
+          background-color: var(--light);
+          overflow-x: hidden;
+        }
+        
+        a {
+          color: var(--primary);
+          text-decoration: none;
+          transition: var(--transition);
+        }
+        
+        a:hover {
+          color: var(--primary-dark);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+          font-family: 'Bodoni Moda', serif;
+          line-height: 1.2;
+          color: var(--dark);
+          margin-bottom: var(--space-md);
+        }
+        
+        h1 {
+          font-size: 3rem;
+          margin-top: 0;
+        }
+        
+        h2 {
+          font-size: 2.2rem;
+        }
+        
+        h3 {
+          font-size: 1.75rem;
+        }
+        
+        p {
+          margin-bottom: var(--space-md);
+        }
+        
+        ul, ol {
+          margin-left: var(--space-lg);
+          margin-bottom: var(--space-lg);
+        }
+        
+        li {
+          margin-bottom: var(--space-sm);
+        }
+        
+        /* Container */
+        .container {
+          max-width: var(--max-width);
+          margin: 0 auto;
+          padding: 0 var(--space-lg);
+        }
+        
+        /* Header Styles */
+        header {
+          background-color: var(--white);
+          box-shadow: var(--box-shadow);
+          position: fixed;
+          top: 0;
+          width: 100%;
+          z-index: 1000;
+          height: var(--header-height);
+          display: flex;
+          align-items: center;
+        }
+        
+        header .container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+        
+        #logo {
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+        }
+        
+        #logo a {
+          display: flex;
+          align-items: center;
+          font-size: 1.5rem;
+          color: var(--primary);
+          font-weight: 700;
+          gap: var(--space-sm);
+        }
+        
+        #logo i {
+          font-size: 1.8rem;
+        }
+        
+        nav {
+          display: flex;
+          gap: var(--space-xl);
+          align-items: center;
+        }
+        
+        nav a {
+          color: var(--gray-700);
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: var(--space-xs);
+        }
+        
+        nav a:hover {
+          color: var(--primary);
+        }
+        
+        nav a i {
+          font-size: 1.2rem;
+        }
+        
+        /* Button Styles */
+        button {
+          background-color: var(--primary);
+          color: var(--white);
+          border: none;
+          padding: var(--space-sm) var(--space-lg);
+          border-radius: var(--border-radius);
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-sm);
+          transition: var(--transition);
+        }
+        
+        button:hover {
+          background-color: var(--primary-dark);
+          transform: translateY(-2px);
+          box-shadow: var(--box-shadow);
+        }
+        
+        button i {
+          font-size: 1.2rem;
+        }
+        
+        /* Hero Section */
+        #hero {
+          background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+          color: var(--white);
+          text-align: center;
+          padding-top: calc(var(--header-height) + var(--space-xxl));
+          padding-bottom: var(--space-xxl);
+          clip-path: polygon(0 0, 100% 0, 100% 94%, 0 100%);
+        }
+        
+        #hero h1 {
+          color: var(--white);
+          margin-bottom: var(--space-lg);
+          font-size: 3.5rem;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        #hero p {
+          font-size: 1.2rem;
+          max-width: 700px;
+          margin: 0 auto var(--space-xl);
+          opacity: 0.9;
+        }
+        
+        #hero figure {
+          margin: var(--space-xl) auto;
+          max-width: 800px;
+        }
+        
+        #hero figure img {
+          width: 100%;
+          border-radius: var(--border-radius-lg);
+          box-shadow: var(--box-shadow-lg);
+        }
+        
+        #hero .button {
+          margin: 0 var(--space-sm);
+        }
+        
+        /* Section Styles */
+        section {
+          padding: var(--space-xxl) 0;
+        }
+        
+        section h2 {
+          text-align: center;
+          margin-bottom: var(--space-lg);
+          position: relative;
+          padding-bottom: var(--space-md);
+        }
+        
+        section h2:after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 80px;
+          height: 3px;
+          background-color: var(--primary);
+          border-radius: 2px;
+        }
+        
+        section > p {
+          text-align: center;
+          max-width: 700px;
+          margin: 0 auto var(--space-xl);
+          color: var(--gray-600);
+        }
+        
+        /* Features Grid */
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: var(--space-xl);
+          margin-top: var(--space-xl);
+        }
+        
+        article {
+          background-color: var(--white);
+          border-radius: var(--border-radius);
+          box-shadow: var(--box-shadow);
+          padding: var(--space-xl);
+          transition: var(--transition);
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        article:hover {
+          transform: translateY(-5px);
+          box-shadow: var(--box-shadow-lg);
+        }
+        
+        article:before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 6px;
+          height: 100%;
+          background-color: var(--primary);
+        }
+        
+        article h2 {
+          text-align: left;
+          margin-bottom: var(--space-md);
+          padding-bottom: 0;
+        }
+        
+        article h2:after {
+          display: none;
+        }
+        
+        article h2 i {
+          font-size: 2.5rem;
+          color: var(--primary);
+        }
+        
+        article h3 {
+          font-size: 1.3rem;
+          margin-bottom: var(--space-md);
+          display: flex;
+          align-items: center;
+          gap: var(--space-sm);
+        }
+        
+        article p {
+          color: var(--gray-600);
+          margin-bottom: var(--space-md);
+        }
+        
+        article a {
+          font-weight: 500;
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-xs);
+        }
+        
+        article a i {
+          transition: var(--transition);
+        }
+        
+        article a:hover i {
+          transform: translateX(4px);
+        }
+        
+        /* Badges */
+        .badge {
+          display: inline-block;
+          background-color: var(--primary);
+          color: white;
+          font-size: 0.7rem;
+          padding: 2px 8px;
+          border-radius: 20px;
+          margin-left: 8px;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+        
+        .badge-new {
+          background-color: var(--accent);
+        }
+        
+        .badge-beta {
+          background-color: var(--warning);
+        }
+        
+        /* API Section */
+        #api {
+          background-color: var(--gray-100);
+        }
+        
+        .api-list {
+          background-color: var(--white);
+          border-radius: var(--border-radius);
+          box-shadow: var(--box-shadow);
+          padding: var(--space-xl);
+        }
+        
+        .api-list ul {
+          list-style-type: none;
+          margin-left: 0;
+        }
+        
+        .api-list li {
+          padding: var(--space-md) 0;
+          border-bottom: 1px solid var(--gray-200);
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: var(--space-sm);
+        }
+        
+        .api-list li:last-child {
+          border-bottom: none;
+        }
+        
+        .api-list code {
+          background-color: var(--gray-200);
+          padding: 4px 8px;
+          border-radius: var(--border-radius-sm);
+          font-family: monospace;
+          font-size: 0.9rem;
+          color: var(--primary-dark);
+        }
+        
+        /* Use Cases */
+        #use-cases {
+          background-color: var(--white);
+        }
+        
+        #use-cases article:nth-child(2n):before {
+          background-color: var(--secondary);
+        }
+        
+        #use-cases article:nth-child(3n):before {
+          background-color: var(--accent);
+        }
+        
+        /* Examples Section */
+        #examples {
+          background-color: var(--gray-100);
+        }
+        
+        details {
+          background-color: var(--white);
+          border-radius: var(--border-radius);
+          margin-bottom: var(--space-md);
+          box-shadow: var(--box-shadow);
+          overflow: hidden;
+        }
+        
+        details summary {
+          padding: var(--space-md) var(--space-xl);
+          cursor: pointer;
+          font-weight: 500;
+          position: relative;
+          background-color: var(--white);
+          transition: var(--transition);
+          display: flex;
+          align-items: center;
+        }
+        
+        details summary:hover {
+          background-color: var(--gray-200);
+        }
+        
+        details summary::marker,
+        details summary::-webkit-details-marker {
+          display: none;
+        }
+        
+        details summary:before {
+          content: '\e92e';
+          font-family: 'Phosphor';
+          display: inline-block;
+          margin-right: var(--space-md);
+          font-size: 1.2rem;
+          transition: var(--transition);
+        }
+        
+        details[open] summary:before {
+          transform: rotate(90deg);
+        }
+        
+        pre {
+          background-color: var(--dark-medium);
+          color: var(--gray-300);
+          padding: var(--space-lg);
+          overflow-x: auto;
+          font-family: monospace;
+          border-radius: 0 0 var(--border-radius) var(--border-radius);
+          margin: 0;
+        }
+        
+        code {
+          font-family: monospace;
+        }
+        
+        /* Code Blocks */
+        .code-block {
+          background-color: var(--dark-medium);
+          border-radius: var(--border-radius);
+          overflow: hidden;
+          margin: var(--space-lg) 0;
+          box-shadow: var(--box-shadow);
+        }
+        
+        .code-header {
+          background-color: var(--dark);
+          padding: var(--space-sm) var(--space-lg);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .code-title {
+          font-family: monospace;
+          font-size: 0.9rem;
+          color: var(--gray-300);
+        }
+        
+        .copy-button {
+          background-color: var(--primary);
+          border: none;
+          color: white;
+          padding: 4px 10px;
+          border-radius: var(--border-radius-sm);
+          font-size: 0.8rem;
+          cursor: pointer;
+          transition: var(--transition);
+        }
+        
+        .copy-button:hover {
+          background-color: var(--primary-dark);
+        }
+        
+        .code-content {
+          padding: var(--space-lg);
+          overflow-x: auto;
+        }
+        
+        /* Quick Start */
+        #quickstart {
+          background-color: var(--white);
+        }
+        
+        #quickstart ol {
+          background-color: var(--gray-100);
+          border-radius: var(--border-radius);
+          padding: var(--space-xl);
+          box-shadow: var(--box-shadow);
+          counter-reset: item;
+          list-style-type: none;
+          margin-left: 0;
+        }
+        
+        #quickstart li {
+          margin-bottom: var(--space-xl);
+          position: relative;
+          padding-left: 50px;
+          counter-increment: item;
+        }
+        
+        #quickstart li:before {
+          content: counter(item);
+          background-color: var(--primary);
+          color: white;
+          font-weight: bold;
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+        
+        #quickstart li:last-child {
+          margin-bottom: 0;
+        }
+        
+        #quickstart strong {
+          color: var(--dark);
+          display: block;
+          margin-bottom: var(--space-sm);
+          font-size: 1.1rem;
+        }
+        
+        /* FAQ */
+        #faq {
+          background-color: var(--gray-100);
+        }
+        
+        #faq h2 i {
+          font-size: 2.2rem;
+          vertical-align: middle;
+          margin-right: var(--space-sm);
+        }
+        
+        #faq details {
+          margin-bottom: var(--space-md);
+        }
+        
+        #faq summary {
+          font-weight: 600;
+          color: var(--dark);
+        }
+        
+        #faq details p {
+          padding: var(--space-md) var(--space-xl);
+          padding-left: calc(var(--space-xl) + 20px);
+        }
+        
+        #faq details ul {
+          padding: 0 var(--space-xl) var(--space-md) calc(var(--space-xl) + 20px);
+          margin-left: var(--space-xl);
+        }
+        
+        /* CTA Section */
+        #cta {
+          text-align: center;
+          background-color: var(--primary-light);
+          padding: var(--space-xxl) 0;
+          color: var(--white);
+          clip-path: polygon(0 10%, 100% 0, 100% 90%, 0 100%);
+        }
+        
+        #cta h2 {
+          color: var(--white);
+        }
+        
+        #cta p {
+          max-width: 600px;
+          margin: 0 auto var(--space-xl);
+          color: rgba(255, 255, 255, 0.9);
+        }
+        
+        #cta .buttons {
+          display: flex;
+          gap: var(--space-md);
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+        
+        #cta button {
+          background-color: var(--white);
+          color: var(--primary);
+        }
+        
+        #cta button:hover {
+          background-color: var(--dark);
+          color: var(--white);
+        }
+        
+        /* Footer */
+        footer {
+          background-color: var(--dark);
+          color: var(--gray-300);
+          padding: var(--space-xxl) 0;
+        }
+        
+        footer h3 {
+          color: var(--white);
+          font-size: 1.2rem;
+          margin-bottom: var(--space-lg);
+        }
+        
+        footer p {
+          margin-bottom: var(--space-sm);
+        }
+        
+        footer a {
+          color: var(--gray-300);
+          transition: var(--transition);
+        }
+        
+        footer a:hover {
+          color: var(--white);
+        }
+        
+        .footer-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: var(--space-xl);
+          margin-bottom: var(--space-xl);
+        }
+        
+        .footer-links {
+          list-style-type: none;
+          padding: 0;
+          margin: 0;
+        }
+        
+        .footer-links li {
+          margin-bottom: var(--space-sm);
+        }
+        
+        .footer-bottom {
+          border-top: 1px solid var(--medium);
+          padding-top: var(--space-lg);
+          margin-top: var(--space-xl);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: var(--space-md);
+        }
+        
+        .social-links {
+          display: flex;
+          gap: var(--space-md);
+        }
+        
+        .social-links a {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          background-color: var(--medium);
+          border-radius: 50%;
+          transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+          background-color: var(--primary);
+          transform: translateY(-3px);
+        }
+        
+        .social-links i {
+          font-size: 1.2rem;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate {
+          animation: fadeIn 0.6s ease forwards;
+        }
+        
+        .delay-1 {
+          animation-delay: 0.2s;
+        }
+        
+        .delay-2 {
+          animation-delay: 0.4s;
+        }
+        
+        .delay-3 {
+          animation-delay: 0.6s;
+        }
+        
+        /* Utility Classes */
+        .text-center {
+          text-align: center;
+        }
+        
+        .mb-0 {
+          margin-bottom: 0;
+        }
+        
+        .mb-sm {
+          margin-bottom: var(--space-sm);
+        }
+        
+        .mb-md {
+          margin-bottom: var(--space-md);
+        }
+        
+        .mb-lg {
+          margin-bottom: var(--space-lg);
+        }
+        
+        .mb-xl {
+          margin-bottom: var(--space-xl);
+        }
+        
+        .mt-md {
+          margin-top: var(--space-md);
+        }
+        
+        .mt-lg {
+          margin-top: var(--space-lg);
+        }
+        
+        .mt-xl {
+          margin-top: var(--space-xl);
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+          :root {
+            --space-xxl: 2.5rem;
+          }
+          
+          html {
+            font-size: 15px;
+          }
+          
+          h1 {
+            font-size: 2.8rem;
+          }
+          
+          h2 {
+            font-size: 2rem;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          :root {
+            --space-xxl: 2rem;
+          }
+          
+          html {
+            font-size: 14px;
+          }
+          
+          h1 {
+            font-size: 2.5rem;
+          }
+          
+          h2 {
+            font-size: 1.8rem;
+          }
+          
+          header {
+            height: auto;
+            padding: var(--space-sm) 0;
+          }
+          
+          header .container {
+            flex-direction: column;
+            gap: var(--space-md);
+          }
+          
+          nav {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-md);
+          }
+          
+          #hero {
+            padding-top: calc(100px + var(--space-xxl));
+          }
+          
+          .footer-bottom {
+            flex-direction: column;
+            text-align: center;
+          }
+        }
+        
+        @media (max-width: 576px) {
+          :root {
+            --space-xxl: 1.5rem;
+          }
+          
+          html {
+            font-size: 13px;
+          }
+          
+          h1 {
+            font-size: 2.2rem;
+          }
+          
+          h2 {
+            font-size: 1.6rem;
+          }
+          
+          .container {
+            padding: 0 var(--space-md);
+          }
+          
+          details summary {
+            padding: var(--space-md);
+          }
+          
+          pre, .code-content {
+            padding: var(--space-md);
+          }
+          
+          #quickstart ol {
+            padding: var(--space-lg);
+          }
+          
+          #quickstart li {
+            padding-left: 40px;
+          }
+          
+          #cta .buttons {
+            flex-direction: column;
+            align-items: center;
+          }
+        }</style>
+  </head>
+
+  <body>
+    <header>
+      <div class="container">
+        <strong id="logo" title="Advanced Web Scraper API">
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/">
+            <i class="ph ph-robot"></i> AWSapi
+          </a>
+        </strong>
+        <nav>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/">
+            <i class="ph ph-plug"></i> API Reference
+          </a>
+          <a href="#features"><i class="ph ph-star"></i> Features</a>
+          <a href="#use-cases"><i class="ph ph-target"></i> Use Cases</a>
+          <a href="#quickstart"><i class="ph ph-rocket"></i> Quick Start</a>
+          <a href="https://github.com/sherifButt/adv-web-scraper-api">
+            <button title="GitHub">
+              <i class="ph-fill ph-github-logo"></i> GitHub
+            </button>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <section id="hero">
+      <div class="container">
+        <h1>Advanced Web Scraper API</h1>
+        <p>
+          A powerful, scalable API for web scraping, navigation, and AI-driven data extraction. 
+          Built for developers, hobbyists, and due diligence teams.
+        </p>
+        
+        <div class="hero-buttons">
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="button">
+            <button>
+              <i class="ph-fill ph-book-open"></i> Documentation
+            </button>
+          </a>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/" class="button">
+            <button class="button-secondary">
+              <i class="ph-fill ph-plug"></i> API Reference
+            </button>
+          </a>
+          <a href="#quickstart" class="button">
+            <button class="button-outline">
+              <i class="ph-fill ph-play"></i> Get Started
+            </button>
+          </a>
+        </div>
+
+        <figure>
+          <img
+            src="https://via.placeholder.com/800x400/3498db/ffffff?text=Advanced+Web+Scraper+API+Demo"
+            alt="Web Scraper API Demo"
+          />
+        </figure>
+      </div>
+    </section>
+    
+    <main class="container">
+      <section id="features">
+        <h2>Key Features</h2>
+        <p>Explore the powerful capabilities that make our API stand out from the crowd</p>
+        
+        <div class="features-grid">
+          <article>
+            <h2><i class="ph-light ph-brain"></i></h2>
+            <h3>AI-Powered Configuration <span class="badge badge-new">NEW</span></h3>
+            <p>
+              Generate complex scraping configurations from just a URL and natural language prompt.
+              Supports multiple LLM providers through OpenRouter, including GPT-4, Claude, and Gemini.
+            </p>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">
+              Learn more <i class="ph ph-arrow-right"></i>
+            </a>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-compass-tool"></i></h2>
+            <h3>Advanced Navigation</h3>
+            <p>
+              Execute multi-step browser interactions, handle logins, pagination, conditional logic,
+              and dynamic content with a powerful navigation engine.
+            </p>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html">
+              See navigation types <i class="ph ph-arrow-right"></i>
+            </a>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-shield-check"></i></h2>
+            <h3>Robust Proxy Management</h3>
+            <p>
+              Automatic proxy rotation, health checks, and support for multiple sources (file, API)
+              to ensure reliable and undetected scraping.
+            </p>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html">
+              Proxy API docs <i class="ph ph-arrow-right"></i>
+            </a>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-hard-drives"></i></h2>
+            <h3>Persistent Sessions</h3>
+            <p>
+              Maintain browser sessions across jobs, preserving cookies and localStorage to bypass
+              logins and reduce CAPTCHAs.
+            </p>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html">
+              Session docs <i class="ph ph-arrow-right"></i>
+            </a>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-crosshair"></i></h2>
+            <h3>Flexible Extraction</h3>
+            <p>
+              Extract data precisely using CSS selectors, XPath, Regular Expressions, or even custom
+              JavaScript functions with our powerful extraction engine.
+            </p>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html#data-extraction">
+              Extraction docs <i class="ph ph-arrow-right"></i>
+            </a>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-gauge"></i></h2>
+            <h3>Detailed Job Progress</h3>
+            <p>
+              Monitor asynchronous jobs with granular progress updates, including percentage completion 
+              and detailed status messages.
+            </p>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html">
+              Job Status API <i class="ph ph-arrow-right"></i>
+            </a>
+          </article>
+        </div>
+      </section>
+
+      <section id="api">
+        <h2>API Reference</h2>
+        <p>Explore the comprehensive set of endpoints that power our scraping platform</p>
+        
+        <div class="api-list">
+          <ul>
+            <li>
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">
+                <code>POST /api/v1/ai/generate-config</code>
+              </a>
+              - Generate scraping configurations using AI <span class="badge badge-new">NEW</span>
+            </li>
+            
+            <li>
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/navigate.html">
+                <code>POST /api/v1/navigate</code>
+              </a>
+              - Execute complex browser navigation flows
+            </li>
+            
+            <li>
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/scrape.html">
+                <code>POST /api/v1/scrape</code>
+              </a>
+              - Perform direct scraping tasks <span class="badge badge-beta">BETA</span>
+            </li>
+            
+            <li>
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html">
+                <code>GET /api/v1/jobs/:id</code>
+              </a>
+              - Check the status and retrieve results of asynchronous jobs
+            </li>
+            
+            <li>
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html">
+                <code>GET /api/v1/proxy/...</code>
+              </a>
+              - Manage and utilize proxies
+            </li>
+            
+            <li>
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html">
+                <code>GET /api/v1/session/...</code>
+              </a>
+              - Manage persistent browser sessions
+            </li>
+            
+            <li>
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html">
+                <code>GET /api/v1/templates</code>
+              </a>
+              - List available configuration templates
+            </li>
+          </ul>
+          
+          <p style="text-align: center; margin-top: 20px;">
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/">
+              View complete API documentation <i class="ph ph-arrow-right"></i>
+            </a>
+          </p>
+        </div>
+      </section>
+
+      <section id="use-cases">
+        <h2>What Can You Build?</h2>
+        <p>Unlock powerful applications with our web scraping platform</p>
+        
+        <div class="features-grid">
+          <article>
+            <h2><i class="ph-light ph-chart-line-up"></i></h2>
+            <h3>Market Research</h3>
+            <p>
+              Gather data on market trends, competitor pricing, product reviews, and customer
+              sentiment from various online sources to gain valuable business insights.
+            </p>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-tag"></i></h2>
+            <h3>Price Monitoring</h3>
+            <p>
+              Track prices of products across e-commerce sites, monitor competitor pricing
+              strategies, and identify arbitrage opportunities in real-time.
+            </p>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-users-three"></i></h2>
+            <h3>Lead Generation</h3>
+            <p>
+              Extract contact information from business directories, professional networks, 
+              or event websites to build targeted sales and marketing databases.
+            </p>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-newspaper"></i></h2>
+            <h3>Content Aggregation</h3>
+            <p>
+              Collect articles, blog posts, news updates, or job listings from multiple sources to
+              build curated content platforms and news dashboards.
+            </p>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-magnifying-glass"></i></h2>
+            <h3>Due Diligence</h3>
+            <p>
+              Gather comprehensive information about companies, markets, and individuals from public sources 
+              to support investment decisions and risk assessment.
+            </p>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-bug"></i></h2>
+            <h3>Automated Testing</h3>
+            <p>
+              Use the navigation engine to automate UI testing, check website functionality, or
+              monitor website uptime and performance with detailed reporting.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="examples">
+        <h2>See It In Action</h2>
+        <p>Explore real examples of data extraction with our API</p>
+
+        <details>
+          <summary>Google Maps Business Data Extraction</summary>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">Output Example: JSON</span>
+              <button class="copy-button">Copy</button>
+            </div>
+            <div class="code-content">
+              <pre><code>{
+  "success": true,
+  "searchResults": {
+    "listings": [
+      {
+        "name": "Black Brick Studio",
+        "rating": "5.0",
+        "reviews": 12,
+        "services": "Architecture firm",
+        "address": "117 Bute St",
+        "phone": "029 2252 0485",
+        "website": "//www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwid7omr29WMAxU9k1AGHSH7NcoYABAAGgJkZw&co=1&ase=2&gclid=EAIaIQobChMIne6Jq9vVjAMVPZNQBh0h-zXKEBAYASAAEgLQ3PD_BwE&ohost=www.google.com&cid=CAASE-RoknGIys0KUcLcNKmR_mNyQKQ&sig=AOD64_2rOvQXKE-0Bj5Q7iKPhXRFn_0xQQ&adurl&q&ctype=99&nis=6"
+      },
+      {
+        "name": "Kotzmuth Williams Architects - Cardiff Architects",
+        "rating": "5.0",
+        "reviews": 3,
+        "services": "Architect",
+        "address": "Canton House, Cowbridge Rd E",
+        "phone": "029 2178 0001",
+        "website": "http://www.kwarchitects.com/"
+      }
+    ]
+  },
+  "screenshots": [],
+  "timestamp": "2025-04-13T19:12:14.318Z"
+}</code></pre>
+            </div>
+          </div>
+        </details>
+        
+        <details>
+          <summary>Google Trends Data Extraction</summary>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">Navigation Config Example</span>
+              <button class="copy-button">Copy</button>
+            </div>
+            <div class="code-content">
+              <pre><code>{
+  "startUrl": "https://trends.google.com/trending?geo=US&hl=en-US",
+  "steps": [
+    {
+      "type": "condition",
+      "condition": "button[aria-label='Accept all']",
+      "thenSteps": [
+        {
+          "type": "click",
+          "selector": "button[aria-label='Accept all']"
+        }
+      ]
+    },
+    {
+      "type": "extract",
+      "name": "trendsData",
+      "selector": "table.enOdEe-wZVHld-zg7Cn",
+      "fields": {
+        "trends": {
+          "selector": "tr.enOdEe-wZVHld-xMbwt",
+          "type": "css",
+          "multiple": true,
+          "fields": {
+            "title": { "selector": ".mZ3RIc", "type": "css" },
+            "searchVolume": { "selector": ".lqv0Cb", "type": "css" }
+          }
+        }
+      }
+    }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section id="demo">
+        <h2>Interactive Demo</h2>
+        <p>Try generating a scraping configuration with our AI</p>
+        
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-title">Request Example</span>
+            <button class="copy-button">Copy</button>
+          </div>
+          <div class="code-content">
+            <pre><code>// Generate a scraping configuration for Hacker News
+curl -X POST https://scraper.apps.loyalleads.co.uk/api/v1/ai/generate-config \
+-H "Content-Type: application/json" \
+-d '{
+  "url": "https://news.ycombinator.com/",
+  "prompt": "Extract the title, URL, points, and comments count for each story",
+  "options": {
+    "model": "gpt-4o-mini",
+    "testConfiguration": true
+  }
+}'</code></pre>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/try-it">
+            <button>
+              <i class="ph-fill ph-play-circle"></i> Try the Live Demo
+            </button>
+          </a>
+        </div>
+      </section>
+
+      <section id="quickstart">
+        <h2>Quick Start Guide</h2>
+        <p>Get up and running with the API in minutes</p>
+        
+        <ol>
+          <li>
+            <strong>Installation</strong>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-title">Clone the repository</span>
+                <button class="copy-button">Copy</button>
+              </div>
+              <div class="code-content">
+                <pre><code>git clone https://github.com/sherifButt/adv-web-scraper-api.git
+cd adv-web-scraper-api
+npm install</code></pre>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <strong>Set up environment</strong>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-title">Create .env file</span>
+                <button class="copy-button">Copy</button>
+              </div>
+              <div class="code-content">
+                <pre><code>PORT=3000
+REDIS_HOST=localhost
+REDIS_PORT=6379
+# Add other configuration as needed</code></pre>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <strong>Start the server</strong>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-title">Run the development server</span>
+                <button class="copy-button">Copy</button>
+              </div>
+              <div class="code-content">
+                <pre><code>npm run dev</code></pre>
+              </div>
+            </div>
+          </li>
+          
+          <li>
+            <strong>Make your first API call</strong>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-title">Generate a config with AI</span>
+                <button class="copy-button">Copy</button>
+              </div>
+              <div class="code-content">
+                <pre><code>curl -X POST http://localhost:3000/api/v1/ai/generate-config \
+-H "Content-Type: application/json" \
+-d '{
+  "url": "https://news.ycombinator.com/",
+  "prompt": "Extract the title and URL for each story"
+}'</code></pre>
+              </div>
+            </div>
+          </li>
+        </ol>
+        
+        <p style="text-align: center; margin-top: 30px;">
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/docs/getting-started">
+            <button>
+              <i class="ph-fill ph-book-open"></i> Detailed Getting Started Guide
+            </button>
+          </a>
+        </p>
+      </section>
+
+      <section id="llm-integration">
+        <h2>AI Integration</h2>
+        <p>Powerful language model capabilities built right into the API</p>
+        
+        <div class="features-grid">
+          <article>
+            <h2><i class="ph-light ph-brain"></i></h2>
+            <h3>Multiple Model Support</h3>
+            <p>
+              Access a wide range of AI models through our unified OpenRouter integration, including
+              GPT-4, Claude, Gemini, and more.
+            </p>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-currency-dollar"></i></h2>
+            <h3>Cost Tracking</h3>
+            <p>
+              Built-in token usage tracking and cost estimation for each model, helping you
+              manage your AI budget effectively.
+            </p>
+          </article>
+          
+          <article>
+            <h2><i class="ph-light ph-sliders"></i></h2>
+            <h3>Customizable Parameters</h3>
+            <p>
+              Fine-tune your AI requests with customizable parameters like temperature, max tokens,
+              and provider-specific options.
+            </p>
+          </article>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">
+            <button>
+              <i class="ph-fill ph-file-doc"></i> AI Integration Documentation
+            </button>
+          </a>
+        </div>
+      </section>
+
+      <section id="faq">
+        <h2>Frequently Asked Questions</h2>
+        <p>Find answers to common questions about the Advanced Web Scraper API</p>
+
+        <details>
+          <summary>What is the AI Configuration Generation feature?</summary>
+          <p>
+            This feature allows you to generate a scraping configuration (`config.json`) simply by
+            providing a target URL and a natural language prompt describing what data you want to
+            extract. The API uses a Large Language Model (LLM) to create the configuration,
+            potentially tests it, and can even attempt to fix errors automatically.
+          </p>
+          <p>
+            For example, you could provide the URL "https://news.ycombinator.com/" and the prompt
+            "Extract all story titles, URLs, and point counts" and receive a complete, ready-to-use
+            configuration file.
+          </p>
+        </details>
+        
+        <details>
+          <summary>What models are supported for AI Configuration Generation?</summary>
+          <p>
+            The API supports a wide range of models through OpenRouter, including:
+          </p>
+          <ul>
+            <li><strong>OpenAI models:</strong> GPT-4, GPT-3.5-turbo</li>
+            <li><strong>Anthropic models:</strong> Claude-3-7-Sonnet, Claude-3-5-Sonnet</li>
+            <li><strong>Google models:</strong> Gemini 2.5 Pro</li>
+            <li><strong>DeepSeek models:</strong> DeepSeek Reasoner, DeepSeek Chat</li>
+          </ul>
+          <p>
+            You can specify your preferred model in the request options, and the system will automatically 
+            route to the appropriate provider.
+          </p>
+        </details>
+        
+        <details>
+          <summary>How does the Navigation Engine work?</summary>
+          <p>
+            The Navigation Engine executes multi-step browser interactions defined in a
+            configuration file. It can handle complex tasks like logging in, clicking buttons,
+            filling forms, scrolling, handling popups, switching tabs/frames, and executing custom
+            scripts. It uses Playwright for browser automation and supports various step types
+            detailed in the documentation.
+          </p>
+          <p>
+            This powerful engine allows you to automate virtually any web interaction, making it
+            possible to scrape even the most complex websites with dynamic content.
+          </p>
+        </details>
+        
+        <details>
+          <summary>What kind of proxies does the API support?</summary>
+          <p>
+            The API features a robust Proxy Manager that can load proxies from various sources
+            (currently JSON files, API sources planned). It supports:
+          </p>
+          <ul>
+            <li>Health checks and performance metrics tracking</li>
+            <li>Automatic rotation based on performance (latency, success rate)</li>
+            <li>Filtering by criteria like protocol, country, or anonymity level</li>
+            <li>Session-based proxy assignment for consistent identity</li>
+            <li>Detailed statistics and management via the Proxy API</li>
+          </ul>
+        </details>
+        
+        <details>
+          <summary>Is this API suitable for beginners?</summary>
+          <p>
+            Yes! While the API offers advanced capabilities for experienced developers, the AI Configuration
+            Generation feature makes it accessible to beginners. You can simply describe what data you want
+            in natural language, and the API will generate the necessary configuration for you.
+          </p>
+          <p>
+            Additionally, we provide comprehensive documentation, ready-to-use templates, and step-by-step
+            guides to help you get started quickly.
+          </p>
+        </details>
+        
+        <details>
+          <summary>How can I deploy this on my own server?</summary>
+          <p>
+            The Advanced Web Scraper API is designed to be easy to deploy on your own infrastructure.
+            You can:
+          </p>
+          <ul>
+            <li>Clone the repository and run it on your server</li>
+            <li>Use Docker for containerized deployment</li>
+            <li>Deploy to cloud services like AWS, Google Cloud, or Azure</li>
+          </ul>
+          <p>
+            Detailed deployment instructions are available in our documentation.
+          </p>
+        </details>
+      </section>
+
+      <section id="cta">
+        <div style="text-align: center; padding: 60px 0; background-color: var(--light); border-radius: var(--border-radius);">
+          <h2>Ready to Get Started?</h2>
+          <p style="margin-bottom: 30px;">
+            Start extracting the data you need with our powerful web scraping API
+          </p>
+          <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <a href="https://github.com/sherifButt/adv-web-scraper-api">
+              <button>
+                <i class="ph-fill ph-github-logo"></i> Star on GitHub
+              </button>
+            </a>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/docs/getting-started">
+              <button class="button-secondary">
+                <i class="ph-fill ph-book-open"></i> Read the Docs
+              </button>
+            </a>
+            <a href="https://scraper.apps.loyalleads.co.uk/api/v1/ai/generate-config">
+              <button class="button-outline">
+                <i class="ph-fill ph-rocket"></i> Try the API
+              </button>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 40px; text-align: left;">
+          <div>
+            <h3 style="margin-bottom: 20px; color: var(--light);">Advanced Web Scraper API</h3>
+            <p>
+              A powerful, scalable API for web scraping, navigation, and AI-driven data extraction.
+              Built for developers, by developers.
+            </p>
+          </div>
+          
+          <div>
+            <h3 style="margin-bottom: 20px; color: var(--light);">Documentation</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/docs/getting-started">Getting Started</a></li>
+              <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/api/">API Reference</a></li>
+              <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html">Navigation Types</a></li>
+              <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI Integration</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 style="margin-bottom: 20px; color: var(--light);">Resources</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="margin-bottom: 10px;"><a href="https://github.com/sherifButt/adv-web-scraper-api">GitHub Repository</a></li>
+              <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/examples/">Example Projects</a></li>
+              <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/blog/">Blog</a></li>
+              <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/community/">Community</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 style="margin-bottom: 20px; color: var(--light);">Connect</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="margin-bottom: 10px;"><a href="https://twitter.com/YOUR_TWITTER">Twitter</a></li>
+              <li style="margin-bottom: 10px;"><a href="https://github.com/sherifButt">GitHub</a></li>
+              <li style="margin-bottom: 10px;"><a href="mailto:contact@loyalleads.co.uk">Email</a></li>
+              <li style="margin-bottom: 10px;"><a href="https://discord.gg/YOUR_DISCORD">Discord</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div style="border-top: 1px solid var(--dark); padding-top: 30px;">
+          <p>&copy; 2025 Advanced Web Scraper API. All rights reserved.</p>
+          <div class="footer-links">
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/terms">Terms of Service</a>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/privacy">Privacy Policy</a>
+            <a href="https://loyalleads.co.uk/">Loyal Leads</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- JavaScript for interactive elements -->
+    <script>
+      // Copy button functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const copyButtons = document.querySelectorAll('.copy-button');
+        
+        copyButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const codeBlock = this.closest('.code-block').querySelector('code');
+            const textToCopy = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              const originalText = this.textContent;
+              this.textContent = 'Copied!';
+              this.style.backgroundColor = 'var(--secondary)';
+              
+              setTimeout(() => {
+                this.textContent = originalText;
+                this.style.backgroundColor = 'var(--primary)';
+              }, 2000);
+            });
+          });
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+              window.scrollTo({
+                top: targetElement.offsetTop - 80,
+                behavior: 'smooth'
+              });
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

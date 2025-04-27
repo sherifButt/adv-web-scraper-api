@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Web Scraper API</title>
+
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/light/style.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
+    />
+
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
+    />
+    <link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Noto+Sans+JP:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      p {
+        font-size: .7 rem;
+      }
+      h1 {
+        font-family: LibreBaskerville, Georgia, Cambria, 'Bodoni Moda', serif;
+        font-size: 4.2rem;
+        font-weight: normal;
+        margin-top: 60px;
+        margin-bottom: 20px;
+      }
+      h2 {
+        font-family: 'Abhaya Libre', serif;
+        font-size: 2.5rem;
+        margin-top: 40px;
+      }
+
+      h3 {
+        font-family: 'Abhaya Libre', serif;
+        font-size: 1.8rem;
+      }
+      i {
+        color: #646464;
+      }
+      #logo {
+        font-family: LibreBaskerville, Georgia, Cambria, 'Bodoni Moda', serif;
+        font-size: 1.3rem;
+        font-weight: bold;
+      }
+      button {
+        font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+          Segoe UI Symbol,
+          Noto Color Apple Color Apple Color Apple Color Apple Color Apple Color Emoji;
+        border-radius: 100px;
+        border: none;
+        padding: 0.9rem 1.2rem;
+        background-color: black;
+        color: white;
+        cursor: pointer;
+      }
+      nav button {
+        padding: 0.5rem 0.8rem;
+      }
+      button i {
+        color: white;
+      }
+      blockquote {
+        font-family: 'Abhaya Libre', serif;
+      }
+      p,
+      li {
+        font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+          Segoe UI Symbol, Noto Color Emoji;
+        color: #646464;
+        font-weight: 300;
+      }
+      article {
+        padding: 20px 30px;
+        border-radius: 18px;
+      }
+    </style>
+  </head>
+
+  <body class="container">
+    <header
+      style="
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        display: flex;
+        row-gap: 20px;
+      "
+    >
+      <strong id="logo" title="Advanced Web Scraper API"
+        ><a href="https://sherifbutt.github.io/adv-web-scraper-api/"
+          ><i class="ph ph-robot"></i> AWSapi</a
+        ></strong
+      >
+      <nav style="display: flex; gap: 20px; align-items: center">
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/"
+          ><i class="ph ph-plug"></i> API Reference</a
+        >
+        <a href="#features"><i class="ph ph-star"></i> Features</a>
+        <a href="#quickstart"><i class="ph ph-rocket"></i> Quick Start</a>
+
+        <a href="https://github.com/sherifButt/adv-web-scraper-api"
+          ><button title="GitHub"><i class="ph-fill ph-github-logo"></i>Git</button></a
+        >
+      </nav>
+    </header>
+
+    <section id="hero" style="text-align: center; margin-top: 60px">
+      <div style="text-align: center; margin: 60px auto">
+        <h1>Advanced Web Scraper API</h1>
+        <p>A powerful, scalable API for web scraping, navigation, and AI-driven data extraction.</p>
+      </div>
+      <figure>
+        <img
+          src="/media/videos/adv-web-scraping-api.gif"
+          alt="Example scraped webpage"
+          style="border-radius: 12px; margin: 40px auto"
+          height="300"
+        />
+      </figure>
+      <div>
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/" class="button"
+          ><button><i class="ph-fill ph-book-open"></i> Documentation</button></a
+        >
+        <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/" class="button"
+          ><button><i class="ph-fill ph-plug"></i> API Reference</button></a
+        >
+        <!-- Removed outdated blockquote -->
+      </div>
+    </section>
+    <main>
+      <section id="features">
+        <div style="text-align: center; margin: 60px auto">
+          <h2>Key Features</h2>
+        </div>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+          "
+        >
+          <article>
+            <h2><i class="ph-light ph-brain"></i></h2>
+            <h3>AI-Powered Configuration</h3>
+            <p>
+              Generate complex scraping configurations from just a URL and natural language prompt.
+              Supports multiple LLM providers through OpenRouter, including GPT-4, Claude, and Gemini. (For the moment it works on single page websites only, with static content. dynamic content is in the works.)
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
+                >Learn more</a
+              >.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-compass-tool"></i></h2>
+            <h3>Advanced Navigation</h3>
+            <p>
+              Execute multi-step browser interactions, handle logins, pagination, conditional logic,
+              and dynamic content with a powerful navigation engine.
+              <a
+                href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html"
+                >See types</a
+              >.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-shield-check"></i></h2>
+            <h3>Robust Proxy Management</h3>
+            <p>
+              Automatic proxy rotation, health checks, and support for multiple sources (file, API)
+              to ensure reliable and undetected scraping.
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html"
+                >Proxy API</a
+              >.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-hard-drives"></i></h2>
+            <h3>Persistent Sessions</h3>
+            <p>
+              Maintain browser sessions across jobs, preserving cookies and localStorage to bypass
+              logins and reduce CAPTCHAs.
+              <a
+                href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html"
+                >Session Docs</a
+              >.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-crosshair"></i></h2>
+            <h3>Flexible Extraction</h3>
+            <p>
+              Extract data precisely using CSS selectors, XPath, Regular Expressions, or even custom
+              JavaScript functions.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-gauge"></i></h2>
+            <h3>Detailed Job Progress</h3>
+            <p>
+              Monitor asynchronous jobs with granular progress updates, including percentage completion (0-100) 
+              and detailed status messages (e.g., "Fetching HTML", "Executing step 3").
+              <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html">Job Status API</a>.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-rocket"></i></h2>
+            <h3>Scalable Architecture</h3>
+            <p>
+              Built with a robust queue system (BullMQ) to handle high-volume scraping tasks
+              efficiently across multiple workers.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="api">
+        <div style="text-align: center; margin: 60px auto">
+          <h2>API Reference</h2>
+          <p>Explore the core functionalities of the API:</p>
+        </div>
+        <ul>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
+              ><code>POST /api/v1/ai/generate-config</code></a
+            >
+            - Generate scraping configurations using AI.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/navigate.html"
+              ><code>POST /api/v1/navigate</code></a
+            >
+            - Execute complex browser navigation flows.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/scrape.html"
+              ><code>POST /api/v1/scrape</code></a
+            >
+            - Perform direct scraping tasks (worker implementation pending).
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/queue-system.html"
+              ><code>GET /api/v1/jobs/:id</code></a
+            >
+            - Check the status and retrieve results of asynchronous jobs.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html"
+              ><code>GET /api/v1/proxy/...</code></a
+            >
+            - Manage and utilize proxies.
+          </li>
+          <li>
+            <a
+              href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html"
+              ><code>GET /api/v1/session/...</code></a
+            >
+            - Manage persistent browser sessions.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
+              ><code>GET /api/v1/templates</code></a
+            >
+            - List available configuration templates.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
+              ><code>GET /api/v1/templates/:site/:challenge</code></a
+            >
+            - Get details for a specific template.
+          </li>
+          <li>
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/"
+              ><code>POST /api/v1/captcha/...</code></a
+            >
+            - Interact with the CAPTCHA solving system.
+          </li>
+          <li>
+            <a href="/health"><code>GET /health</code></a> - Perform a system health check.
+          </li>
+        </ul>
+        <p>
+          See the full
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/"
+            >API Reference</a
+          >
+          for details.
+        </p>
+      </section>
+
+      <section id="use-cases">
+        <div style="text-align: center; margin: 60px auto">
+          <h2>What Can I Do With It?</h2>
+          <p>Explore the diverse applications of the Advanced Web Scraper API:</p>
+        </div>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+          "
+        >
+          <article>
+            <h2><i class="ph-light ph-chart-line-up"></i></h2>
+            <h3>Market Research</h3>
+            <p>
+              Gather data on market trends, competitor pricing, product reviews, and customer
+              sentiment from various online sources.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-tag"></i></h2>
+            <h3>Price Monitoring</h3>
+            <p>
+              Track prices of products across e-commerce sites, monitor competitor pricing
+              strategies, and identify arbitrage opportunities.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-users-three"></i></h2>
+            <h3>Lead Generation</h3>
+            <p>
+              Extract contact information (emails, phone numbers, social profiles) from business
+              directories, professional networks, or event websites.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-newspaper"></i></h2>
+            <h3>Content Aggregation</h3>
+            <p>
+              Collect articles, blog posts, news updates, or job listings from multiple sources to
+              build curated content platforms.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-database"></i></h2>
+            <h3>Data Enrichment</h3>
+            <p>
+              Augment existing datasets by scraping additional information from public profiles,
+              company websites, or other online sources.
+            </p>
+          </article>
+          <article>
+            <h2><i class="ph-light ph-bug"></i></h2>
+            <h3>Automated Testing</h3>
+            <p>
+              Use the navigation engine to automate UI testing, check website functionality, or
+              monitor website uptime and performance.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="examples">
+        <div style="text-align: center; margin: 60px auto">
+          <h2>Example Scraped Data</h2>
+        </div>
+
+        <details>
+          <summary>View JSON Output</summary>
+          <pre><code>
+{ 
+    {
+    "success": true,
+    "searchResults": {
+        "listings": [
+            {
+            "name": "Black Brick Studio",
+            "rating": "5.0",
+            "reviews": 12,
+            "services": "Architecture firm",
+            "address": "117 Bute St",
+            "phone": "029 2252 0485",
+            "website": "//www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwid7omr29WMAxU9k1AGHSH7NcoYABAAGgJkZw&co=1&ase=2&gclid=EAIaIQobChMIne6Jq9vVjAMVPZNQBh0h-zXKEBAYASAAEgLQ3PD_BwE&ohost=www.google.com&cid=CAASE-RoknGIys0KUcLcNKmR_mNyQKQ&sig=AOD64_2rOvQXKE-0Bj5Q7iKPhXRFn_0xQQ&adurl&q&ctype=99&nis=6"
+            },
+            {
+            "name": "Kotzmuth Williams Architects - Cardiff Architects",
+            "rating": "5.0",
+            "reviews": 3,
+            "services": "Architect",
+            "address": "Canton House, Cowbridge Rd E",
+            "phone": "029 2178 0001",
+            "website": "http://www.kwarchitects.com/"
+            }
+        ]
+        }
+    },
+    "screenshots": [],
+    "timestamp": "2025-04-13T19:12:14.318Z"
+}
+</code></pre>
+        </details>
+      </section>
+
+
+
+      <section id="quickstart">
+        <div style="text-align: center; margin: 60px auto">
+          <h2>Quick Start</h2>
+          <p>Get started quickly with the API:</p>
+        </div>
+        <ol>
+          <li>
+            <strong>Explore the Documentation:</strong> Familiarize yourself with the concepts and
+            available
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/"
+              >API endpoints</a
+            >.
+          </li>
+          <li>
+            <strong>Generate a Config (Example):</strong> Use the AI endpoint to create a scraping
+            configuration. Replace `YOUR_API_URL` with the actual running server URL (e.g.,
+            `http://localhost:3000`).
+            <pre><code class="language-bash">
+curl -X POST YOUR_API_URL/api/v1/ai/generate-config \
+-H "Content-Type: application/json" \
+-d '{
+  "url": "https://news.ycombinator.com/",
+  "prompt": "Extract the title and URL for each story listed on the front page.",
+  "options": {
+    "model": "gpt-4o-mini",
+    "testConfiguration": true,
+    "maxIterations": 3
+  }
+}'
+            </code></pre>
+            This will return a Job ID.
+          </li>
+          <li>
+            <strong>Check Job Status:</strong> Poll the job status endpoint until `status` is
+            `completed`. Replace `YOUR_JOB_ID` with the ID from the previous step.
+            <pre><code class="language-bash">
+curl YOUR_API_URL/api/v1/jobs/YOUR_JOB_ID
+             </code></pre>
+          </li>
+          <li>
+            <strong>Use the Generated Config:</strong> The completed job result will contain the
+            generated JSON configuration, ready to be used with the `/api/v1/navigate` endpoint.
+          </li>
+        </ol>
+        <p>
+          For more detailed examples, see the
+          <a
+            href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation_examples.html"
+            >Navigation Examples</a
+          >
+          and
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI API Guide</a
+          >.
+        </p>
+      </section>
+
+      <section id="media">
+        <div style="text-align: center; margin: 60px auto">
+          <h2>Media</h2>
+          <p>Explore the media section for additional resources and examples:</p>
+        </div>
+        <ul>
+          <li><a href="/media/images">/media/images</a></li>
+          <li><a href="/media/videos">/media/videos</a></li>
+        </ul>
+      </section>
+
+      <section id="faq">
+        <div style="text-align: center; margin: 60px auto">
+          <h2><i class="ph-light ph-question"></i>FAQ</h2>
+          <p>Find answers to common questions:</p>
+        </div>
+
+        <details>
+          <summary>What is the AI Configuration Generation feature?</summary>
+          <p>
+            This feature allows you to generate a scraping configuration (`config.json`) simply by
+            providing a target URL and a natural language prompt describing what data you want to
+            extract. The API uses a Large Language Model (LLM) to create the configuration,
+            potentially tests it, and can even attempt to fix errors automatically. See the
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html"
+              >AI API documentation</a
+            >
+            for more details.
+          </p>
+        </details>
+        <details>
+          <summary>How does the Navigation Engine work?</summary>
+          <p>
+            The Navigation Engine executes multi-step browser interactions defined in a
+            configuration file. It can handle complex tasks like logging in, clicking buttons,
+            filling forms, scrolling, handling popups, switching tabs/frames, and executing custom
+            scripts. It uses Playwright for browser automation and supports various step types
+            detailed in the
+            <a
+              href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html"
+              >Navigation Types documentation</a
+            >.
+          </p>
+        </details>
+        <details>
+          <summary>What kind of proxies does the API support?</summary>
+          <p>
+            The API features a robust Proxy Manager that can load proxies from various sources
+            (currently JSON files, API sources planned). It supports health checks, automatic
+            rotation based on performance (latency, success rate), and filtering by criteria like
+            protocol or country. You can interact with it via the
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/proxy-api.html"
+              >Proxy API</a
+            >.
+          </p>
+        </details>
+        <details>
+          <summary>How are browser sessions managed?</summary>
+          <p>
+            The API supports persistent browser sessions. This means cookies, localStorage, and
+            sessionStorage can be saved and reused across different scraping jobs for the same
+            domain. This helps bypass logins and reduces the likelihood of encountering CAPTCHAs on
+            subsequent runs. See the
+            <a
+              href="https://sherifbutt.github.io/adv-web-scraper-api/sessions/session-management.html"
+              >Session Management documentation</a
+            >.
+          </p>
+        </details>
+        <details>
+          <summary>What are Configuration Templates?</summary>
+          <p>
+            Configuration Templates are pre-built examples stored in the `config-templates`
+            directory, organized by site and specific challenge (e.g., handling logins, pagination).
+            They provide metadata and a working `config.json` file. You can browse and retrieve
+            these templates using the
+            <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/templates-api.html"
+              >Template API</a
+            >
+            (`/api/v1/templates`) to use as starting points for your own configurations.
+          </p>
+        </details>
+        <details>
+          <summary>What models are supported for AI Configuration Generation?</summary>
+          <p>
+            The API supports a wide range of models through OpenRouter, including:
+            <ul>
+              <li>OpenAI models (GPT-4, GPT-3.5-turbo)</li>
+              <li>Anthropic models (Claude-3-7-Sonnet, Claude-3-5-Sonnet)</li>
+              <li>Google models (Gemini 2.5 Pro)</li>
+              <li>DeepSeek models (DeepSeek Reasoner, DeepSeek Chat)</li>
+            </ul>
+            You can specify your preferred model in the request options, and the system will automatically route to the appropriate provider. See the <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI API documentation</a> for more details.
+          </p>
+        </details>
+        <details>
+          <summary>What LLM integration features are available?</summary>
+          <p>
+            The API offers powerful language model integration through OpenRouter:
+            <ul>
+              <li><strong>Multiple Model Support:</strong> Access to a wide range of models including GPT-4, Claude, Gemini, and more through a unified OpenRouter interface.</li>
+              <li><strong>Cost Tracking:</strong> Built-in token usage tracking and cost estimation for each model, helping you manage your AI budget effectively.</li>
+              <li><strong>Flexible Configuration:</strong> Customize model parameters like temperature and max tokens, with support for provider-specific options.</li>
+              <li><strong>Secure API Keys:</strong> Secure management of API keys through environment variables, with support for multiple providers.</li>
+            </ul>
+          </p>
+        </details>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Advanced Web Scraper API</p>
+      <p>
+        For support, check the project's
+        <a href="https://github.com/sherifButt/adv-web-scraper-api/blob/main/README.html">README</a>
+        or <a href="https://sherifbutt.github.io/adv-web-scraper-api/">documentation</a>
+      </p>
+    </footer>
+  </body>
+</html>
