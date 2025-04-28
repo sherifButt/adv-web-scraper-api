@@ -228,6 +228,28 @@
       scroll-margin-top: 150px;
     }
 
+     /* Badges */
+     .badge {
+          display: inline-block;
+          background-color: var(--primary);
+          color: white;
+          font-size: 0.7rem;
+          padding: 4px 8px;
+          border-radius: 20px;
+          margin-left: 8px;
+          font-weight: 700;
+          text-transform: uppercase;
+          font-family: ui-sans-serif, system-ui, sans-serif;
+        }
+        
+        .badge-new {
+          background-color: var(--accent);
+        }
+        
+        .badge-beta {
+          background-color: var(--warning);
+        }
+
     /* Hero section */
     #hero {
       padding: 4rem 0;
@@ -1010,7 +1032,7 @@
       <div class="feature-grid">
         <article>
           <i class="ph-light ph-brain feature-icon"></i>
-          <h3>AI-Powered Configuration</h3>
+          <h3>AI-Powered Configuration <span class="badge badge-new">NEW</span></h3>
           <p>
             Generate complex scraping configurations from just a URL and natural language prompt.
             Supports multiple LLM providers through OpenRouter, including GPT-4, Claude, and Gemini.
@@ -1956,25 +1978,55 @@ curl -X POST http://localhost:3000/api/v1/navigate \
   </main>
 
   <footer>
-    <div class="container footer-content">
-      <div>
-        <strong id="logo">
-          <a href="https://scraper.apps.loyalleads.co.uk/">
-            <i class="ph ph-robot"></i> Advanced Web Scraper API
-          </a>
-        </strong>
-        <p>A powerful, scalable API for web scraping, navigation, and AI-driven data extraction.</p>
+    <div class="container">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 40px; text-align: left;">
+        <div>
+          <h3 style="margin-bottom: 20px; color: var(--light);">Advanced Web Scraper API</h3>
+          <p>
+            A powerful, scalable API for web scraping, navigation, and AI-driven data extraction.
+            Built for developers, by developers.
+          </p>
+        </div>
+        
+        <div>
+          <h3 style="margin-bottom: 20px; color: var(--light);">Documentation</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/docs/getting-started">Getting Started</a></li>
+            <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/api/">API Reference</a></li>
+            <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/navigation/navigation-types.html">Navigation Types</a></li>
+            <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/api/ai-api.html">AI Integration</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 style="margin-bottom: 20px; color: var(--light);">Resources</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin-bottom: 10px;"><a href="https://github.com/sherifButt/adv-web-scraper-api">GitHub Repository</a></li>
+            <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/examples/">Example Projects</a></li>
+            <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/blog/">Blog</a></li>
+            <li style="margin-bottom: 10px;"><a href="https://sherifbutt.github.io/adv-web-scraper-api/community/">Community</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 style="margin-bottom: 20px; color: var(--light);">Connect</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin-bottom: 10px;"><a href="https://twitter.com/YOUR_TWITTER">Twitter</a></li>
+            <li style="margin-bottom: 10px;"><a href="https://github.com/sherifButt">GitHub</a></li>
+            <li style="margin-bottom: 10px;"><a href="mailto:contact@loyalleads.co.uk">Email</a></li>
+            <li style="margin-bottom: 10px;"><a href="https://discord.gg/YOUR_DISCORD">Discord</a></li>
+          </ul>
+        </div>
       </div>
-
-      <div class="footer-links">
-        <a href="https://sherifbutt.github.io/adv-web-scraper-api/">Documentation</a>
-        <a href="https://sherifbutt.github.io/adv-web-scraper-api/api/">API Reference</a>
-        <a href="https://github.com/sherifButt/adv-web-scraper-api">GitHub</a>
-        <a href="#features">Features</a>
-        <a href="#quickstart">Quick Start</a>
+      
+      <div style="border-top: 1px solid var(--dark); padding-top: 30px;">
+        <p>&copy; 2025 Advanced Web Scraper API. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/terms">Terms of Service</a>
+          <a href="https://sherifbutt.github.io/adv-web-scraper-api/privacy">Privacy Policy</a>
+          <a href="https://loyalleads.co.uk/">Loyal Leads</a>
+        </div>
       </div>
-
-      <p>&copy; 2025 Advanced Web Scraper API</p>
     </div>
   </footer>
 

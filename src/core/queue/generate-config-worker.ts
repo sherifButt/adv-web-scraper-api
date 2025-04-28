@@ -832,10 +832,15 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
      errorMessage: state.lastError, // Store the final error message
    });
 
-
-  throw new Error(
-    `Failed to generate working config for job ${jobId} after ${
-      state.options.maxIterations
-    } iterations. Last error: ${state.lastError ?? 'Unknown error'}`
-  );
+  // Instead of throwing an error, return the last configuration in a failed state
+  return {
+    id: jobId,
+    url: state.url,
+    status: 'failed', // Ensure status is 'failed'
+    config: state.lastConfig, // Return the last config even though it failed
+    tokensUsed: state.tokensUsed,
+    estimatedCost: state.estimatedCost,
+    iterations: state.iteration,
+    timestamp: new Date().toISOString()
+  };
 }
