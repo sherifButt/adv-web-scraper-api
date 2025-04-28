@@ -26,4 +26,40 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   }
+  
+  // Add copy button to all pre elements
+  const preElements = document.querySelectorAll('pre');
+  
+  preElements.forEach(pre => {
+    const copyButton = document.createElement('button');
+    copyButton.className = 'copy-btn';
+    copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
+    copyButton.title = 'Copy to clipboard';
+    
+    copyButton.addEventListener('click', function () {
+      const code = pre.querySelector('code').innerText;
+      
+      navigator.clipboard.writeText(code).then(() => {
+        // Visual feedback
+        copyButton.innerHTML = '<i class="ph ph-check"></i> Copied!';
+        copyButton.classList.add('copied');
+        
+        // Reset after 2 seconds
+        setTimeout(() => {
+          copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
+          copyButton.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        copyButton.innerHTML = '<i class="ph ph-x"></i> Failed';
+        
+        // Reset after 2 seconds
+        setTimeout(() => {
+          copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
+        }, 2000);
+      });
+    });
+    
+    pre.appendChild(copyButton);
+  });
 }); 

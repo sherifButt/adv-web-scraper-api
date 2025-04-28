@@ -295,7 +295,7 @@
       border-radius: var(--border-radius);
       overflow-x: auto;
       margin: 1.5rem 0;
-      position: relative;
+      position: relative; /* Position relative for absolute positioning of the copy button */
       word-wrap: break-word;
     }
 
@@ -1355,7 +1355,7 @@ curl -X POST http://localhost:3000/api/v1/navigate \
               "title": "Shardines: SQLite3 Database-per-Tenant with ActiveRecord",
               "url": "https://blog.julik.nl/2025/04/a-can-of-shardines"
           },
-          ....
+          /* ... More Listings ... */
         ]
     }
 }
@@ -1521,8 +1521,8 @@ curl -X POST http://localhost:3000/api/v1/navigate \
 }
               </code></pre>
                 
-              </div>
-            
+               </div>
+             
             </details>
             
           </div>
@@ -1979,68 +1979,6 @@ curl -X POST http://localhost:3000/api/v1/navigate \
   </footer>
 
   <script src="script.js" defer></script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Mobile menu toggle
-      const menuToggle = document.getElementById('menuToggle');
-      const mainNav = document.getElementById('mainNav');
-
-      if (menuToggle && mainNav) {
-        menuToggle.addEventListener('click', function () {
-          mainNav.classList.toggle('active');
-        });
-      }
-
-      // Demo tabs
-      const tabLabels = document.querySelectorAll('.demo-tab');
-
-      tabLabels.forEach(tab => {
-        tab.addEventListener('click', function () {
-          // Remove active class from all tabs
-          tabLabels.forEach(t => t.classList.remove('active'));
-          // Add active class to clicked tab
-          this.classList.add('active');
-        });
-      });
-
-      // Add copy button to all pre elements
-      const preElements = document.querySelectorAll('pre');
-
-      preElements.forEach(pre => {
-        const copyButton = document.createElement('button');
-        copyButton.className = 'copy-btn';
-        copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
-        copyButton.title = 'Copy to clipboard';
-
-        copyButton.addEventListener('click', function () {
-          const code = pre.querySelector('code').innerText;
-
-          navigator.clipboard.writeText(code).then(() => {
-            // Visual feedback
-            copyButton.innerHTML = '<i class="ph ph-check"></i> Copied!';
-            copyButton.classList.add('copied');
-
-            // Reset after 2 seconds
-            setTimeout(() => {
-              copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
-              copyButton.classList.remove('copied');
-            }, 2000);
-          }).catch(err => {
-            console.error('Failed to copy: ', err);
-            copyButton.innerHTML = '<i class="ph ph-x"></i> Failed';
-
-            // Reset after 2 seconds
-            setTimeout(() => {
-              copyButton.innerHTML = '<i class="ph ph-copy"></i> Copy';
-            }, 2000);
-          });
-        });
-
-        pre.appendChild(copyButton);
-      });
-    });
-  </script>
 </body>
 
 </html>
