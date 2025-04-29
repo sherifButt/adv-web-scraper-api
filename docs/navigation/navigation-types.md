@@ -957,7 +957,7 @@ Scrolls the page or to a specific element with advanced options.
 
   // Common options:
   waitFor: '#next-section', // optional selector to wait for
-  humanLike: true       // Optional: Randomizes certain internal wait times
+  humanLike: true       // Optional: If true, randomizes internal waits and, for directional scrolls, randomizes distance slightly and uses smoother, variable-speed animation.
 }
 ```
 

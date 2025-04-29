@@ -110,6 +110,7 @@ curl -X POST http://localhost:3001/api/v1/navigate \
 The `browserOptions` object accepts fields like `userAgent`, `viewport`, `proxy`, and `extraHTTPHeaders`. Headers in `extraHTTPHeaders` will be merged with (and potentially override) the global default headers (like the default `Referer`).
 
 ## Storage Adapters
+
 | Adapter   | Best For              | Persistence | Performance |
 |-----------|-----------------------|-------------|-------------|
 | Memory    | Development/Testing   | No          | High        |
