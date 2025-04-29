@@ -7,6 +7,8 @@ The Advanced Web Scraper API provides robust session management to maintain stat
 - Temporary storage
 - Rate limit counters
 
+**Note:** By default, browser contexts created for sessions will automatically include a `Referer: https://www.google.com/` header (configurable via the `DEFAULT_REFERER` environment variable) to simulate traffic originating from Google search.
+
 ```mermaid
 graph TD
     A[Create Session] --> B[Storage Adapter]
@@ -55,6 +57,32 @@ const response = await fetch('/api/scrape', {
   body: JSON.stringify({ url: 'https://example.com' })
 });
 ```
+
+### Use Session with Navigation
+To utilize an existing session for a navigation task, include the session ID in the `X-Session-ID` header of your request to the `/api/v1/navigate` endpoint.
+
+```bash
+curl -X POST http://localhost:3001/api/v1/navigate \
+  -H "Content-Type: application/json" \
+  -H "X-Session-ID: your_session_id_here" \
+  -d '{
+    "startUrl": "https://example.com",
+    "steps": [
+      {
+        "type": "wait",
+        "value": 1000
+      },
+      {
+        "type": "extract",
+        "name": "pageTitle",
+        "selector": "title",
+        "description": "Extract page title"
+      }
+    ]
+  }'
+```
+
+This request will execute the navigation steps within the context of the specified session, leveraging its cookies, local storage, and browser settings.
 
 ## Storage Adapters
 | Adapter   | Best For              | Persistence | Performance |

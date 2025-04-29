@@ -257,16 +257,42 @@ You can target elements inside the shadow roots like this:
 
 ### `input`
 
-Enters text into an input field.
+Enters text into an input field or the currently focused element.
 
 ```typescript
 {
   type: 'input',
-  selector: '#search',
+  selector: '#search', // Optional if useFocusedElement is true
   value: 'query',
-  clearInput: true, // optional
-  humanInput: true // enable human-like typing
+  clearInput: true, // Optional: Clears the input before typing (requires selector)
+  humanInput: true, // Optional: Enables human-like typing (default: false if not specified)
+  useFocusedElement: false // Optional: If true, types into the currently focused element, ignoring selector (default: false)
 }
+```
+
+**Parameters:**
+
+-   `selector` (string, optional): CSS selector for the target input element. Required unless `useFocusedElement` is `true`.
+-   `value`: The text or value to enter. Can use context variables (e.g., `{{query}}`).
+-   `clearInput` (boolean, optional): If `true`, the handler will clear the input field before typing. Requires a `selector`. Defaults to `false`.
+-   `humanInput` (boolean, optional): If `true`, simulates human typing behavior (variable speed, potential mistakes). Defaults to `false` if not specified, resulting in direct input via `fill`. When `useFocusedElement` is `true` and `humanInput` is *not* explicitly set to `false`, it defaults to `true`.
+-   `useFocusedElement` (boolean, optional): If `true`, the step ignores the `selector` and types the `value` directly into the element that currently has focus on the page. Useful when the focus is already set by a previous step (like a click or tab). Defaults to `false`.
+-   `waitFor` (optional): A condition (selector, timeout in ms, 'navigation', 'networkidle') to wait for after the input action completes.
+-   `timeout` (optional): Maximum time in milliseconds for the input action itself (finding the element, clearing, typing). Defaults to 30000ms.
+-   `optional` (optional): If `true`, failure to find the element or type will not halt the flow (default: `false`).
+
+**Example (Typing into Focused Element):**
+
+```typescript
+[
+  // Assume a previous step focused an input field
+  {
+    type: 'input',
+    useFocusedElement: true,
+    value: 'Text for the focused input',
+    humanInput: true // Human-like typing into focused element
+  }
+]
 ```
 
 ### `select`

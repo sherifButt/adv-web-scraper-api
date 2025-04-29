@@ -1,0 +1,86 @@
+{
+    "startUrl": "https://niceic.com/find-a-tradesperson/",
+    "steps": [
+        {
+            "type": "wait",
+            "waitForSelector": "body",
+            "timeout": 30000,
+            "description": "Wait for page to fully load"
+        },
+        {
+            "type": "condition",
+            "condition": "#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll",
+            "description": "Check if cookie dialog appears",
+            "thenSteps": [
+                {
+                    "type": "click",
+                    "selector": "#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll",
+                    "description": "Click on Allow All button on cookies dialog",
+                    "waitFor": 1000
+                }
+            ],
+            "result": true
+        },
+        {
+            "type": "wait",
+            "value": 1000,
+            "description": "Wait for cookie dialog to be dismissed"
+        },
+        {
+            "type": "mousemove",
+            "action": "click",
+            "humanLike": true,
+            "mouseTarget": {
+                "x": 339,
+                "y": 398
+            },
+            "description": "Move mouse to search input"
+        },
+        {
+            "type": "input",
+            "value": "CF51PW",
+            "useFocusedElement": true,
+            "clearInput": true,
+            "humanInput": true,
+            "description": "Enter postcode in search box"
+        },
+        {
+            "type": "press",
+            "key": "Enter",
+            "description": "Press Enter to submit search"
+        },
+        {
+            "type": "extract",
+            "selector": "#gvContractors_ctl03_lblName",
+            "name": "tradesperson",
+            "multiple": true,
+            "description": "Extract the number of results",
+            "fields": {
+                "name": {
+                    "selector": "self",
+                    "type": "css"
+                }
+            }
+        },
+        {
+            "type": "wait",
+            "value": 13000,
+            "description": "Wait for 3 seconds as requested"
+        }
+    ],
+    "options": {
+        "timeout": 60000,
+        "javascript": true,
+        "screenshots": false,
+        "debug": true,
+        "headless": false,
+        "device": "mobile",
+        "viewport": {
+            "width": 375,
+            "height": 812
+        },
+        "language": "en-GB",
+        "timezone": "Europe/London",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6.1 Safari/605.1.15"
+    }
+}

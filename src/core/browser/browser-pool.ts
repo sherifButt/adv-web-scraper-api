@@ -107,6 +107,20 @@ export class BrowserPool {
     };
 
     const context = await browser.newContext(contextOptions);
+
+    // Set default Referer if configured
+    const extraHeaders: Record<string, string> = {};
+    if (config.browser.defaultOptions.defaultReferer) {
+      extraHeaders['Referer'] = config.browser.defaultOptions.defaultReferer;
+    }
+
+    // TODO: Merge with potential headers from options if needed in the future
+
+    if (Object.keys(extraHeaders).length > 0) {
+      await context.setExtraHTTPHeaders(extraHeaders);
+      logger.debug(`Set extra HTTP headers for context: ${JSON.stringify(extraHeaders)}`);
+    }
+
     instance.contexts.push(context);
     return context;
   }

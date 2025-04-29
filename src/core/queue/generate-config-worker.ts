@@ -473,6 +473,97 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
       state.lastError = null; // Clear last error after successful validation
       state.userFeedback = undefined; // Clear user feedback after it's been used in a fixConfiguration call
 
+      // --- Phase 2: Pre-Test Semantic Validation ---
+      let preTestValidationError: string | null = null;
+      try {
+          logger.info(`Job ${jobId}: Performing pre-test semantic validation...`);
+          // Function to recursively check selectors in steps
+          const checkSelectors = (stepsToCheck: NavigationStep[]) => {
+              for (const step of stepsToCheck) {
+                  if (!step) continue; // Skip if step is somehow null/undefined
+
+                  // Check for invalid type: 'frame'
+                  if ((step as any).type === 'frame') {
+                      preTestValidationError = "Invalid step type 'frame' found. Use 'switchToFrame' for iframe interactions.";
+                      return; // Stop validation on first error
+                  }
+
+                  // Check selectors in common properties
+                  const selectorProps = ['selector', 'condition'];
+                  for (const prop of selectorProps) {
+                      const selectorValue = (step as any)[prop];
+                      if (typeof selectorValue === 'string' && selectorValue.includes('>>>')) {
+                          preTestValidationError = `Invalid selector syntax '>>>' found in step type '${step.type}'. Standard CSS selectors should be used.`;
+                          return;
+                      }
+                      // Check array selectors as well
+                      if (Array.isArray(selectorValue)) {
+                          for (const sel of selectorValue) {
+                              if (typeof sel === 'string' && sel.includes('>>>')) {
+                                  preTestValidationError = `Invalid selector syntax '>>>' found in array selector in step type '${step.type}'. Standard CSS selectors should be used.`;
+                                  return;
+                              }
+                          }
+                      }
+                  }
+
+                  // Recursively check nested steps
+                  if (step.thenSteps) checkSelectors(step.thenSteps as NavigationStep[]);
+                  if (preTestValidationError) return;
+                  if (step.elseSteps) checkSelectors(step.elseSteps as NavigationStep[]);
+                  if (preTestValidationError) return;
+                  if (step.elementSteps) checkSelectors(step.elementSteps as NavigationStep[]);
+                  if (preTestValidationError) return;
+                  // Explicitly check for switchToFrame type before accessing its steps
+                  if ((step as any).type === 'switchToFrame' && (step as any).steps) {
+                    checkSelectors((step as any).steps as NavigationStep[]);
+                  }
+                  if (preTestValidationError) return;
+
+                  // Check selectors within extract fields
+                  if (step.type === 'extract' && step.fields) {
+                    for (const fieldConfig of Object.values(step.fields)) {
+                      if (typeof fieldConfig === 'object' && fieldConfig !== null && 'selector' in fieldConfig) {
+                        const fieldSelector = fieldConfig.selector;
+                        if (typeof fieldSelector === 'string' && fieldSelector.includes('>>>')) {
+                          preTestValidationError = `Invalid selector syntax '>>>' found in extract field. Standard CSS selectors should be used.`;
+                          return;
+                        }
+                      }
+                    }
+                  }
+              }
+          };
+
+          checkSelectors(currentConfig.steps);
+
+          if (preTestValidationError) {
+              logger.warn(`Job ${jobId}: Pre-test validation FAILED: ${preTestValidationError}`);
+              state.lastError = preTestValidationError;
+              state.currentStatus = `Pre-Test Validation Failed (Iteration ${state.iteration})`;
+              const progressPreTestFailed = baseProgress + (PROGRESS_VALIDATION_END - baseProgress); // Reuse validation end progress
+              await updateJobStatus(job, state, progressPreTestFailed);
+
+              // Add to fix history for pre-test validation errors
+              if (currentConfig) {
+                state.fixHistory = state.fixHistory || [];
+                state.fixHistory.push({
+                    iteration: state.iteration,
+                    configAttempted: currentConfig,
+                    errorLog: preTestValidationError
+                });
+              }
+
+              continue; // Skip testing and go to next iteration
+          } else {
+              logger.info(`Job ${jobId}: Pre-test semantic validation PASSED.`);
+          }
+      } catch (validationError: any) {
+          logger.error(`Job ${jobId}: Error during pre-test semantic validation: ${validationError.message}`);
+          // Decide if this should halt the process or just log
+          // For now, let's log and proceed to testing, but this could be made stricter
+      }
+      // --- End Phase 2 ---
 
       // --- Testing Phase (Common Logic, if enabled) ---
       if (!state.options.testConfig) {
@@ -630,8 +721,8 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
           // Enhanced error logging with more context
           if (testNavResult.error && testNavResult.error.includes("selector")) {
             // Extract the failing selector from the error message using regex
-            const selectorMatch = testNavResult.error.match(/(['"])([^'"]+)\\1/);
-            const failingSelector = selectorMatch ? selectorMatch[2] : null;
+            const selectorMatch = testNavResult.error.match(/(?:waiting for selector|selector \"|selector \')(.*?)(?:\"|\'|\s)/);
+            const failingSelector = selectorMatch ? selectorMatch[1] : null;
             
             // Add selector analysis if we could identify the selector
             if (failingSelector) {
@@ -683,7 +774,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
 
           state.lastError = testErrorLog; // Store enhanced error for the next potential fix iteration
           state.testResult = testNavResult.result; // Store partial result if any
-          logger.warn(`Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - ${testNavResult.error}`);
+          logger.warn(`Job ${jobId}: Test FAILED (Iteration ${state.iteration}) - See enhanced error log stored in state.`);
 
           // Add to fix history for test failures
           if (currentConfig) { // Use currentConfig here as it passed validation
@@ -700,10 +791,14 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
         testPassed = false;
         testErrorLog = `Test execution crashed: ${execError.message}`;
 
-        // --- Simulate Adding Diagnostics (Crash Scenario) --- 
-        testErrorLog += `\n\n[Simulated Diagnostics: Screenshot available at failure_screenshot_${jobId}_iter${state.iteration}.png]`;
-        testErrorLog += `\n[Simulated Diagnostics: Console Logs Captured (Crash)]`;
-        // --- End Simulation ---
+        // --- Phase 3: Enhance Error Feedback (Crash) --- Start ---
+        testErrorLog += `\n**Hint:** The test execution crashed. This might be due to an unexpected page state, a fundamental error in the step logic (not just selectors), or a browser issue. Review the failing step and the configuration logic.`;
+        // --- Phase 3: Enhance Error Feedback (Crash) --- End ---
+
+         // --- Simulate Adding Diagnostics (Crash Scenario) --- 
+         testErrorLog += `\n\n[Simulated Diagnostics: Screenshot available at failure_screenshot_${jobId}_iter${state.iteration}.png]`;
+         testErrorLog += `\n[Simulated Diagnostics: Console Logs Captured (Crash)]`;
+         // --- End Simulation ---
 
          // --- Capture HTML on crash ---
          try {
@@ -818,8 +913,7 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
   // Use progress from the end of the test phase for the final failure state
   await updateJobStatus(job, state, PROGRESS_TEST_END);
 
-   // Store the final failed state? Optional, but might be useful for debugging.
-   // Store the last generated config even if it failed the final test.
+   // Store the final failed state with the same status that we'll return
    await storageService.store({
      id: jobId,
      queueName: job.queueName,
@@ -831,6 +925,12 @@ export async function processGenerateConfigJob(job: Job): Promise<GenerateConfig
      status: 'failed', // Explicitly store failed status
      errorMessage: state.lastError, // Store the final error message
    });
+
+  // Update job data to ensure consistent status
+  await job.updateData({
+    ...job.data,
+    status: 'failed',
+  });
 
   // Instead of throwing an error, return the last configuration in a failed state
   return {

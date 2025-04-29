@@ -122,6 +122,10 @@ export interface NavigationStep {
   waitForNetworkIdle?: boolean; // Optional: Wait for network activity to cease before proceeding
   networkIdleTimeout?: number; // Optional: Timeout for network idle wait (default: 30000)
   // ---------------------------------
+  
+  // --- Input Specific ---
+  useFocusedElement?: boolean; // Optional: If true, type into the currently focused element without specifying a selector
+  // ----------------------
 }
 
 /**

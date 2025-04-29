@@ -45,33 +45,37 @@ export class SwitchToFrameStepHandler extends BaseStepHandler {
     try {
       // --- Find the frame ---
       if (selector) {
-        const resolvedSelector = this.resolveValue(selector, context) as string;
-        logger.debug(`Locating frame using selector: ${resolvedSelector}`);
-        const elementHandle = await page.waitForSelector(resolvedSelector, {
-          state: 'attached', // Wait for the element to be in the DOM
-          timeout: step.timeout || 10000,
-        });
-        if (!elementHandle) {
-          throw new Error(`Iframe element not found for selector: ${resolvedSelector}`);
+        // Resolve the selector value from context, which might be a string or array
+        const resolvedSelector = this.resolveValue(selector, context);
+        
+        // Handle different selector formats properly
+        if (Array.isArray(resolvedSelector)) {
+          // Handle array of selectors by trying each one until success
+          logger.debug(`Trying multiple frame selectors (array of ${resolvedSelector.length})`);
+          frame = await this.tryMultipleSelectors(page, resolvedSelector, step.timeout);
+        } else if (typeof resolvedSelector === 'string' && resolvedSelector.includes(',')) {
+          // Handle comma-separated CSS selector list by splitting and trying each
+          const selectorParts = resolvedSelector.split(',').map(s => s.trim()).filter(Boolean);
+          logger.debug(`Trying multiple frame selectors (comma-separated, ${selectorParts.length} parts)`);
+          frame = await this.tryMultipleSelectors(page, selectorParts, step.timeout);
+        } else if (typeof resolvedSelector === 'string') {
+          // Simple string selector
+          logger.debug(`Locating frame using selector: ${resolvedSelector}`);
+          frame = await this.findFrameBySelector(page, resolvedSelector, step.timeout);
+        } else {
+          throw new Error(`Invalid selector format for iframe: ${typeof resolvedSelector}`);
         }
-        frame = await elementHandle.contentFrame();
+        
         if (!frame) {
-          throw new Error(`Could not get content frame for selector: ${resolvedSelector}`);
+          throw new Error(`Could not find frame with any of the provided selectors`);
         }
-        logger.debug(`Found frame using selector: ${resolvedSelector}`);
       } else if (frameId) {
         // Playwright's page.frame() doesn't directly support ID, use name or URL pattern
         // A common workaround is to use a selector targeting the ID
         const idSelector = `iframe#${frameId}`;
         logger.debug(`Locating frame using ID selector: ${idSelector}`);
-        const elementHandle = await page.waitForSelector(idSelector, {
-          state: 'attached',
-          timeout: step.timeout || 10000,
-        });
-        if (!elementHandle) {
-          throw new Error(`Iframe element not found for ID: ${frameId}`);
-        }
-        frame = await elementHandle.contentFrame();
+        frame = await this.findFrameBySelector(page, idSelector, step.timeout);
+        
         if (!frame) {
           throw new Error(`Could not get content frame for ID: ${frameId}`);
         }
@@ -97,29 +101,20 @@ export class SwitchToFrameStepHandler extends BaseStepHandler {
       }
 
       // --- Execute steps within the frame ---
-      logger.info(`Executing ${steps.length} steps within frame context.`);
-      // IMPORTANT: We need to pass the 'frame' object to the sub-handlers.
-      // Current BaseStepHandler and execute signatures expect a Page.
-      // This requires modification or careful handling in sub-steps.
-      // For now, let's assume sub-handlers can work with frame locators.
-      // A better approach might be to pass the frame as part of the context
-      // or modify the execute signature. Let's try passing the frame directly.
-
+      logger.info(`Executing ${steps?.length || 0} steps within frame context.`);
+      
+      // Skip if no steps to execute
+      if (!steps || steps.length === 0) {
+        logger.debug('No steps specified to execute within frame');
+        return {};
+      }
+      
+      // Execute each step in the frame
       for (let i = 0; i < steps.length; i++) {
         const subStep = steps[i];
         try {
           const handler = this.handlerFactory.getHandler(subStep.type);
           // Execute the sub-step, passing the FRAME instead of the PAGE
-          // This assumes handlers are adapted or use locators relative to the passed scope.
-          // TODO: Verify/adapt all handlers to accept Frame | Page as scope.
-          // For now, casting 'frame' as 'Page' might work if handlers use frame.locator()
-          // which has a similar API to page.locator(). This is risky.
-          // A safer temporary approach: pass frame in context.
-          // const frameContext = { ...context, __currentFrame: frame };
-          // Let's assume BaseStepHandler is modified to check context.__currentFrame
-          // and use frame.locator() if present, otherwise page.locator().
-          // OR, modify execute signature (major change).
-          // Sticking with passing frame directly for now, assuming handlers adapt.
           await handler.execute(subStep, context, frame as any as Page); // Risky cast!
         } catch (error: any) {
           const subStepErrorMessage = `Error executing sub-step ${i + 1} (${
@@ -153,14 +148,92 @@ export class SwitchToFrameStepHandler extends BaseStepHandler {
       }
     } finally {
       // --- Switch back to default context (main page) ---
-      // This is tricky as Playwright doesn't have an explicit "switch back".
-      // Operations are implicitly on the main page unless a frame locator is used.
-      // If sub-handlers were passed the frame object directly, subsequent steps
-      // outside this handler will correctly use the main page object again.
-      // So, no explicit action needed here if handlers receive the correct scope.
       if (switchToDefault) {
         logger.debug('Implicitly returning to main page context after frame operations.');
       }
     }
+  }
+  
+  /**
+   * Helper method to find a frame by selector with proper error handling
+   */
+  private async findFrameBySelector(
+    page: Page, 
+    selector: string, 
+    timeout?: number
+  ): Promise<Frame | null> {
+    try {
+      // First check if the element exists
+      const elementHandle = await page.waitForSelector(selector, {
+        state: 'attached',
+        timeout: timeout || 10000,
+      });
+      
+      if (!elementHandle) {
+        return null;
+      }
+      
+      // Get the contentFrame from the element
+      const frame = await elementHandle.contentFrame();
+      return frame;
+    } catch (error) {
+      logger.warn(`Error finding frame with selector "${selector}": ${error instanceof Error ? error.message : String(error)}`);
+      return null;
+    }
+  }
+  
+  /**
+   * Try multiple selectors until one works
+   */
+  private async tryMultipleSelectors(
+    page: Page, 
+    selectors: string[], 
+    timeout?: number
+  ): Promise<Frame | null> {
+    logger.debug(`Trying ${selectors.length} different selectors to find frame`);
+    
+    // Try with specific timeout for each selector
+    const perSelectorTimeout = Math.max(1000, Math.floor((timeout || 10000) / selectors.length));
+    
+    // First attempt - Try each selector quickly
+    for (const selector of selectors) {
+      const frame = await this.findFrameBySelector(page, selector, perSelectorTimeout);
+      if (frame) {
+        logger.debug(`Found frame with selector: ${selector}`);
+        return frame;
+      }
+    }
+    
+    // Second attempt - Wait a bit and retry once more with longer timeout
+    await page.waitForTimeout(1000);
+    logger.debug('First attempt failed, retrying frame selectors with longer timeout');
+    
+    // Retry with more time
+    for (const selector of selectors) {
+      const frame = await this.findFrameBySelector(page, selector, perSelectorTimeout * 2);
+      if (frame) {
+        logger.debug(`Found frame with selector after retry: ${selector}`);
+        return frame;
+      }
+    }
+    
+    // Check if any iframes exist on the page for better logging
+    const iframeCount = await page.evaluate(() => document.querySelectorAll('iframe').length);
+    if (iframeCount > 0) {
+      logger.warn(`Found ${iframeCount} iframes but none matched the selectors`);
+      // Log iframe sources for debugging
+      await page.evaluate(() => {
+        const iframes = document.querySelectorAll('iframe');
+        const sources = Array.from(iframes).map((iframe, index) => {
+          const src = iframe.getAttribute('src') || iframe.getAttribute('data-src') || 'no-src';
+          return `iframe[${index}]: ${src}`;
+        });
+        console.log('Available iframes:', sources.join('\n'));
+      });
+    } else {
+      logger.warn('No iframes found on the page');
+    }
+    
+    return null;
   }
 }

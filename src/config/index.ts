@@ -37,6 +37,7 @@ interface BrowserConfig {
       width: number;
       height: number;
     };
+    defaultReferer?: string;
   };
   session?: {
     ttl: number; // Time to live in milliseconds
@@ -150,6 +151,7 @@ export const config: Config = {
         width: 1920,
         height: 1080,
       },
+      defaultReferer: process.env.DEFAULT_REFERER || 'https://www.google.com/',
     },
     session: {
       ttl: parseInt(process.env.SESSION_TTL || '86400000', 10),
