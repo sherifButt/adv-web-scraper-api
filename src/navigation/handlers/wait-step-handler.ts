@@ -17,8 +17,15 @@ export class WaitStepHandler implements IStepHandler {
   public async execute(step: NavigationStep, context: Record<string, any>): Promise<StepResult> {
     // Change return type
     if (typeof step.value === 'number') {
-      logger.info(`Waiting for ${step.value}ms`);
-      await this.page.waitForTimeout(step.value);
+      let waitTime = step.value;
+      if (step.humanLike) {
+        // Randomize between 80% and 120% of the original value
+        waitTime = Math.floor(step.value * (0.8 + Math.random() * 0.4));
+        logger.info(`Waiting with human-like randomization: around ${step.value}ms, actual: ${waitTime}ms`);
+      } else {
+        logger.info(`Waiting for ${waitTime}ms`);
+      }
+      await this.page.waitForTimeout(waitTime);
     } else if (typeof step.value === 'string') {
       const selector = this.resolveValue(step.value, context);
       logger.info(`Waiting for element: ${selector}`);

@@ -55,14 +55,16 @@ export class LoginStepHandler extends BaseStepHandler {
       await usernameLocator.waitFor({ state: 'visible', timeout: step.timeout || 10000 });
       // Consider using human-like typing from BehaviorEmulator if needed
       await usernameLocator.fill(resolvedUsername);
-      await this.simulateThinkTime(); // Add a small pause
+      // Make think time conditional
+      if(step.humanLike) await this.simulateThinkTime(); // Add a small pause
 
       // --- Fill Password ---
       logger.debug(`Filling password in selector: ${passwordSelector}`);
       const passwordLocator = page.locator(passwordSelector);
       await passwordLocator.waitFor({ state: 'visible', timeout: step.timeout || 10000 });
       await passwordLocator.fill(resolvedPassword);
-      await this.simulateThinkTime();
+      // Make think time conditional
+      if(step.humanLike) await this.simulateThinkTime();
 
       // --- Click Submit ---
       logger.debug(`Clicking submit button: ${submitSelector}`);

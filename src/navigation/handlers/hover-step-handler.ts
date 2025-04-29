@@ -50,7 +50,12 @@ export class HoverStepHandler extends BaseStepHandler {
     await this.mouseHandler.execute(mouseMoveStep, context, page);
 
     // Wait for the remaining duration to simulate the hover pause
-    await page.waitForTimeout(duration / 2);
+    let hoverPause = duration / 2;
+    if (step.humanLike && duration > 0) { // Only randomize if duration is positive
+        hoverPause = Math.floor(hoverPause * (0.8 + Math.random() * 0.4));
+        logger.debug(`Using human-like hover pause: ${hoverPause}ms`);
+    }
+    await page.waitForTimeout(hoverPause);
 
     // Handle original step's waitFor after the hover action is complete
     if (step.waitFor) await this.handleWaitFor(step.waitFor, timeout);

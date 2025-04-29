@@ -56,12 +56,20 @@ export class ScrollStepHandler extends BaseStepHandler {
           }
         );
 
+        // Scroll additional distance if specified
         if (step.distance) {
           await page.evaluate(distance => {
             window.scrollBy({ top: distance, behavior: 'smooth' });
           }, step.distance);
         }
-        await page.waitForTimeout(800); // Stabilization wait
+
+        // Stabilization wait with humanLike randomization
+        let stabilizationWait = 800;
+        if (step.humanLike) {
+          stabilizationWait = Math.floor(stabilizationWait * (0.8 + Math.random() * 0.4));
+          logger.debug(`Using human-like scroll stabilization wait: ${stabilizationWait}ms`);
+        }
+        await page.waitForTimeout(stabilizationWait);
       } else {
         // Custom scroll behavior with human-like movement
         const box = await page.$eval(resolvedSelector, el => {
@@ -98,8 +106,14 @@ export class ScrollStepHandler extends BaseStepHandler {
       }
     }
 
-    // Wait after scroll action
-    await page.waitForTimeout(step.timeout || 500); // Use step timeout or default
+    // Wait after scroll action with humanLike randomization
+    let finalWait = step.timeout || 500;
+    if (step.humanLike) {
+        finalWait = Math.floor(finalWait * (0.8 + Math.random() * 0.4));
+        logger.debug(`Using human-like final scroll wait: ${finalWait}ms`);
+    }
+    await page.waitForTimeout(finalWait);
+
     if (step.waitFor) await this.handleWaitFor(step.waitFor, timeout);
     return {};
   }

@@ -78,7 +78,13 @@ export class ClickStepHandler extends BaseStepHandler implements IStepHandler {
       logger.info(`Triggering keyboard (Spacebar) click on element: ${selector}`);
       await elementToClick.focus(); // Removed timeout argument
       await this.page.keyboard.down('Space');
-      await this.page.waitForTimeout(100); // Brief pause for reliability
+      // Add humanLike randomization to the pause
+      let keyPause = 100;
+      if (step.humanLike) {
+        keyPause = Math.floor(keyPause * (0.8 + Math.random() * 0.4));
+        logger.debug(`Using human-like key press pause: ${keyPause}ms`);
+      }
+      await this.page.waitForTimeout(keyPause); // Brief pause for reliability
       await this.page.keyboard.up('Space');
     } else if (clickMethod === 'double') {
       logger.info(`Performing double click on element: ${selector}`);

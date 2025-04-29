@@ -82,9 +82,16 @@ export class PressStepHandler extends BaseStepHandler {
             ? `${resolvedModifiers.join('+')}+${resolvedKey}`
             : resolvedKey;
 
+          // Apply humanLike randomization to delay if applicable
+          let finalDelay = resolvedDelay;
+          if (step.humanLike && finalDelay && finalDelay > 0) {
+            finalDelay = Math.floor(finalDelay * (0.8 + Math.random() * 0.4));
+            logger.debug(`Using human-like key press delay: ${finalDelay}ms`);
+          }
+
           // Pass only delay in the options object
           await page.keyboard.press(keyWithModifiers, {
-            delay: resolvedDelay,
+            delay: finalDelay, // Use potentially randomized delay
           });
           logger.info(`Pressed key combination: ${keyWithModifiers}`);
           break;

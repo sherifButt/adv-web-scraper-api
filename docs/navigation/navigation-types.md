@@ -23,13 +23,23 @@ Waits for a condition.
 ```typescript
 {
   type: 'wait',
-  value: 5000 // ms
+  value: 5000, // ms
+  humanLike: true // Optional: Randomizes wait time slightly around the specified value (only for numeric values)
   // OR
   value: '#element' // selector
   // OR
   waitFor: 'navigation' // 'networkidle'
 }
 ```
+
+**Parameters:**
+
+-   `value` (number | string):
+    -   If a `number`, waits for the specified milliseconds.
+    -   If a `string`, waits for the element matching the CSS selector to be visible.
+-   `waitFor` (string): Alternatively, wait for `'navigation'` or `'networkidle'`.
+-   `humanLike` (boolean, optional): If `true` and `value` is a number, the actual wait time will be randomized between 80% and 120% of the provided `value` to simulate human variability. Defaults to `false`.
+-   `timeout` (number, optional): Maximum time in milliseconds to wait for selector-based or `waitFor`-based conditions (default: 30000ms).
 
 ## Mouse Interactions
 
@@ -68,6 +78,7 @@ Clicks an element using various methods (single, double, keyboard) and options. 
 -   `waitFor` (optional): A condition (selector, timeout in ms, 'navigation', 'networkidle') to wait for after the click action completes.
 -   `timeout` (optional): Maximum time in milliseconds for the click action itself (finding the element and performing the click/dblclick). Defaults to 30000ms.
 -   `optional` (optional): If `true`, failure to find or click the element will not halt the flow.
+-   `humanLike` (boolean, optional): If `true` and `clickMethod` is `'keyboard'`, randomizes the brief pause between key down and key up. Defaults to `false`.
 
 **Examples:**
 
@@ -202,10 +213,20 @@ Hovers over an element.
 {
   type: 'hover',
   selector: '.tooltip-trigger',
-  duration: 1500, // hover time in ms
+  duration: 1500, // total hover time (move + pause) in ms
+  humanLike: true, // Optional: Randomizes the pause duration after moving the mouse
   waitFor: '.tooltip' // optional
 }
 ```
+
+**Parameters:**
+
+-   `selector`: CSS selector for the element to hover over.
+-   `duration` (number, optional): The total time in milliseconds for the hover action (mouse move + pause). Defaults to 1000ms. Half the time is used for the move, half for the pause.
+-   `humanLike` (boolean, optional): If `true`, the pause duration after the mouse move is randomized (+/- 20%). Defaults to `false`.
+-   `waitFor` (optional): Condition to wait for after the hover completes.
+-   `timeout` (number, optional): Max time to wait for the element to be visible. Defaults to 30000ms.
+-   `optional` (boolean, optional): If `true`, failure will not halt the flow.
 
 ### Selecting within Shadow DOM
 
@@ -321,7 +342,8 @@ Handles common login flows involving username, password, and submit button.
   passwordValue: '{{secrets.password}}', // Password (use context/secrets)
   waitForNavigation: true, // Optional: Wait for navigation after submit (default: true). Can be selector or timeout (ms).
   // strategy: 'standard', // Optional: For future complex flows (e.g., SSO)
-  description: 'Log into the application' // Optional description
+  description: 'Log into the application', // Optional description
+  humanLike: false // Optional: If true, adds small, randomized "think time" pauses after filling username and password fields. Defaults to `false`.
 }
 ```
 
@@ -338,6 +360,7 @@ Handles common login flows involving username, password, and submit button.
     -   `string` (selector): Waits for the specified selector to become visible.
     -   `number` (ms): Waits for the specified number of milliseconds.
 -   `description` (optional): Custom description for logging purposes.
+-   `humanLike` (boolean, optional): If `true`, adds small, randomized "think time" pauses after filling username and password fields. Defaults to `false`.
 
 **Functionality:**
 
@@ -389,7 +412,9 @@ Simulates keyboard key presses, including single keys, modifiers, and sequences 
   delay: 100, // Optional: Delay (ms) between down/up for 'press' action
   selector: '#myInput', // Optional: CSS selector to focus before pressing
   waitFor: '#result', // Optional: Wait condition after pressing
-  description: 'Press Shift+Command+Enter in the input field' // Optional
+  description: 'Press Shift+Command+Enter in the input field', // Optional
+  timeout: 30000, // Optional: Maximum time in milliseconds for associated waits (like `waitForSelector` if `selector` is used, or the `waitFor` condition). Defaults to 30000ms.
+  optional: false // Optional: If true, failure during the step (e.g., element not found for focus) will not halt the flow (default: false).
 }
 ```
 
@@ -407,6 +432,7 @@ Simulates keyboard key presses, including single keys, modifiers, and sequences 
 -   `description` (optional): Custom description for logging purposes.
 -   `timeout` (optional): Maximum time in milliseconds for associated waits (like `waitForSelector` if `selector` is used, or the `waitFor` condition). Defaults to 30000ms.
 -   `optional` (optional): If `true`, failure during the step (e.g., element not found for focus) will not halt the flow (default: `false`).
+-   `humanLike` (boolean, optional): If `true` and the `action` is `'press'` with a specified `delay`, the delay between key down and key up will be randomized (+/- 20%). Defaults to `false`.
 
 **Functionality:**
 
@@ -930,7 +956,8 @@ Scrolls the page or to a specific element with advanced options.
   timeout: 5000,       // maximum wait time in ms
 
   // Common options:
-  waitFor: '#next-section' // optional selector to wait for
+  waitFor: '#next-section', // optional selector to wait for
+  humanLike: true       // Optional: Randomizes certain internal wait times
 }
 ```
 
