@@ -77,37 +77,64 @@ export class ScrollStepHandler extends BaseStepHandler {
           return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
         });
 
-        const scrollY = box.y - window.innerHeight / 2;
-        const scrollX = box.x - window.innerWidth / 2;
+        // Calculate target scroll based on element position relative to viewport center
+        // Note: This calculation assumes scrolling the window/main frame.
+        // Adjust if scrolling within a specific scrollable element is needed.
+        const viewportSize = page.viewportSize() || { width: 1280, height: 720 }; // Default if null
+        const targetScrollY = box.y - viewportSize.height / 2;
+        const targetScrollX = box.x - viewportSize.width / 2;
 
-        await this.behaviorEmulator.scrollTo({
-          x: scrollX,
-          y: scrollY,
-          margin: step.scrollMargin,
-          duration: 1000 + Math.random() * 1000,
+        // Use behavior emulator for the scroll
+        await this.behaviorEmulator.scroll({
+          // Pass deltas, not absolute coordinates
+          x: targetScrollX - (await page.evaluate(() => window.scrollX)),
+          y: targetScrollY - (await page.evaluate(() => window.scrollY)),
+          duration: step.humanLike ? 1000 + Math.random() * 1000 : 500, // Use humanLike duration
+          // Margin is complex with coordinate scrolling, consider applying after if needed
         });
       }
     } else {
-      // Original directional scrolling behavior
+      // Directional scrolling behavior
       const direction = step.direction || 'down';
-      const distance =
-        typeof step.distance === 'number' ? this.resolveValue(step.distance, context) : 100;
+      let distance = typeof step.distance === 'number' ? this.resolveValue(step.distance, context) : 100;
+      let deltaX = 0;
+      let deltaY = 0;
 
-      logger.info(`Scrolling ${direction} by ${distance}px`);
+      if (step.humanLike) {
+        // Randomize distance slightly
+        const originalDistance = distance;
+        distance = Math.floor(distance * (0.8 + Math.random() * 0.4));
+        logger.info(`Scrolling ${direction} with human-like randomization: target ~${originalDistance}px, actual ${distance}px`);
+      } else {
+        logger.info(`Scrolling ${direction} by ${distance}px`);
+      }
 
+      // Map direction to delta values
       if (direction === 'down') {
-        await page.evaluate(dist => window.scrollBy(0, dist), distance);
+        deltaY = distance;
       } else if (direction === 'up') {
-        await page.evaluate(dist => window.scrollBy(0, -dist), distance);
+        deltaY = -distance;
       } else if (direction === 'left') {
-        await page.evaluate(dist => window.scrollBy(-dist, 0), distance);
+        deltaX = -distance;
       } else if (direction === 'right') {
-        await page.evaluate(dist => window.scrollBy(dist, 0), distance);
+        deltaX = distance;
+      }
+
+      if (step.humanLike) {
+        // Use BehaviorEmulator for smoother, variable-speed scroll
+        await this.behaviorEmulator.scroll({
+          x: deltaX,
+          y: deltaY,
+          duration: 800 + Math.random() * 600, // Randomize duration
+        });
+      } else {
+        // Original direct scroll for non-humanLike
+        await page.evaluate(({ dx, dy }) => window.scrollBy(dx, dy), { dx: deltaX, dy: deltaY });
       }
     }
 
     // Wait after scroll action with humanLike randomization
-    let finalWait = step.timeout || 500;
+    let finalWait = step.timeout || 500; // Default wait is 500ms, not step.timeout
     if (step.humanLike) {
         finalWait = Math.floor(finalWait * (0.8 + Math.random() * 0.4));
         logger.debug(`Using human-like final scroll wait: ${finalWait}ms`);

@@ -359,9 +359,36 @@ export class MouseStepHandler extends BaseStepHandler {
       }
 
       case 'click': {
-        await page.mouse.down();
-        await page.waitForTimeout(50 + Math.random() * 50);
-        await page.mouse.up();
+        // If target was a selector, we assume the mouse is already in position
+        // from the moveToSelector call (which handles randomizeOffset).
+        // We just need to perform the down/up action at the current location.
+        if (step.mouseTarget?.selector) {
+          logger.debug('Performing click at current mouse position (after move to selector)');
+          await page.mouse.down();
+          await page.waitForTimeout(50 + Math.random() * 50); // Keep small random delay
+          await page.mouse.up();
+        }
+        // If target was coordinates, calculate final click position (with randomization if humanLike)
+        else if (step.mouseTarget?.x !== undefined && step.mouseTarget?.y !== undefined) {
+          let clickX = this.resolveValue(step.mouseTarget.x, context);
+          let clickY = this.resolveValue(step.mouseTarget.y, context);
+
+          if (step.humanLike) {
+            const offsetRange = 2; // +/- 2 pixels
+            const randomOffsetX = (Math.random() - 0.5) * 2 * offsetRange;
+            const randomOffsetY = (Math.random() - 0.5) * 2 * offsetRange;
+            clickX += randomOffsetX;
+            clickY += randomOffsetY;
+            logger.debug(`Applying human-like coordinate randomization: clicking at (${clickX.toFixed(2)}, ${clickY.toFixed(2)})`);
+          }
+
+          // Perform the click at the calculated coordinates
+          await page.mouse.click(clickX, clickY, {
+              delay: 50 + Math.random() * 50 // Keep small random delay between down/up
+          });
+        } else {
+          throw new Error('Cannot determine click target for mouse action.');
+        }
         break;
       }
 

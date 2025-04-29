@@ -1,13 +1,19 @@
 import { Page } from 'playwright';
 import { NavigationStep, StepResult } from '../types/navigation.types.js'; // Import StepResult
 import { logger } from '../../utils/logger.js';
-import { IStepHandler } from '../types/step-handler.interface.js';
+// Remove IStepHandler import, import BaseStepHandler
+// import { IStepHandler } from '../types/step-handler.interface.js';
+import { BaseStepHandler } from './base-step-handler.js';
 
-export class WaitStepHandler implements IStepHandler {
-  private page: Page;
+// Extend BaseStepHandler
+export class WaitStepHandler extends BaseStepHandler {
+  // Remove private page property, inherited from BaseStepHandler
+  // private page: Page;
 
+  // Update constructor to call super
   constructor(page: Page) {
-    this.page = page;
+    super(page);
+    // this.page = page;
   }
 
   public canHandle(step: NavigationStep): boolean {
@@ -25,18 +31,23 @@ export class WaitStepHandler implements IStepHandler {
       } else {
         logger.info(`Waiting for ${waitTime}ms`);
       }
+      // Use this.page from BaseStepHandler
       await this.page.waitForTimeout(waitTime);
     } else if (typeof step.value === 'string') {
+      // Use inherited resolveValue
       const selector = this.resolveValue(step.value, context);
       logger.info(`Waiting for element: ${selector}`);
+      // Use this.page from BaseStepHandler
       await this.page.waitForSelector(selector, {
         state: 'visible',
         timeout: step.timeout || 30000,
       });
     } else if (step.waitFor) {
+      // Use inherited handleWaitFor
       await this.handleWaitFor(step.waitFor, step.timeout);
     } else {
       logger.info('Waiting for network idle');
+      // Use this.page from BaseStepHandler
       await this.page.waitForLoadState('networkidle', {
         timeout: step.timeout || 30000,
       });
@@ -45,6 +56,8 @@ export class WaitStepHandler implements IStepHandler {
     return {}; // Return empty StepResult
   }
 
+  // Remove private handleWaitFor, inherited from BaseStepHandler
+  /*
   private async handleWaitFor(waitFor: string | number | any, timeout?: number): Promise<void> {
     const actualTimeout = timeout || 30000;
     if (typeof waitFor === 'number') {
@@ -65,7 +78,10 @@ export class WaitStepHandler implements IStepHandler {
       });
     }
   }
+  */
 
+  // Remove private resolveValue, inherited from BaseStepHandler
+  /*
   private resolveValue(value: any, context: Record<string, any>): any {
     if (value === undefined || value === null) return value;
     if (typeof value === 'function') return value(context);
@@ -82,4 +98,5 @@ export class WaitStepHandler implements IStepHandler {
     }
     return value;
   }
+  */
 }

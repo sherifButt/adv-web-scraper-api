@@ -102,6 +102,19 @@ export class ClickStepHandler extends BaseStepHandler implements IStepHandler {
           dblClickOptions[key as keyof typeof dblClickOptions] === undefined &&
           delete dblClickOptions[key as keyof typeof dblClickOptions]
       );
+
+      // Apply humanLike position randomization if no explicit position is set
+      if (step.humanLike && !dblClickOptions.position) {
+        const box = await elementToClick.boundingBox();
+        if (box) {
+          // Click within the central 80% of the element
+          const randomX = box.x + box.width * 0.1 + Math.random() * box.width * 0.8;
+          const randomY = box.y + box.height * 0.1 + Math.random() * box.height * 0.8;
+          dblClickOptions.position = { x: randomX - box.x, y: randomY - box.y }; // Position relative to top-left
+          logger.debug(`Applying human-like random position for double click: ${JSON.stringify(dblClickOptions.position)}`);
+        }
+      }
+
       await elementToClick.dblclick(dblClickOptions);
     } else {
       // Default to single click ('single' or unspecified)
@@ -123,6 +136,18 @@ export class ClickStepHandler extends BaseStepHandler implements IStepHandler {
           clickOptions[key as keyof typeof clickOptions] === undefined &&
           delete clickOptions[key as keyof typeof clickOptions]
       );
+
+      // Apply humanLike position randomization if no explicit position is set
+      if (step.humanLike && !clickOptions.position) {
+        const box = await elementToClick.boundingBox();
+        if (box) {
+           // Click within the central 80% of the element
+          const randomX = box.x + box.width * 0.1 + Math.random() * box.width * 0.8;
+          const randomY = box.y + box.height * 0.1 + Math.random() * box.height * 0.8;
+          clickOptions.position = { x: randomX - box.x, y: randomY - box.y }; // Position relative to top-left
+          logger.debug(`Applying human-like random position for single click: ${JSON.stringify(clickOptions.position)}`);
+        }
+      }
 
       logger.debug(`Performing Playwright click with options: ${JSON.stringify(clickOptions)}`);
       await elementToClick.click(clickOptions);
