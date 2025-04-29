@@ -9,6 +9,8 @@ import { StorageService } from '../../storage/index.js';
 import { logger } from '../../utils/logger.js';
 import { NavigationRequest, NavigationResult } from '../../types/index.js';
 import { config } from '../../config/index.js';
+import { validateNavigateRequest } from '../validators/navigation.validator.js';
+import { BrowserOptions } from '../../core/browser/browser-pool.js';
 
 const router = Router();
 const browserPool = BrowserPool.getInstance();
@@ -37,40 +39,21 @@ const storageService = StorageService.getInstance();
  */
 router.post(
   '/',
+  validateNavigateRequest,
   asyncHandler(async (req, res) => {
     try {
-      const { startUrl, steps, variables, options }: NavigationRequest = req.body;
-
-      // Validate request
-      if (!startUrl) {
-        return res.status(400).json({
-          success: false,
-          message: 'Start URL is required',
-          error: 'Missing required parameter: startUrl',
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      if (!steps || !Array.isArray(steps) || steps.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Navigation steps are required',
-          error: 'Missing required parameter: steps',
-          timestamp: new Date().toISOString(),
-        });
-      }
+      const { startUrl, steps, variables, browserOptions, options }: NavigationRequest & { browserOptions?: BrowserOptions } = req.body;
 
       logger.info(`Queueing navigation job for URL: ${startUrl}`);
 
-      // Queue the navigation job
       const job = await queueService.addJob('navigation-jobs', 'execute-flow', {
         startUrl,
         steps,
         variables: variables || {},
+        browserOptions,
         options,
       });
 
-      // Return job information
       return res.status(202).json({
         success: true,
         message: 'Navigation job queued successfully',

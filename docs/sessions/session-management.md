@@ -84,6 +84,31 @@ curl -X POST http://localhost:3001/api/v1/navigate \
 
 This request will execute the navigation steps within the context of the specified session, leveraging its cookies, local storage, and browser settings.
 
+**Overriding Browser Settings per Navigation:**
+
+You can also provide specific browser settings for a single navigation job by including a `browserOptions` object in the request body. This allows overriding defaults like the `User-Agent` or setting specific headers like `Referer` for just this job.
+
+```bash
+curl -X POST http://localhost:3001/api/v1/navigate \
+  -H "Content-Type: application/json" \
+  -H "X-Session-ID: your_session_id_here" \
+  -d '{
+    "startUrl": "https://specific-site.com",
+    "browserOptions": {
+      "userAgent": "MyCustomAgent/1.0",
+      "extraHTTPHeaders": {
+        "Referer": "https://specific-site.com/previous-page",
+        "X-Custom-Header": "SomeValue"
+      }
+    },
+    "steps": [
+      { "type": "screenshot", "name": "landing" }
+    ]
+  }'
+```
+
+The `browserOptions` object accepts fields like `userAgent`, `viewport`, `proxy`, and `extraHTTPHeaders`. Headers in `extraHTTPHeaders` will be merged with (and potentially override) the global default headers (like the default `Referer`).
+
 ## Storage Adapters
 | Adapter   | Best For              | Persistence | Performance |
 |-----------|-----------------------|-------------|-------------|

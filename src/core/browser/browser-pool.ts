@@ -34,6 +34,7 @@ export interface BrowserOptions {
     width: number;
     height: number;
   };
+  extraHTTPHeaders?: Record<string, string>;
 }
 
 /**
@@ -100,25 +101,33 @@ export class BrowserPool {
       throw new Error('Browser instance not found in pool');
     }
 
+    // Prepare context options, merging defaults and request-specific options
     const contextOptions = {
       viewport: options.viewport || config.browser.defaultOptions.defaultViewport,
-      userAgent: options.userAgent,
+      userAgent: options.userAgent, // User agent from options takes precedence
       proxy: options.proxy,
+      // Other context options like locale, timezone could be added here if needed
     };
 
     const context = await browser.newContext(contextOptions);
 
-    // Set default Referer if configured
-    const extraHeaders: Record<string, string> = {};
+    // Prepare and set extra HTTP headers
+    const headersToSet: Record<string, string> = {};
+
+    // 1. Apply global default Referer (if configured)
     if (config.browser.defaultOptions.defaultReferer) {
-      extraHeaders['Referer'] = config.browser.defaultOptions.defaultReferer;
+      headersToSet['Referer'] = config.browser.defaultOptions.defaultReferer;
     }
 
-    // TODO: Merge with potential headers from options if needed in the future
+    // 2. Merge/overwrite with headers provided in options
+    if (options.extraHTTPHeaders) {
+      Object.assign(headersToSet, options.extraHTTPHeaders);
+    }
 
-    if (Object.keys(extraHeaders).length > 0) {
-      await context.setExtraHTTPHeaders(extraHeaders);
-      logger.debug(`Set extra HTTP headers for context: ${JSON.stringify(extraHeaders)}`);
+    // 3. Apply the final set of headers
+    if (Object.keys(headersToSet).length > 0) {
+      await context.setExtraHTTPHeaders(headersToSet);
+      logger.debug(`Set extra HTTP headers for context: ${JSON.stringify(headersToSet)}`);
     }
 
     instance.contexts.push(context);
